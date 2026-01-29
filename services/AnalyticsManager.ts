@@ -20,7 +20,7 @@ interface MonthlySpendTrend {
 
 export class AnalyticsManager {
   static async getDashboardStats(): Promise<DashboardStats> {
-    const requests = await RequestManager.getRequests();
+    const requests = await RequestManager.getRequests() || [];
     return MockApiService.request(() => {
       return {
         pendingCount: requests.filter(r => r.status === RequestStatus.PENDING).length,
@@ -32,7 +32,7 @@ export class AnalyticsManager {
   }
 
   static async getCategoryDistribution(filteredRequests?: RequestForm[]) {
-    const requests = filteredRequests || await RequestManager.getRequests();
+    const requests = filteredRequests || await RequestManager.getRequests() || [];
     return MockApiService.request(() => {
       const categories: Record<string, number> = {};
       
@@ -49,6 +49,7 @@ export class AnalyticsManager {
   }
 
   static async getVelocityData(requests: RequestForm[]) {
+    const safeRequests = requests || [];
     return MockApiService.request(() => {
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
       const velocityMap: Record<string, { val: number, vol: number }> = days.reduce((acc, day) => {
@@ -56,7 +57,7 @@ export class AnalyticsManager {
         return acc;
       }, {} as any);
 
-      requests.forEach(req => {
+      safeRequests.forEach(req => {
         const d = new Date(req.createdAt);
         const day = days[d.getDay()];
         velocityMap[day].val += 1;
@@ -72,18 +73,19 @@ export class AnalyticsManager {
   }
 
   static async getWeeklyVolume(requests: RequestForm[]) {
+    const safeRequests = requests || [];
     return MockApiService.request(() => {
       const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
       const data = days.map(day => ({
         x: day,
-        y: requests.filter(r => new Date(r.createdAt).toLocaleDateString('en-US', { weekday: 'short' }) === day).length
+        y: safeRequests.filter(r => new Date(r.createdAt).toLocaleDateString('en-US', { weekday: 'short' }) === day).length
       }));
       return [{ id: 'Volume', data }];
     });
   }
 
   static async getMonthlySpendTrend(requests?: RequestForm[]) {
-    const data = requests || await RequestManager.getRequests();
+    const data = requests || await RequestManager.getRequests() || [];
     return MockApiService.request(() => {
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       

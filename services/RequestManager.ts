@@ -8,27 +8,31 @@ import { RequestFormManager } from './RequestFormManager';
 import { supabase } from './SupabaseClient';
 
 export class RequestManager {
-  // Renamed from getRequestsAsync to getRequests for system-wide compatibility
   static async getRequests(): Promise<RequestForm[]> {
     const user = AuthManager.getCurrentUser();
     if (!user) return [];
 
-    let query = supabase
-      .from('requests')
-      .select('*, items:request_items(*)')
-      .is('deletedAt', null);
+    try {
+      let query = supabase
+        .from('requests')
+        .select('*, items:request_items(*)')
+        .is('deletedAt', null);
 
-    // Row level security would handle this in production, but we add a client-side filter for safety
-    if (user.role === 'REQUESTER') {
-      query = query.eq('requesterId', user.id);
-    }
+      if (user.role === 'REQUESTER') {
+        query = query.eq('requesterId', user.id);
+      }
 
-    const { data, error } = await query;
-    if (error) {
-      console.error('Fetch requests error:', error);
+      const { data, error } = await query;
+      if (error) {
+        console.error('Fetch requests error:', error);
+        return [];
+      }
+      // Ensure we always return an array
+      return (data || []) as RequestForm[];
+    } catch (err) {
+      console.error('RequestManager.getRequests critical failure:', err);
       return [];
     }
-    return data as RequestForm[];
   }
 
   static getPresetsForCategory(category: string): RequestItem[] {
@@ -67,23 +71,19 @@ export class RequestManager {
       createdAt: formData.createdAt || new Date().toISOString()
     };
 
-    // Remove items from payload as they go to a different table
     delete requestPayload.items;
 
     let requestId = viewingId;
 
     if (viewingId) {
-      // UPDATE
       const { error: reqError } = await supabase
         .from('requests')
         .update(requestPayload)
         .eq('id', viewingId);
       if (reqError) throw reqError;
       
-      // Delete old items and insert new ones (simulated transaction)
       await supabase.from('request_items').delete().eq('requestId', viewingId);
     } else {
-      // CREATE
       const { data, error: reqError } = await supabase
         .from('requests')
         .insert([requestPayload])
@@ -93,16 +93,14 @@ export class RequestManager {
       requestId = data.id;
     }
 
-    // Insert line items
     const itemsPayload = items.map(item => ({
       ...item,
       requestId,
-      id: undefined // Let DB generate UUID or use a standard serial
+      id: undefined
     }));
     const { error: itemsError } = await supabase.from('request_items').insert(itemsPayload);
     if (itemsError) throw itemsError;
 
-    // Handle temp attachments/comments
     if (tempId && tempId.startsWith('TMP-')) {
       await supabase.from('comments').update({ requestId }).eq('requestId', tempId);
       await supabase.from('attachments').update({ requestId }).eq('requestId', tempId);

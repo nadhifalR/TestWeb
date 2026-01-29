@@ -1,3 +1,4 @@
+
 import React, { useMemo, useState, useEffect } from 'react';
 import { AuthManager } from '../services/AuthManager';
 import { AnalyticsManager, DashboardStats } from '../services/AnalyticsManager';
@@ -23,16 +24,15 @@ const Dashboard: React.FC = () => {
     const fetchAnalytics = async () => {
       setIsLoading(true);
       try {
-        // Fetch base requests once to stabilize data flow
         const requests = await RequestManager.getRequests();
-        setRecentRequests(requests);
+        setRecentRequests(requests || []);
 
         const [s, v] = await Promise.all([
           AnalyticsManager.getDashboardStats(),
-          AnalyticsManager.getVelocityData(requests)
+          AnalyticsManager.getVelocityData(requests || [])
         ]);
         setStats(s);
-        setVelocityData(v);
+        setVelocityData(v || []);
       } catch (error) {
         console.error("Analytics synchronization failure:", error);
       } finally {
@@ -42,7 +42,7 @@ const Dashboard: React.FC = () => {
     
     fetchAnalytics();
     return () => window.removeEventListener('nexus-theme-change', themeHandler);
-  }, []); // Stable empty dependency array to prevent infinite loop
+  }, []);
 
   const nivoTheme = useMemo(() => ({
     text: {
@@ -181,7 +181,7 @@ const Dashboard: React.FC = () => {
             <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Real-time</span>
           </div>
           <div className="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-            {recentRequests.slice(0, 10).map((req, i) => (
+            {(recentRequests || []).slice(0, 10).map((req, i) => (
               <button 
                 key={req.id} 
                 onClick={() => navigate(`/requests?id=${req.id}`)} 
@@ -205,7 +205,7 @@ const Dashboard: React.FC = () => {
                 </div>
               </button>
             ))}
-            {recentRequests.length === 0 && (
+            {(recentRequests || []).length === 0 && (
               <div className="flex flex-col items-center justify-center h-full opacity-30 text-slate-400">
                 <AlertCircle size={24} className="mb-2" />
                 <p className="text-[10px] font-bold uppercase tracking-widest">No Stream Available</p>
