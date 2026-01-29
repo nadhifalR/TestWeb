@@ -17,29 +17,38 @@ export class NotificationManager {
     const user = AuthManager.getCurrentUser();
     if (!user) return [];
 
-    const { data, error } = await supabase
-      .from('notifications')
-      .select('*')
-      .or(`userId.eq.${user.id},userId.eq.system,role.eq.${role}`)
-      .order('timestamp', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .or(`userId.eq.${user.id},userId.eq.system,role.eq.${role}`)
+        .order('timestamp', { ascending: false });
 
-    if (error) return [];
-    return data as Notification[];
+      if (error) return [];
+      return (data || []) as Notification[];
+    } catch (e) {
+      return [];
+    }
   }
 
   static async addNotification(notif: Omit<Notification, 'id' | 'timestamp' | 'read'>) {
-    const { data, error } = await supabase
-      .from('notifications')
-      .insert([{
-        ...notif,
-        timestamp: new Date().toISOString(),
-        read: false
-      }])
-      .select()
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .insert([{
+          ...notif,
+          timestamp: new Date().toISOString(),
+          read: false
+        }])
+        .select()
+        .single();
 
-    if (!error && data) {
-      window.dispatchEvent(new CustomEvent('nexus-notification', { detail: data }));
+      // Ensure data is truthy before dispatching event (mock returns empty array or null)
+      if (!error && data && !Array.isArray(data)) {
+        window.dispatchEvent(new CustomEvent('nexus-notification', { detail: data }));
+      }
+    } catch (e) {
+      console.warn('Notification delivery failed:', e);
     }
   }
 
@@ -47,19 +56,23 @@ export class NotificationManager {
     const user = AuthManager.getCurrentUser();
     if (!user) return;
 
-    await supabase
-      .from('notifications')
-      .delete()
-      .or(`userId.eq.${user.id},role.eq.${user.role}`);
+    try {
+      await supabase
+        .from('notifications')
+        .delete()
+        .or(`userId.eq.${user.id},role.eq.${user.role}`);
+    } catch (e) {}
   }
 
   static async markAllAsRead() {
     const user = AuthManager.getCurrentUser();
     if (!user) return;
 
-    await supabase
-      .from('notifications')
-      .update({ read: true })
-      .or(`userId.eq.${user.id},role.eq.${user.role}`);
+    try {
+      await supabase
+        .from('notifications')
+        .update({ read: true })
+        .or(`userId.eq.${user.id},role.eq.${user.role}`);
+    } catch (e) {}
   }
 }

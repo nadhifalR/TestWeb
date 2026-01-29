@@ -16,35 +16,40 @@ const supabaseAnonKey = getEnv('VITE_SUPABASE_ANON_KEY');
 
 /**
  * Creates a robust mock object that simulates the Supabase client's fluent API.
- * This prevents runtime errors when the real client is not initialized.
+ * This prevents runtime errors like "insert(...).select is not a function" 
+ * when the real client is not initialized.
  */
 const createSafeClient = () => {
   if (!supabaseUrl || !supabaseUrl.startsWith('http')) {
     console.warn('Supabase configuration missing or invalid. Using safety proxy client.');
     
-    const mockResult = { data: [], error: null };
-    const mockSingleResult = { data: null, error: null };
+    // The result we resolve to when the chain is awaited
+    const mockResponse = { data: [], error: null };
 
-    const fluentMock: any = {
-      select: () => fluentMock,
-      is: () => fluentMock,
-      eq: () => fluentMock,
-      neq: () => fluentMock,
-      gt: () => fluentMock,
-      lt: () => fluentMock,
-      order: () => fluentMock,
-      limit: () => fluentMock,
-      or: () => fluentMock,
-      single: () => Promise.resolve(mockSingleResult),
-      maybeSingle: () => Promise.resolve(mockSingleResult),
-      insert: () => Promise.resolve(mockResult),
-      update: () => fluentMock,
-      upsert: () => Promise.resolve(mockResult),
-      delete: () => fluentMock,
-      // Supabase queries are Thenable (Promise-like)
-      then: (onfulfilled: any) => Promise.resolve(mockResult).then(onfulfilled),
-      catch: (onrejected: any) => Promise.resolve(mockResult).catch(onrejected)
-    };
+    // This proxy handles any property access by returning itself (fluent)
+    // and implements .then() to be awaitable.
+    const fluentMock: any = new Proxy({}, {
+      get: (target, prop) => {
+        // If the code is awaiting the result
+        if (prop === 'then') {
+          return (onFulfilled: any) => Promise.resolve(mockResponse).then(onFulfilled);
+        }
+        if (prop === 'catch') {
+          return (onRejected: any) => Promise.resolve(mockResponse).catch(onRejected);
+        }
+        if (prop === 'finally') {
+          return (onFinally: any) => Promise.resolve(mockResponse).finally(onFinally);
+        }
+
+        // Methods that usually end the chain or transform it
+        const terminalMethods = ['single', 'maybeSingle', 'select', 'insert', 'update', 'upsert', 'delete', 'eq', 'neq', 'gt', 'lt', 'is', 'order', 'limit', 'or'];
+        if (typeof prop === 'string' && terminalMethods.includes(prop)) {
+          return () => fluentMock;
+        }
+
+        return undefined;
+      }
+    });
 
     return {
       from: () => fluentMock,
@@ -52,7 +57,8 @@ const createSafeClient = () => {
         getSession: () => Promise.resolve({ data: { session: null }, error: null }),
         getUser: () => Promise.resolve({ data: { user: null }, error: null }),
         signInWithPassword: () => Promise.resolve({ data: { user: null, session: null }, error: null }),
-        signOut: () => Promise.resolve({ error: null })
+        signOut: () => Promise.resolve({ error: null }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
       },
       storage: {
         from: () => ({
