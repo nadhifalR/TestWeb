@@ -10,7 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@google/genai": "^0.21.0",
     "@nivo/bar": "^0.88.0",
     "@nivo/core": "^0.88.0",
     "@nivo/line": "^0.88.0",
