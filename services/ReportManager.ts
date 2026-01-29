@@ -1,10 +1,10 @@
 
-import { RequestForm, User } from '../types';
+import { RequestForm } from '../types';
 import { RequestManager } from './RequestManager';
 import { AccountManager } from './AccountManager';
-import { TemporaryDatabase } from './TemporaryDatabase';
 import { LogManager } from './LogManager';
 import { MockApiService } from './MockApiService';
+import { supabase } from './SupabaseClient';
 
 export interface ReportFilter {
   dateRange: { start: string; end: string } | null;
@@ -15,12 +15,9 @@ export interface ReportFilter {
 export class ReportManager {
   static async getFilteredData(filters: ReportFilter): Promise<RequestForm[]> {
     let requests = await RequestManager.getRequests();
-    // Fetch matrix for clearance checks if needed, but logic currently relies on request properties
     await AccountManager.getPermissionMatrix();
     
     if (filters.department && filters.department !== 'All' && filters.department !== 'All Departments') {
-      // In a real app we'd map requesterId to department via a lookup table
-      // Simplified for mock:
       requests = requests.filter(r => r.budgetSource.includes(filters.department));
     }
 
@@ -46,9 +43,17 @@ export class ReportManager {
     return data.reduce((sum, item) => sum + item.totalCost, 0);
   }
 
-  static getSnapshots(): any[] {
-    const db = TemporaryDatabase.getDB();
-    return (db.snapshots || []).sort((a: any, b: any) => b.timestamp.localeCompare(a.timestamp));
+  static async getSnapshots(): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('snapshots')
+      .select('*')
+      .order('timestamp', { ascending: false });
+
+    if (error) {
+      console.error('Failed to fetch snapshots from Supabase:', error);
+      return [];
+    }
+    return data || [];
   }
 
   static async generateCSV(data: RequestForm[]): Promise<void> {
@@ -75,20 +80,24 @@ export class ReportManager {
   }
 
   static async persistSnapshot(data: RequestForm[]): Promise<string> {
-    return MockApiService.request(() => {
-      const db = TemporaryDatabase.getDB();
+    return MockApiService.request(async () => {
       const checksum = Math.random().toString(36).substr(2, 16).toUpperCase();
       const snapshot = {
-        id: `SNP-${Date.now()}`,
         checksum,
         timestamp: new Date().toISOString(),
         recordCount: data.length,
         totalValuation: this.calculateGrandTotal(data)
       };
       
-      db.snapshots = [...(db.snapshots || []), snapshot];
-      TemporaryDatabase.saveDB(db);
-      LogManager.addLog('system', 'ARCHIVE_PERSISTED', `Snapshot ${snapshot.id} committed with checksum ${checksum}`);
+      const { data: inserted, error } = await supabase
+        .from('snapshots')
+        .insert([snapshot])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      LogManager.addLog('system', 'ARCHIVE_PERSISTED', `Snapshot SNP-${inserted.id} committed with checksum ${checksum}`);
       return checksum;
     });
   }

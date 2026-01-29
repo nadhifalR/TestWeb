@@ -38,9 +38,14 @@ const ReportPage: React.FC = () => {
 
   const grandTotal = useMemo(() => ReportManager.calculateGrandTotal(data), [data]);
 
+  const loadSnapshots = async () => {
+    const snaps = await ReportManager.getSnapshots();
+    setSnapshots(snaps);
+  };
+
   useEffect(() => {
-    setSnapshots(ReportManager.getSnapshots());
-  }, [archiveSuccess]);
+    loadSnapshots();
+  }, [archiveSuccess, showSnapshots]);
 
   const columns = useMemo<ColumnDef<RequestForm>[]>(() => [
     {
@@ -138,7 +143,7 @@ const ReportPage: React.FC = () => {
                         <Archive size={20} />
                       </div>
                       <div>
-                        <p className="font-mono text-xs font-black theme-text">#{snap.id}</p>
+                        <p className="font-mono text-xs font-black theme-text">SNP-{snap.id}</p>
                         <p className="text-[10px] theme-text-muted font-bold uppercase tracking-widest">Checksum: {snap.checksum.slice(0, 12)}...</p>
                       </div>
                     </div>
