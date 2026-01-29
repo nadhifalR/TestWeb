@@ -1,10 +1,10 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { AccountManager } from '../services/AccountManager.ts';
-import { UserRole, User, Permission } from '../types.ts';
+import { AccountManager } from '../services/AccountManager';
+import { UserRole, User, Permission } from '../types';
 import { UserPlus, ShieldCheck, Trash2, Edit2, X, Check } from 'lucide-react';
-import { DataTable } from '../components/common/DataTable.tsx';
-import { Can } from '../components/common/Can.tsx';
+import { DataTable } from '../components/common/DataTable';
+import { Can } from '../components/common/Can';
 import { ColumnDef } from '@tanstack/react-table';
 
 const AccountsPage: React.FC = () => {
@@ -217,7 +217,7 @@ const AccountsPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="relative w-full max-w-xl theme-card border theme-border rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-10 border-b theme-border flex items-center justify-between theme-bg bg-opacity-50">
               <h3 className="text-sm font-black theme-text uppercase tracking-[0.3em]">{editingUser ? 'Update Identity' : 'Create new user'}</h3>
-              <button type="button" onClick={() => setIsModalOpen(false)} className="p-3 hover:theme-bg rounded-2xl transition-all shadow-sm"><X size={20}/></button>
+              <button type="button" onClick={() => setIsModalOpen(false)} className="p-3 theme-bg rounded-2xl transition-all shadow-sm"><X size={20}/></button>
             </div>
             <div className="p-12 space-y-8">
                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

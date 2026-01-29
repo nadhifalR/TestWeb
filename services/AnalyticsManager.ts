@@ -10,6 +10,14 @@ export interface DashboardStats {
   totalRequests: number;
 }
 
+interface MonthlySpendTrend {
+  month: string;
+  index: number;
+  year: number;
+  spend: number;
+  budget: number;
+}
+
 export class AnalyticsManager {
   static async getDashboardStats(): Promise<DashboardStats> {
     return MockApiService.request(() => {
@@ -80,7 +88,7 @@ export class AnalyticsManager {
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       
       const now = new Date();
-      const last6Months = [];
+      const last6Months: MonthlySpendTrend[] = [];
       for (let i = 5; i >= 0; i--) {
         const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
         last6Months.push({
