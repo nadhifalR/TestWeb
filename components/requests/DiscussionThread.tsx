@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Reply, ChevronDown, ChevronUp, Send, FileText, Trash2, Paperclip, Loader2 } from 'lucide-react';
 import { CommentManager, Comment } from '../../services/CommentManager';
@@ -16,7 +15,7 @@ const CommentItem: React.FC<{
   const [showReply, setShowReply] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [replyFile, setReplyFile] = useState<File | null>(null);
-  replyFileInputRef = useRef<HTMLInputElement>(null);
+  const replyFileInputRef = useRef<HTMLInputElement>(null);
 
   const currentUser = AuthManager.getCurrentUser();
   const linkedAttachment = allAttachments.find(a => a.id === comment.attachmentId);
@@ -81,7 +80,7 @@ const CommentItem: React.FC<{
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
                     placeholder="Input reply text..."
-                    className="w-full p-3 text-[12px] theme-bg border theme-border rounded-lg outline-none focus:border-slate-900 font-medium min-h-[60px]"
+                    className="w-full p-3 theme-bg border theme-border rounded-lg outline-none focus:border-slate-900 font-medium min-h-[60px]"
                   />
                   
                   {replyFile && (

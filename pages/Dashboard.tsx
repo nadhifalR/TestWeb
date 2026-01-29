@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState, useEffect } from 'react';
 import { AuthManager } from '../services/AuthManager';
 import { AnalyticsManager, DashboardStats } from '../services/AnalyticsManager';
@@ -25,7 +24,7 @@ const Dashboard: React.FC = () => {
       setIsLoading(true);
       try {
         // Fetch base requests once to stabilize data flow
-        const requests = await RequestManager.getRequestsAsync();
+        const requests = await RequestManager.getRequests();
         setRecentRequests(requests);
 
         const [s, v] = await Promise.all([
