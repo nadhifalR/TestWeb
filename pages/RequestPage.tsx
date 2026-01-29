@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Briefcase, User as UserIcon, DollarSign, Hash, LayoutGrid, X, Loader2, Sparkles, Wallet, Search, AlertCircle, Check, Send, Save, MessageSquare } from 'lucide-react';
@@ -104,16 +105,10 @@ const RequestPage: React.FC = () => {
       });
     } catch (e: any) {
       const errorMsg = e.message || 'System error occurred.';
-      
-      if (errorMsg.includes('VALIDATION_ERROR')) {
-        const field = errorMsg.includes('Name') ? 'name' : 'general';
-        setValidationErrors({ [field]: errorMsg.replace('VALIDATION_ERROR: ', '') });
-      }
-
       NotificationManager.addNotification({
         userId: user?.id || 'system',
         title: 'Action Failed',
-        message: errorMsg.replace('VALIDATION_ERROR: ', ''),
+        message: errorMsg,
       });
     } finally {
       setIsSubmitting(false);
@@ -146,7 +141,6 @@ const RequestPage: React.FC = () => {
 
   const isEditable = !viewingRequest || viewingRequest.status === RequestStatus.DRAFT || viewingRequest.status === RequestStatus.REVISION;
 
-  // Use the functional updater for the RequestItemEditor
   const handleItemsChange = useCallback((updater: (prev: RequestItem[]) => RequestItem[]) => {
     setItems(updater);
   }, []);
@@ -257,7 +251,7 @@ const RequestPage: React.FC = () => {
       {!selectedCategory && !viewingRequest && activeSubPage === 'registry' && (
         <div className="space-y-4">
           <div className="flex justify-end">
-             <div className="relative w-full max-w-sm">
+             <div className="relative w-full max-sm:max-w-full max-w-sm">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 theme-text-muted" size={16} />
                 <input 
                   type="text" 
@@ -347,7 +341,25 @@ const RequestPage: React.FC = () => {
                 <div className="theme-bg bg-opacity-30 p-8 rounded-[2rem] border theme-border flex flex-col justify-center text-center">
                    <p className="label-caps mb-4">Total Aggregate Valuation</p>
                    <p className="text-5xl font-black theme-text tracking-tighter">IDR {totalCost.toLocaleString()}</p>
-                   <p className="text-[10px] theme-text-muted font-black uppercase tracking-[0.3em] mt-4 italic">Computed via Resource Ledger</p>
+                   
+                   <div className="mt-8 pt-6 border-t theme-border border-opacity-20 flex flex-col items-center">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Wallet size={14} className="text-slate-400" />
+                        <label className="label-caps">Cash Advance Request</label>
+                      </div>
+                      <div className="relative w-full max-w-[240px]">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">IDR</span>
+                        <input 
+                          type="number"
+                          disabled={!isEditable}
+                          value={formState.cashAdvance || ''}
+                          onChange={(e) => setFormState({...formState, cashAdvance: Number(e.target.value)})}
+                          placeholder="0"
+                          className="w-full pl-12 pr-4 py-3 bg-white border theme-border rounded-2xl font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 text-center transition-all theme-text"
+                        />
+                      </div>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-2 italic">Standard Provision: 80% Max</p>
+                   </div>
                 </div>
               </div>
 

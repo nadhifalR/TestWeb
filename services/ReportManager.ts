@@ -51,7 +51,8 @@ export class ReportManager {
         .order('timestamp', { ascending: false });
 
       if (error) {
-        console.error('Failed to fetch snapshots from Supabase:', error);
+        // Log but don't crash UI - likely table doesn't exist yet
+        console.warn('Snapshots table unavailable or unreachable:', error.message);
         return [];
       }
       return (data || []).map((s: any) => ({
@@ -105,7 +106,7 @@ export class ReportManager {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) throw new Error(`SNAPSHOT_PERSIST_FAILED: ${error.message}`);
 
       LogManager.addLog('system', 'ARCHIVE_PERSISTED', `Snapshot SNP-${inserted.id} committed with checksum ${checksum}`);
       return checksum;

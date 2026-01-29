@@ -16,8 +16,9 @@ export interface Attachment {
 export class AttachmentManager {
   static async getAttachments(requestId: string): Promise<Attachment[]> {
     try {
+      // Short-circuit: BIGINT columns in Supabase throw 400 when queried with strings like 'TMP-...'
       const isNumeric = /^\d+$/.test(requestId);
-      if (!isNumeric) return [];
+      if (!isNumeric || requestId.startsWith('TMP')) return [];
 
       const queryId = parseInt(requestId, 10);
 
@@ -26,7 +27,10 @@ export class AttachmentManager {
         .select('*')
         .eq('request_id', queryId);
 
-      if (error) return [];
+      if (error) {
+        console.error('AttachmentManager: Fetch failed', error);
+        return [];
+      }
       
       return data.map((a: any) => ({
         id: a.id.toString(),
@@ -47,27 +51,33 @@ export class AttachmentManager {
     const user = AuthManager.getCurrentUser();
     if (!user) throw new Error("AUTH_REQUIRED");
 
-    const isNumeric = /^\d+$/.test(requestId);
+    // Clean check for numeric ID to avoid 400 errors on BIGINT columns
+    const isNumeric = /^\d+$/.test(requestId) && !requestId.startsWith('TMP');
     const fileExt = file.name.split('.').pop();
-    // Path should be relative to the bucket root
-    const fileName = `${requestId}/${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const uniqueName = Math.random().toString(36).substring(2);
+    const fileName = `${requestId}/${uniqueName}.${fileExt}`;
 
+    // Upload to Storage (always allowed for authenticated users if policies are set)
     const { error: uploadError } = await supabase.storage
       .from('artifacts')
-      .upload(fileName, file);
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false
+      });
 
     if (uploadError) {
       console.error('Storage Upload Error:', uploadError);
-      throw uploadError;
+      throw new Error(`STORAGE_UPLOAD_FAILED: ${uploadError.message}`);
     }
 
     const { data: { publicUrl } } = supabase.storage
       .from('artifacts')
       .getPublicUrl(fileName);
 
+    // If request isn't persisted yet, return a local representation
     if (!isNumeric) {
       return {
-        id: "temp_" + Math.random(),
+        id: "temp_" + uniqueName,
         requestId: requestId,
         name: file.name,
         size: file.size,
@@ -103,16 +113,19 @@ export class AttachmentManager {
         uploadedAt: data.uploaded_at
       } as Attachment;
     } catch (e) {
-      throw new Error("Attachment database sync failed.");
+      throw new Error("ATTACHMENT_DB_SYNC_FAILED");
     }
   }
 
   static async removeAttachment(id: string): Promise<void> {
     try {
-      await supabase
-        .from('attachments')
-        .delete()
-        .eq('id', parseInt(id, 10));
+      const isNumeric = /^\d+$/.test(id);
+      if (isNumeric) {
+        await supabase
+          .from('attachments')
+          .delete()
+          .eq('id', parseInt(id, 10));
+      }
     } catch (e) {}
   }
 }

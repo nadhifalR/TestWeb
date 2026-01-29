@@ -107,7 +107,7 @@ export class RequestManager {
       await supabase.from('attachments').update({ request_id: numericId }).eq('request_id', tempId as any);
     }
 
-    // IMPORTANT: Total is calculated by DB DEFAULT expression, do not insert it.
+    // Omit 'total' from items payload as DB handles it via DEFAULT
     const itemsPayload = items.map(item => ({
       name: item.name,
       quantity: item.quantity,

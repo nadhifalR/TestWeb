@@ -18,9 +18,9 @@ export interface Comment {
 export class CommentManager {
   static async getComments(requestId: string): Promise<Comment[]> {
     try {
-      // Short-circuit: DB uses BIGINT. TMP- IDs will cause 400 errors.
+      // Short-circuit: BIGINT columns in Supabase throw 400 when queried with strings like 'TMP-...'
       const isNumeric = /^\d+$/.test(requestId);
-      if (!isNumeric) return [];
+      if (!isNumeric || requestId.startsWith('TMP')) return [];
 
       const queryId = parseInt(requestId, 10);
 
@@ -64,7 +64,7 @@ export class CommentManager {
   }
 
   static async addComment(requestId: string, authorId: string, authorName: string, text: string, parentId?: string, attachmentId?: string): Promise<void> {
-    const isNumericId = /^\d+$/.test(requestId);
+    const isNumericId = /^\d+$/.test(requestId) && !requestId.startsWith('TMP');
     
     if (!isNumericId) {
       console.warn("CommentManager: Deferred persistence for unsaved records.");
@@ -90,6 +90,9 @@ export class CommentManager {
   }
 
   static async deleteComment(commentId: string): Promise<void> {
+    const isNumeric = /^\d+$/.test(commentId);
+    if (!isNumeric) return;
+
     const { error } = await supabase
       .from('comments')
       .update({ deleted_at: new Date().toISOString() })
