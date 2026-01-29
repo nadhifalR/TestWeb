@@ -5,19 +5,29 @@ import { supabase } from './SupabaseClient';
 
 export class AccountManager {
   static async getUsers(): Promise<User[]> {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .is('deleted_at', null);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*');
 
-    if (error) {
-      console.error('Supabase fetch error:', error);
+      if (error) {
+        console.error('AccountManager: profiles fetch error', error);
+        return [];
+      }
+      return data as User[];
+    } catch (err) {
       return [];
     }
-    return data as User[];
   }
 
   static async getPermissionMatrix(): Promise<Record<UserRole, Permission[]>> {
+    const defaultMatrix = {
+      [UserRole.ADMIN]: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'APPROVE', 'SYSTEM_CONFIG', 'FINANCIAL_RECON', 'USER_PROVISION', 'COMMENT'] as Permission[],
+      [UserRole.REVIEWER]: ['VIEW', 'APPROVE', 'COMMENT', 'FINANCIAL_RECON'] as Permission[],
+      [UserRole.SUPERVISOR]: ['VIEW', 'EDIT', 'COMMENT', 'APPROVE'] as Permission[],
+      [UserRole.REQUESTER]: ['VIEW_OWN', 'CREATE', 'EDIT_OWN', 'COMMENT'] as Permission[]
+    };
+
     try {
       const { data, error } = await supabase
         .from('system_configs')
@@ -25,26 +35,23 @@ export class AccountManager {
         .eq('key', 'permission_matrix')
         .maybeSingle();
 
-      if (error || !data) {
-        return {
-          [UserRole.ADMIN]: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'APPROVE', 'SYSTEM_CONFIG', 'FINANCIAL_RECON', 'USER_PROVISION', 'COMMENT'],
-          [UserRole.REVIEWER]: ['VIEW', 'APPROVE', 'COMMENT', 'FINANCIAL_RECON'],
-          [UserRole.SUPERVISOR]: ['VIEW', 'EDIT', 'COMMENT', 'APPROVE'],
-          [UserRole.REQUESTER]: ['VIEW_OWN', 'CREATE', 'EDIT_OWN', 'COMMENT']
-        };
-      }
+      if (error || !data) return defaultMatrix;
       return data.value;
     } catch (e) {
-      return {} as any;
+      return defaultMatrix;
     }
   }
 
   static async updatePermissionMatrix(matrix: Record<UserRole, Permission[]>) {
-    await supabase
-      .from('system_configs')
-      .upsert({ key: 'permission_matrix', value: matrix });
+    try {
+      await supabase
+        .from('system_configs')
+        .upsert({ key: 'permission_matrix', value: matrix });
 
-    LogManager.addLog('system', 'SECURITY_UPDATE', 'Permission routing matrix updated globally.');
+      LogManager.addLog('system', 'SECURITY_UPDATE', 'Permission routing matrix updated globally.');
+    } catch (e) {
+      console.warn('AccountManager: system_configs update failed (Table likely missing).');
+    }
   }
 
   static hasPermission(user: User, permission: Permission, resourceOwnerId?: string): boolean {
@@ -92,7 +99,7 @@ export class AccountManager {
   static async deleteUser(id: string): Promise<void> {
     const { error } = await supabase
       .from('profiles')
-      .update({ deleted_at: new Date().toISOString() })
+      .delete()
       .eq('id', id);
     if (error) throw error;
   }

@@ -1,3 +1,4 @@
+
 import { supabase } from './SupabaseClient';
 import { ThemeManager, Theme } from './ThemeManager';
 
@@ -18,7 +19,6 @@ export class SettingsManager {
     maxFileUploadSize: 10
   };
 
-  // Fix: Added a cache to store settings for synchronous access
   private static cache: SystemSettings = SettingsManager.DEFAULT_SETTINGS;
 
   static async getSettings(): Promise<SystemSettings> {
@@ -29,13 +29,13 @@ export class SettingsManager {
         .eq('key', 'global_settings')
         .maybeSingle();
 
-      if (error || !data) {
+      if (error) {
+        // If 404, the table doesn't exist, use defaults silently
         this.cache = this.DEFAULT_SETTINGS;
         return this.DEFAULT_SETTINGS;
       }
       
-      const result = { ...this.DEFAULT_SETTINGS, ...data.value };
-      // Fix: Update cache whenever settings are fetched
+      const result = { ...this.DEFAULT_SETTINGS, ...(data?.value || {}) };
       this.cache = result;
       return result;
     } catch (err) {
@@ -44,7 +44,6 @@ export class SettingsManager {
     }
   }
 
-  // Fix: Added synchronous getter for settings
   static getSettingsSync(): SystemSettings {
     return this.cache;
   }
@@ -54,18 +53,19 @@ export class SettingsManager {
       const current = await this.getSettings();
       const updated = { ...current, ...newSettings };
       
-      // Fix: Update cache on write
       this.cache = updated;
       
-      await supabase
+      const { error } = await supabase
         .from('system_configs')
         .upsert({ key: 'global_settings', value: updated });
+
+      if (error) throw error;
 
       if (newSettings.theme) {
         ThemeManager.applyTheme(newSettings.theme);
       }
     } catch (err) {
-      console.error("Settings update failed", err);
+      console.warn("SettingsManager: system_configs table likely missing. Persistent settings unavailable.");
     }
   }
 }

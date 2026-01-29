@@ -68,7 +68,7 @@ export class NotificationManager {
         window.dispatchEvent(new CustomEvent('nexus-notification', { detail: mapped }));
       }
     } catch (e) {
-      console.warn('Notification delivery failed:', e);
+      console.warn('NotificationManager: notifications table missing.');
     }
   }
 

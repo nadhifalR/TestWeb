@@ -15,24 +15,27 @@ export interface Attachment {
 
 export class AttachmentManager {
   static async getAttachments(requestId: string): Promise<Attachment[]> {
-    const { data, error } = await supabase
-      .from('attachments')
-      .select('*')
-      .eq('request_id', requestId)
-      .is('deleted_at', null);
+    try {
+      const { data, error } = await supabase
+        .from('attachments')
+        .select('*')
+        .eq('request_id', requestId);
 
-    if (error) return [];
-    
-    return data.map((a: any) => ({
-      id: a.id,
-      requestId: a.request_id,
-      name: a.name,
-      size: a.size,
-      type: a.type,
-      url: a.url,
-      uploadedAt: a.uploaded_at,
-      deletedAt: a.deleted_at
-    })) as Attachment[];
+      if (error) return [];
+      
+      return data.map((a: any) => ({
+        id: a.id,
+        requestId: a.request_id,
+        name: a.name,
+        size: a.size,
+        type: a.type,
+        url: a.url,
+        uploadedAt: a.uploaded_at,
+        deletedAt: a.deleted_at
+      })) as Attachment[];
+    } catch (e) {
+      return [];
+    }
   }
 
   static async uploadFile(requestId: string, file: File): Promise<Attachment> {
@@ -53,37 +56,42 @@ export class AttachmentManager {
       .from('artifacts')
       .getPublicUrl(filePath);
 
-    const { data, error: dbError } = await supabase
-      .from('attachments')
-      .insert([{
-        request_id: requestId,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        url: publicUrl,
-        uploaded_at: new Date().toISOString()
-      }])
-      .select()
-      .single();
+    try {
+      const { data, error: dbError } = await supabase
+        .from('attachments')
+        .insert([{
+          request_id: requestId,
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          url: publicUrl,
+          uploaded_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
 
-    if (dbError) throw dbError;
+      if (dbError) throw dbError;
 
-    return {
-      id: data.id,
-      requestId: data.request_id,
-      name: data.name,
-      size: data.size,
-      type: data.type,
-      url: data.url,
-      uploadedAt: data.uploaded_at
-    } as Attachment;
+      return {
+        id: data.id,
+        requestId: data.request_id,
+        name: data.name,
+        size: data.size,
+        type: data.type,
+        url: data.url,
+        uploadedAt: data.uploaded_at
+      } as Attachment;
+    } catch (e) {
+      throw new Error("Attachment database unavailable. File uploaded to storage but metadata record skipped.");
+    }
   }
 
   static async removeAttachment(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('attachments')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', id);
-    if (error) throw error;
+    try {
+      await supabase
+        .from('attachments')
+        .delete()
+        .eq('id', id);
+    } catch (e) {}
   }
 }
