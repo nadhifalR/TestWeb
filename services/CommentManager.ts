@@ -18,8 +18,11 @@ export interface Comment {
 export class CommentManager {
   static async getComments(requestId: string): Promise<Comment[]> {
     try {
+      // Short-circuit: DB uses BIGINT. TMP- IDs will cause 400 errors.
       const isNumeric = /^\d+$/.test(requestId);
-      const queryId = isNumeric ? parseInt(requestId, 10) : requestId;
+      if (!isNumeric) return [];
+
+      const queryId = parseInt(requestId, 10);
 
       const { data, error } = await supabase
         .from('comments')
@@ -63,7 +66,6 @@ export class CommentManager {
   static async addComment(requestId: string, authorId: string, authorName: string, text: string, parentId?: string, attachmentId?: string): Promise<void> {
     const isNumericId = /^\d+$/.test(requestId);
     
-    // Since request_id is BIGINT, we only save comments for existing database records.
     if (!isNumericId) {
       console.warn("CommentManager: Deferred persistence for unsaved records.");
       return; 
@@ -71,7 +73,7 @@ export class CommentManager {
 
     const payload: any = {
       request_id: parseInt(requestId, 10),
-      author_id: authorId, // Matches public.profiles.id (TEXT)
+      author_id: authorId,
       author_name: authorName,
       text,
       parent_id: parentId ? parseInt(parentId, 10) : null,

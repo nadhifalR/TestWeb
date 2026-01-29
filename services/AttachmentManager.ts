@@ -17,7 +17,9 @@ export class AttachmentManager {
   static async getAttachments(requestId: string): Promise<Attachment[]> {
     try {
       const isNumeric = /^\d+$/.test(requestId);
-      const queryId = isNumeric ? parseInt(requestId, 10) : requestId;
+      if (!isNumeric) return [];
+
+      const queryId = parseInt(requestId, 10);
 
       const { data, error } = await supabase
         .from('attachments')
@@ -47,22 +49,23 @@ export class AttachmentManager {
 
     const isNumeric = /^\d+$/.test(requestId);
     const fileExt = file.name.split('.').pop();
+    // Path should be relative to the bucket root
     const fileName = `${requestId}/${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `artifacts/${fileName}`;
 
     const { error: uploadError } = await supabase.storage
       .from('artifacts')
-      .upload(filePath, file);
+      .upload(fileName, file);
 
-    if (uploadError) throw uploadError;
+    if (uploadError) {
+      console.error('Storage Upload Error:', uploadError);
+      throw uploadError;
+    }
 
     const { data: { publicUrl } } = supabase.storage
       .from('artifacts')
-      .getPublicUrl(filePath);
+      .getPublicUrl(fileName);
 
     if (!isNumeric) {
-      // Return a "virtual" attachment if the request isn't saved yet
-      // Production apps would store this in a temporary queue
       return {
         id: "temp_" + Math.random(),
         requestId: requestId,

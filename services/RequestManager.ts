@@ -34,6 +34,7 @@ export class RequestManager {
         requesterId: r.requester_id,
         eventDate: r.event_date,
         budgetSource: r.budget_source,
+        cashAdvance: Number(r.cash_advance || 0),
         totalCost: Number(r.total_cost || 0),
         createdAt: r.created_at,
         deletedAt: r.deleted_at,
@@ -62,7 +63,6 @@ export class RequestManager {
 
     const totalCost = RequestItemManager.calculateTotal(items);
     
-    // Profiles table uses TEXT ID. Requester_id matches this.
     const dbPayload: any = {
       name: formData.name,
       requester_id: user.id,
@@ -71,13 +71,13 @@ export class RequestManager {
       status: statusType === 'submit' ? RequestStatus.PENDING : (formData.status || RequestStatus.DRAFT),
       event_date: formData.eventDate,
       budget_source: formData.budgetSource,
+      cash_advance: formData.cashAdvance || 0,
       created_at: formData.createdAt || new Date().toISOString()
     };
 
     let persistentId: string;
 
     if (viewingId) {
-      // Identity columns in Supabase are BigInt. eq expects string or number.
       const { error: updateError } = await supabase
         .from('requests')
         .update(dbPayload)
@@ -86,10 +86,8 @@ export class RequestManager {
       if (updateError) throw new Error(`DB_UPDATE_ERROR: ${updateError.message}`);
       persistentId = viewingId;
       
-      // Clear line items for refresh using the BigInt request_id
       await supabase.from('request_items').delete().eq('request_id', parseInt(viewingId, 10));
     } else {
-      // For NEW inserts, we OMIT 'id' so the database BIGINT IDENTITY can handle it
       const { data, error: insertError } = await supabase
         .from('requests')
         .insert([dbPayload])
@@ -103,20 +101,18 @@ export class RequestManager {
       persistentId = data.id.toString();
     }
 
-    // Migration of draft-state artifacts
     if (!viewingId && tempId && persistentId) {
       const numericId = parseInt(persistentId, 10);
-      await supabase.from('comments').update({ request_id: numericId }).eq('request_id', tempId);
-      await supabase.from('attachments').update({ request_id: numericId }).eq('request_id', tempId);
+      await supabase.from('comments').update({ request_id: numericId }).eq('request_id', tempId as any);
+      await supabase.from('attachments').update({ request_id: numericId }).eq('request_id', tempId as any);
     }
 
-    // Insert items using the BigInt identity as foreign key
+    // IMPORTANT: Total is calculated by DB DEFAULT expression, do not insert it.
     const itemsPayload = items.map(item => ({
       name: item.name,
       quantity: item.quantity,
       unit: item.unit,
       price: item.price,
-      total: item.total,
       request_id: parseInt(persistentId, 10)
     }));
     
