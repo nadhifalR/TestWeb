@@ -16,16 +16,19 @@ export interface Attachment {
 export class AttachmentManager {
   static async getAttachments(requestId: string): Promise<Attachment[]> {
     try {
+      const isNumeric = /^\d+$/.test(requestId);
+      const queryId = isNumeric ? parseInt(requestId, 10) : requestId;
+
       const { data, error } = await supabase
         .from('attachments')
         .select('*')
-        .eq('request_id', requestId);
+        .eq('request_id', queryId);
 
       if (error) return [];
       
       return data.map((a: any) => ({
-        id: a.id,
-        requestId: a.request_id,
+        id: a.id.toString(),
+        requestId: a.request_id?.toString(),
         name: a.name,
         size: a.size,
         type: a.type,
@@ -42,6 +45,7 @@ export class AttachmentManager {
     const user = AuthManager.getCurrentUser();
     if (!user) throw new Error("AUTH_REQUIRED");
 
+    const isNumeric = /^\d+$/.test(requestId);
     const fileExt = file.name.split('.').pop();
     const fileName = `${requestId}/${Math.random().toString(36).substring(2)}.${fileExt}`;
     const filePath = `artifacts/${fileName}`;
@@ -56,11 +60,25 @@ export class AttachmentManager {
       .from('artifacts')
       .getPublicUrl(filePath);
 
+    if (!isNumeric) {
+      // Return a "virtual" attachment if the request isn't saved yet
+      // Production apps would store this in a temporary queue
+      return {
+        id: "temp_" + Math.random(),
+        requestId: requestId,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        url: publicUrl,
+        uploadedAt: new Date().toISOString()
+      };
+    }
+
     try {
       const { data, error: dbError } = await supabase
         .from('attachments')
         .insert([{
-          request_id: requestId,
+          request_id: parseInt(requestId, 10),
           name: file.name,
           size: file.size,
           type: file.type,
@@ -73,8 +91,8 @@ export class AttachmentManager {
       if (dbError) throw dbError;
 
       return {
-        id: data.id,
-        requestId: data.request_id,
+        id: data.id.toString(),
+        requestId: data.request_id.toString(),
         name: data.name,
         size: data.size,
         type: data.type,
@@ -82,7 +100,7 @@ export class AttachmentManager {
         uploadedAt: data.uploaded_at
       } as Attachment;
     } catch (e) {
-      throw new Error("Attachment database unavailable. File uploaded to storage but metadata record skipped.");
+      throw new Error("Attachment database sync failed.");
     }
   }
 
@@ -91,7 +109,7 @@ export class AttachmentManager {
       await supabase
         .from('attachments')
         .delete()
-        .eq('id', id);
+        .eq('id', parseInt(id, 10));
     } catch (e) {}
   }
 }

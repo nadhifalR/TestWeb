@@ -7,13 +7,12 @@
     <title>Nexus Enterprise | Resource Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      tailwind.config = {
+      // Production-safe Tailwind configuration
+      window.tailwind.config = {
         darkMode: 'class',
         theme: {
           extend: {
-            fontFamily: {
-              sans: ['Inter', 'sans-serif'],
-            },
+            fontFamily: { sans: ['Inter', 'sans-serif'] },
           }
         }
       }
@@ -21,57 +20,24 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-primary: #f8fafc;
-            --bg-secondary: #ffffff;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --border-color: #e2e8f0;
-            --accent-color: #2563eb;
-            --sidebar-bg: #0f172a;
-            --sidebar-text: #94a3b8;
+            --bg-primary: #f8fafc; --bg-secondary: #ffffff;
+            --text-primary: #0f172a; --text-secondary: #475569;
+            --border-color: #e2e8f0; --accent-color: #2563eb;
         }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            transition: background-color 0.2s ease, color 0.2s ease;
-            -webkit-font-smoothing: antialiased;
-        }
-
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background-color: var(--bg-primary); color: var(--text-primary); -webkit-font-smoothing: antialiased; }
         .theme-bg { background-color: var(--bg-primary); }
-        .theme-card { 
-            background-color: var(--bg-secondary); 
-            border: 1px solid var(--border-color);
-        }
+        .theme-card { background-color: var(--bg-secondary); border: 1px solid var(--border-color); }
         .theme-text { color: var(--text-primary); }
         .theme-text-muted { color: var(--text-secondary); }
         .theme-border { border-color: var(--border-color); }
+        .page-transition { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .label-caps { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); }
         
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-
-        .page-transition {
-            animation: fadeIn 0.4s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        h1 { font-weight: 800; letter-spacing: -0.025em; }
-        h2 { font-weight: 700; letter-spacing: -0.02em; }
-        .label-caps { 
-            font-size: 0.65rem; 
-            font-weight: 700; 
-            text-transform: uppercase; 
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
-        }
     </style>
 <script type="importmap">
 {

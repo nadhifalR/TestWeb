@@ -8,7 +8,8 @@ export class AccountManager {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*');
+        .select('*')
+        .order('username', { ascending: true });
 
       if (error) {
         console.error('AccountManager: profiles fetch error', error);
@@ -50,21 +51,18 @@ export class AccountManager {
 
       LogManager.addLog('system', 'SECURITY_UPDATE', 'Permission routing matrix updated globally.');
     } catch (e) {
-      console.warn('AccountManager: system_configs update failed (Table likely missing).');
+      console.warn('AccountManager: system_configs update failed.');
     }
   }
 
   static hasPermission(user: User, permission: Permission, resourceOwnerId?: string): boolean {
     if (user.role === UserRole.ADMIN) return true;
 
-    const hardcodedMatrix: Record<string, string[]> = {
-      [UserRole.ADMIN]: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'APPROVE', 'SYSTEM_CONFIG', 'FINANCIAL_RECON', 'USER_PROVISION', 'COMMENT'],
-      [UserRole.REVIEWER]: ['VIEW', 'APPROVE', 'COMMENT', 'FINANCIAL_RECON'],
-      [UserRole.SUPERVISOR]: ['VIEW', 'EDIT', 'COMMENT', 'APPROVE'],
-      [UserRole.REQUESTER]: ['VIEW_OWN', 'CREATE', 'EDIT_OWN', 'COMMENT']
-    };
+    // Hardcoded fallback if matrix load fails
+    const userPerms: string[] = user.role === UserRole.REVIEWER ? ['VIEW', 'APPROVE', 'COMMENT', 'FINANCIAL_RECON'] : 
+                              user.role === UserRole.SUPERVISOR ? ['VIEW', 'EDIT', 'COMMENT', 'APPROVE'] : 
+                              user.role === UserRole.REQUESTER ? ['VIEW_OWN', 'CREATE', 'EDIT_OWN', 'COMMENT'] : [];
 
-    const userPerms = hardcodedMatrix[user.role] || [];
     if (userPerms.includes(permission)) return true;
 
     if (resourceOwnerId && user.id === resourceOwnerId) {
@@ -77,15 +75,24 @@ export class AccountManager {
   }
 
   static async createUser(user: Omit<User, 'id'>): Promise<void> {
+    // Generate a unique TEXT id (matching public.profiles id requirement)
+    const newId = Math.random().toString(36).substring(2, 15);
+    
     const { error } = await supabase
       .from('profiles')
       .insert([{
-        ...user,
-        avatar: `https://picsum.photos/seed/${user.username}/100`
+        id: newId,
+        username: user.username,
+        email: user.email,
+        department: user.department,
+        title: user.title,
+        role: user.role,
+        avatar: user.avatar || `https://picsum.photos/seed/${user.username}/100`
       }]);
 
     if (error) throw error;
-    LogManager.addLog('admin', 'PROVISION_USER', `Identity node created for ${user.username}`);
+    
+    LogManager.addLog('system', 'PROVISION_USER', `Identity node created for ${user.username} (ID: ${newId})`);
   }
 
   static async updateUser(id: string, updates: Partial<User>): Promise<void> {

@@ -12,7 +12,7 @@ export class LogManager {
 
       if (error) return [];
       return (data || []).map((l: any) => ({
-        id: l.id,
+        id: l.id.toString(),
         userId: l.user_id,
         action: l.action,
         details: l.details,
@@ -25,14 +25,19 @@ export class LogManager {
 
   static async addLog(userId: string, action: string, details: string) {
     try {
+      // If the log is for 'system', we check if a system profile exists or use null
+      const logUserId = userId === 'system' ? null : userId;
+
       await supabase
         .from('system_logs')
         .insert([{
-          user_id: userId,
+          user_id: logUserId,
           action,
           details,
           timestamp: new Date().toISOString()
         }]);
-    } catch (e) {}
+    } catch (e) {
+      console.warn('LogManager: Logging persistence failed', e);
+    }
   }
 }

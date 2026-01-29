@@ -30,23 +30,25 @@ export class RequestManager {
 
       return (data || []).map((r: any) => ({
         ...r,
+        id: r.id.toString(),
         requesterId: r.requester_id,
         eventDate: r.event_date,
         budgetSource: r.budget_source,
-        totalCost: r.total_cost,
+        totalCost: Number(r.total_cost || 0),
         createdAt: r.created_at,
         deletedAt: r.deleted_at,
         items: (r.items || []).map((i: any) => ({
           ...i,
-          requestId: i.request_id
+          id: i.id.toString(),
+          requestId: i.request_id?.toString()
         }))
       })) as RequestForm[];
     } catch (err) {
+      console.error('RequestManager critical failure:', err);
       return [];
     }
   }
 
-  // Fix: Added tempId parameter to handle migration of attachments/comments from temporary IDs to the new persistent request ID
   static async createOrUpdateFromFormAsync(
     formData: any, 
     items: RequestItem[], 
@@ -59,7 +61,9 @@ export class RequestManager {
     if (!user) throw new Error("AUTH_SESSION_EXPIRED");
 
     const totalCost = RequestItemManager.calculateTotal(items);
-    const dbPayload = {
+    
+    // Profiles table uses TEXT ID. Requester_id matches this.
+    const dbPayload: any = {
       name: formData.name,
       requester_id: user.id,
       category,
@@ -70,59 +74,77 @@ export class RequestManager {
       created_at: formData.createdAt || new Date().toISOString()
     };
 
-    let requestId = viewingId;
+    let persistentId: string;
 
     if (viewingId) {
-      const { error: updateError } = await supabase.from('requests').update(dbPayload).eq('id', viewingId);
-      if (updateError) {
-        console.error('Request Update Failed:', updateError);
-        throw new Error(`DB_UPDATE_ERROR: ${updateError.message}`);
-      }
-      await supabase.from('request_items').delete().eq('request_id', viewingId);
+      // Identity columns in Supabase are BigInt. eq expects string or number.
+      const { error: updateError } = await supabase
+        .from('requests')
+        .update(dbPayload)
+        .eq('id', parseInt(viewingId, 10));
+      
+      if (updateError) throw new Error(`DB_UPDATE_ERROR: ${updateError.message}`);
+      persistentId = viewingId;
+      
+      // Clear line items for refresh using the BigInt request_id
+      await supabase.from('request_items').delete().eq('request_id', parseInt(viewingId, 10));
     } else {
-      const { data, error: insertError } = await supabase.from('requests').insert([dbPayload]).select().single();
+      // For NEW inserts, we OMIT 'id' so the database BIGINT IDENTITY can handle it
+      const { data, error: insertError } = await supabase
+        .from('requests')
+        .insert([dbPayload])
+        .select()
+        .single();
+        
       if (insertError) {
         console.error('Request Insert Failed:', insertError);
         throw new Error(`DB_INSERT_ERROR: ${insertError.message}`);
       }
-      requestId = data?.id;
+      persistentId = data.id.toString();
     }
 
-    if (!requestId) throw new Error("INTERNAL_ID_FAILURE");
-
-    // Fix: Migrate orphaned comments and attachments that were created using a temporary ID
-    if (!viewingId && tempId && requestId) {
-      await supabase.from('comments').update({ request_id: requestId }).eq('request_id', tempId);
-      await supabase.from('attachments').update({ request_id: requestId }).eq('request_id', tempId);
+    // Migration of draft-state artifacts
+    if (!viewingId && tempId && persistentId) {
+      const numericId = parseInt(persistentId, 10);
+      await supabase.from('comments').update({ request_id: numericId }).eq('request_id', tempId);
+      await supabase.from('attachments').update({ request_id: numericId }).eq('request_id', tempId);
     }
 
+    // Insert items using the BigInt identity as foreign key
     const itemsPayload = items.map(item => ({
       name: item.name,
       quantity: item.quantity,
       unit: item.unit,
       price: item.price,
       total: item.total,
-      request_id: requestId
+      request_id: parseInt(persistentId, 10)
     }));
     
-    const { error: itemsError } = await supabase.from('request_items').insert(itemsPayload);
-    if (itemsError) console.error('Items Insertion Warning:', itemsError);
+    if (itemsPayload.length > 0) {
+      const { error: itemsError } = await supabase.from('request_items').insert(itemsPayload);
+      if (itemsError) throw new Error(`ITEMS_SYNC_ERROR: ${itemsError.message}`);
+    }
 
-    LogManager.addLog(user.id, statusType === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Node ${requestId} persistence complete.`);
+    LogManager.addLog(user.id, statusType === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Relational node ${persistentId} finalized.`);
   }
 
   static async processReviewAsync(requestId: string, decision: 'approve' | 'deny' | 'revision'): Promise<void> {
     const user = AuthManager.getCurrentUser();
     if (!user) throw new Error("AUTH_REQUIRED");
 
-    const statusMap = { approve: RequestStatus.APPROVED, deny: RequestStatus.DENIED, revision: RequestStatus.REVISION };
+    const statusMap = { 
+      approve: RequestStatus.APPROVED, 
+      deny: RequestStatus.DENIED, 
+      revision: RequestStatus.REVISION 
+    };
+
     const { error } = await supabase
       .from('requests')
       .update({ status: statusMap[decision] })
-      .eq('id', requestId);
+      .eq('id', parseInt(requestId, 10));
 
     if (error) throw error;
-    LogManager.addLog(user.id, 'REVIEW_DECISION', `${decision.toUpperCase()} applied to ${requestId}`);
+    LogManager.addLog(user.id, 'REVIEW_DECISION', `${decision.toUpperCase()} applied to Node ${requestId}`);
   }
 
   static getPresetsForCategory(category: string): RequestItem[] {

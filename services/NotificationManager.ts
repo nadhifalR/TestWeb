@@ -21,13 +21,16 @@ export class NotificationManager {
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .or(`user_id.eq.${user.id},user_id.eq.system,role.eq.${role}`)
+        .or(`user_id.eq.${user.id},user_id.is.null,role.eq.${role}`)
         .order('timestamp', { ascending: false });
 
-      if (error) return [];
+      if (error) {
+        console.error('NotificationManager: Fetch failed', error);
+        return [];
+      }
       
       return (data || []).map((n: any) => ({
-        id: n.id,
+        id: n.id.toString(),
         userId: n.user_id,
         role: n.role,
         title: n.title,
@@ -42,10 +45,12 @@ export class NotificationManager {
 
   static async addNotification(notif: Omit<Notification, 'id' | 'timestamp' | 'read'>) {
     try {
+      const dbUserId = notif.userId === 'system' ? null : notif.userId;
+
       const { data, error } = await supabase
         .from('notifications')
         .insert([{
-          user_id: notif.userId,
+          user_id: dbUserId, // Correctly references profiles.id (TEXT)
           role: notif.role,
           title: notif.title,
           message: notif.message,
@@ -57,7 +62,7 @@ export class NotificationManager {
 
       if (!error && data) {
         const mapped = {
-          id: data.id,
+          id: data.id.toString(),
           userId: data.user_id,
           role: data.role,
           title: data.title,
@@ -68,7 +73,7 @@ export class NotificationManager {
         window.dispatchEvent(new CustomEvent('nexus-notification', { detail: mapped }));
       }
     } catch (e) {
-      console.warn('NotificationManager: notifications table missing.');
+      console.warn('NotificationManager: Persistence failure.');
     }
   }
 
