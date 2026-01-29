@@ -1,7 +1,7 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { LogManager } from '../services/LogManager';
-import { NotificationManager } from '../services/NotificationManager';
+import { NotificationManager, Notification } from '../services/NotificationManager';
 import { AuthManager } from '../services/AuthManager';
 import { SystemLog } from '../types';
 import { Clock, Terminal, Bell, Search, Trash2, CheckSquare } from 'lucide-react';
@@ -13,52 +13,62 @@ const ActivityPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'notifications' | 'logs'>('notifications');
   const [refreshKey, setRefreshKey] = useState(0);
   const [globalFilter, setGlobalFilter] = useState('');
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [logs, setLogs] = useState<SystemLog[]>([]);
   const user = AuthManager.getCurrentUser();
   
-  const notifications = useMemo(() => NotificationManager.getNotifications(user?.role || ''), [user, refreshKey]);
-  const logs = useMemo(() => LogManager.getLogs(), [refreshKey]);
+  useEffect(() => {
+    if (user?.role) {
+      NotificationManager.getNotifications(user.role).then(setNotifications);
+    }
+  }, [user, refreshKey]);
+
+  useEffect(() => {
+    LogManager.getLogs().then(setLogs);
+  }, [refreshKey]);
 
   const logColumns = useMemo<ColumnDef<SystemLog>[]>(() => [
     {
       header: 'Timestamp',
       accessorKey: 'timestamp',
+      size: 150,
       cell: (info) => (
-        <span className="font-mono text-[10px] theme-text-muted font-bold">
+        <span className="font-mono text-[10px] theme-text-muted font-bold min-w-[120px] block">
           {new Date(info.getValue() as string).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
         </span>
-      ),
-      size: 100
+      )
     },
     {
       header: 'Action',
       accessorKey: 'action',
+      size: 180,
       cell: (info) => (
         <span className="inline-block px-2 py-0.5 theme-bg theme-text-muted border theme-border rounded text-[9px] font-black uppercase tracking-widest">
           {info.getValue() as string}
         </span>
-      ),
-      size: 150
+      )
     },
     {
       header: 'Details',
       accessorKey: 'details',
-      cell: (info) => <span className="text-sm font-bold tracking-tight theme-text">{info.getValue() as string}</span>
+      size: 500,
+      cell: (info) => <span className="text-sm font-bold tracking-tight theme-text block whitespace-normal">{info.getValue() as string}</span>
     },
     {
       header: 'Principal',
       accessorKey: 'userId',
-      cell: (info) => <span className="text-[10px] font-black theme-text-muted uppercase">ID: {info.getValue() as string}</span>,
-      size: 100
+      size: 120,
+      cell: (info) => <span className="text-[10px] font-black theme-text-muted uppercase">ID: {info.getValue() as string}</span>
     }
   ], []);
 
-  const handleClearAll = () => {
-    NotificationManager.clearAll();
+  const handleClearAll = async () => {
+    await NotificationManager.clearAll();
     setRefreshKey(prev => prev + 1);
   };
 
-  const handleMarkRead = () => {
-    NotificationManager.markAllAsRead();
+  const handleMarkRead = async () => {
+    await NotificationManager.markAllAsRead();
     setRefreshKey(prev => prev + 1);
   };
 

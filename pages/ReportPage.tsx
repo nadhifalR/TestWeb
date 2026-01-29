@@ -20,6 +20,7 @@ const ReportPage: React.FC = () => {
   const [archiveSuccess, setArchiveSuccess] = useState<string | null>(null);
   const [showSnapshots, setShowSnapshots] = useState(false);
   const [snapshots, setSnapshots] = useState<any[]>([]);
+  const [data, setData] = useState<RequestForm[]>([]);
   
   const [filters, setFilters] = useState<ReportFilter>({
     dateRange: null,
@@ -27,7 +28,14 @@ const ReportPage: React.FC = () => {
     category: queryParams.get('category') || 'All Categories'
   });
 
-  const data = useMemo(() => ReportManager.getFilteredData(filters), [filters]);
+  useEffect(() => {
+    const fetchFilteredData = async () => {
+      const result = await ReportManager.getFilteredData(filters);
+      setData(result);
+    };
+    fetchFilteredData();
+  }, [filters]);
+
   const grandTotal = useMemo(() => ReportManager.calculateGrandTotal(data), [data]);
 
   useEffect(() => {
@@ -38,22 +46,26 @@ const ReportPage: React.FC = () => {
     {
       header: 'Timestamp',
       accessorKey: 'createdAt',
-      cell: (info) => <span className="theme-text-muted font-mono text-[11px]">{new Date(info.getValue() as string).toLocaleDateString()}</span>,
+      size: 150,
+      cell: (info) => <span className="theme-text-muted font-mono text-[11px] block">{new Date(info.getValue() as string).toLocaleDateString()}</span>,
       footer: () => <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Valuation</span>
     },
     {
       header: 'Node ID',
       accessorKey: 'id',
-      cell: (info) => <span className="font-mono font-black text-blue-500 text-xs">#{info.getValue() as string}</span>
+      size: 120,
+      cell: (info) => <span className="font-mono font-black text-blue-500 text-xs block">#{info.getValue() as string}</span>
     },
     {
       header: 'Tactical Initiative',
       accessorKey: 'name',
-      cell: (info) => <span className="font-black theme-text uppercase tracking-tight text-xs">{info.getValue() as string}</span>
+      size: 400,
+      cell: (info) => <span className="font-black theme-text uppercase tracking-tight text-xs block min-w-[200px]">{info.getValue() as string}</span>
     },
     {
       header: 'Valuation',
       accessorKey: 'totalCost',
+      size: 200,
       cell: (info) => <span className="font-black theme-text text-right font-mono text-sm block">IDR {(info.getValue() as number).toLocaleString()}</span>,
       footer: () => <span className="font-black theme-text text-right font-mono text-lg block">IDR {grandTotal.toLocaleString()}</span>
     }

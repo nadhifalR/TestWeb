@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { AccountManager } from '../services/AccountManager';
 import { UserRole, User, Permission } from '../types';
-import { UserPlus, ShieldCheck, Trash2, Edit2, X, Check } from 'lucide-react';
+import { UserPlus, ShieldCheck, Trash2, Edit2, X, Check, Briefcase, Building2 } from 'lucide-react';
 import { DataTable } from '../components/common/DataTable';
 import { Can } from '../components/common/Can';
 import { ColumnDef } from '@tanstack/react-table';
@@ -11,7 +11,7 @@ const AccountsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'users' | 'access'>('users');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [permissionMatrix, setPermissionMatrix] = useState<Record<UserRole, Permission[]>>(AccountManager.getPermissionMatrix());
+  const [permissionMatrix, setPermissionMatrix] = useState<Record<UserRole, Permission[]>>({} as any);
   const [isSyncing, setIsSyncing] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
 
@@ -30,6 +30,7 @@ const AccountsPage: React.FC = () => {
 
   useEffect(() => {
     loadUsers();
+    AccountManager.getPermissionMatrix().then(setPermissionMatrix);
   }, [isModalOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,10 +65,11 @@ const AccountsPage: React.FC = () => {
     { 
       header: 'System Identity', 
       accessorKey: 'username',
+      size: 300,
       cell: (info) => {
         const u = info.row.original;
         return (
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 min-w-[200px]">
             <img src={u.avatar} className="w-12 h-12 rounded-2xl object-cover border-2 border-white shadow-md" alt="" />
             <div>
               <p className="font-black theme-text leading-none mb-1 uppercase text-xs tracking-tight">{u.username}</p>
@@ -80,6 +82,7 @@ const AccountsPage: React.FC = () => {
     { 
       header: 'Org Node', 
       accessorKey: 'department',
+      size: 200,
       cell: (info) => {
         const u = info.row.original;
         return (
@@ -93,6 +96,7 @@ const AccountsPage: React.FC = () => {
     { 
       header: 'Authority', 
       accessorKey: 'role',
+      size: 150,
       cell: (info) => {
         const role = info.getValue() as UserRole;
         return (
@@ -109,6 +113,7 @@ const AccountsPage: React.FC = () => {
     {
       id: 'actions',
       header: '',
+      size: 100,
       cell: (info) => {
         const u = info.row.original;
         return (
@@ -214,28 +219,98 @@ const AccountsPage: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={() => setIsModalOpen(false)}></div>
-          <form onSubmit={handleSubmit} className="relative w-full max-w-xl theme-card border theme-border rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+          <form onSubmit={handleSubmit} className="relative w-full max-w-2xl theme-card border theme-border rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-10 border-b theme-border flex items-center justify-between theme-bg bg-opacity-50">
-              <h3 className="text-sm font-black theme-text uppercase tracking-[0.3em]">{editingUser ? 'Update Identity' : 'Create new user'}</h3>
+              <h3 className="text-sm font-black theme-text uppercase tracking-[0.3em]">{editingUser ? 'Update Identity' : 'Provision New Identity'}</h3>
               <button type="button" onClick={() => setIsModalOpen(false)} className="p-3 theme-bg rounded-2xl transition-all shadow-sm"><X size={20}/></button>
             </div>
-            <div className="p-12 space-y-8">
+            
+            <div className="p-10 space-y-8 overflow-y-auto max-h-[70vh]">
                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <label className="label-caps">Username</label>
-                  <input required value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} type="text" className="w-full px-6 py-4 theme-bg border theme-border rounded-2xl font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text" />
-                </div>
-                <div className="space-y-3">
-                  <label className="label-caps">Work Email</label>
-                  <input required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} type="email" className="w-full px-6 py-4 theme-bg border theme-border rounded-2xl font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text" />
-                </div>
-              </div>
-              <div className="p-10 bg-opacity-50 theme-bg border-t theme-border flex justify-end gap-6">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="px-8 py-3 text-[10px] font-black uppercase tracking-widest theme-text-muted">Abort</button>
-                <button type="submit" className="px-12 py-4 bg-slate-900 dark:bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:scale-105 transition-all flex items-center gap-3">
-                  <Check size={18}/> Commit Changes
-                </button>
-              </div>
+                  <div className="space-y-3">
+                    <label className="label-caps">Institutional Username</label>
+                    <input 
+                      required 
+                      value={formData.username} 
+                      onChange={e => setFormData({...formData, username: e.target.value})} 
+                      type="text" 
+                      placeholder="e.g. john_doe"
+                      className="w-full px-6 py-4 theme-bg border theme-border rounded-2xl font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text" 
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="label-caps">Work Email Address</label>
+                    <input 
+                      required 
+                      value={formData.email} 
+                      onChange={e => setFormData({...formData, email: e.target.value})} 
+                      type="email" 
+                      placeholder="e.g. john@nexus.com"
+                      className="w-full px-6 py-4 theme-bg border theme-border rounded-2xl font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text" 
+                    />
+                  </div>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-3">
+                    <label className="label-caps flex items-center gap-2"><Building2 size={12}/> Primary Department</label>
+                    <input 
+                      required 
+                      value={formData.department} 
+                      onChange={e => setFormData({...formData, department: e.target.value})} 
+                      type="text" 
+                      placeholder="e.g. Operations"
+                      className="w-full px-6 py-4 theme-bg border theme-border rounded-2xl font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text" 
+                    />
+                  </div>
+                  <div className="space-y-3">
+                    <label className="label-caps flex items-center gap-2"><Briefcase size={12}/> Job Designation</label>
+                    <input 
+                      required 
+                      value={formData.title} 
+                      onChange={e => setFormData({...formData, title: e.target.value})} 
+                      type="text" 
+                      placeholder="e.g. Regional Manager"
+                      className="w-full px-6 py-4 theme-bg border theme-border rounded-2xl font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text" 
+                    />
+                  </div>
+               </div>
+
+               <div className="space-y-3">
+                  <label className="label-caps flex items-center gap-2"><ShieldCheck size={12}/> Authority Access Level</label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {Object.values(UserRole).map(role => (
+                      <button
+                        key={role}
+                        type="button"
+                        onClick={() => setFormData({...formData, role})}
+                        className={`px-4 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
+                          formData.role === role 
+                          ? 'bg-slate-900 text-white border-slate-900 dark:bg-blue-600 dark:border-blue-600' 
+                          : 'theme-card theme-border theme-text-muted hover:border-slate-400'
+                        }`}
+                      >
+                        {role}
+                      </button>
+                    ))}
+                  </div>
+               </div>
+            </div>
+
+            <div className="p-10 bg-opacity-50 theme-bg border-t theme-border flex justify-end gap-6">
+              <button 
+                type="button" 
+                onClick={() => setIsModalOpen(false)} 
+                className="px-8 py-3 text-[10px] font-black uppercase tracking-widest theme-text-muted"
+              >
+                Abort Action
+              </button>
+              <button 
+                type="submit" 
+                className="px-12 py-4 bg-slate-900 dark:bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
+              >
+                <Check size={18}/> Commit Node Changes
+              </button>
             </div>
           </form>
         </div>

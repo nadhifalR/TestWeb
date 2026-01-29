@@ -20,8 +20,8 @@ interface MonthlySpendTrend {
 
 export class AnalyticsManager {
   static async getDashboardStats(): Promise<DashboardStats> {
+    const requests = await RequestManager.getRequests();
     return MockApiService.request(() => {
-      const requests = RequestManager.getRequests();
       return {
         pendingCount: requests.filter(r => r.status === RequestStatus.PENDING).length,
         approvedCount: requests.filter(r => r.status === RequestStatus.APPROVED).length,
@@ -32,8 +32,8 @@ export class AnalyticsManager {
   }
 
   static async getCategoryDistribution(filteredRequests?: RequestForm[]) {
+    const requests = filteredRequests || await RequestManager.getRequests();
     return MockApiService.request(() => {
-      const requests = filteredRequests || RequestManager.getRequests();
       const categories: Record<string, number> = {};
       
       requests.forEach(req => {
@@ -83,8 +83,8 @@ export class AnalyticsManager {
   }
 
   static async getMonthlySpendTrend(requests?: RequestForm[]) {
+    const data = requests || await RequestManager.getRequests();
     return MockApiService.request(() => {
-      const data = requests || RequestManager.getRequests();
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       
       const now = new Date();

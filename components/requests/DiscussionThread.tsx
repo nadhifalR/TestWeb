@@ -16,7 +16,7 @@ const CommentItem: React.FC<{
   const [showReply, setShowReply] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [replyFile, setReplyFile] = useState<File | null>(null);
-  const replyFileInputRef = useRef<HTMLInputElement>(null);
+  replyFileInputRef = useRef<HTMLInputElement>(null);
 
   const currentUser = AuthManager.getCurrentUser();
   const linkedAttachment = allAttachments.find(a => a.id === comment.attachmentId);
@@ -148,10 +148,12 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
   
   const user = AuthManager.getCurrentUser();
 
-  const loadData = () => {
+  const loadData = async () => {
     if (!requestId) return;
-    setComments(CommentManager.getComments(requestId));
-    setAllAttachments(AttachmentManager.getAttachments(requestId));
+    const commentsData = await CommentManager.getComments(requestId);
+    const attachmentsData = await AttachmentManager.getAttachments(requestId);
+    setComments(commentsData);
+    setAllAttachments(attachmentsData);
   };
 
   useEffect(() => {
@@ -174,7 +176,7 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
       }
     }
 
-    CommentManager.addComment(requestId, user.id, user.username, newCommentText, undefined, attachmentId);
+    await CommentManager.addComment(requestId, user.id, user.username, newCommentText, undefined, attachmentId);
     setNewCommentText('');
     setSelectedFile(null);
     setIsProcessing(false);
@@ -195,12 +197,12 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
       }
     }
 
-    CommentManager.addComment(requestId, user.id, user.username, text, parentId, attachmentId);
+    await CommentManager.addComment(requestId, user.id, user.username, text, parentId, attachmentId);
     loadData();
   };
 
-  const handleDelete = (id: string) => {
-    CommentManager.deleteComment(id);
+  const handleDelete = async (id: string) => {
+    await CommentManager.deleteComment(id);
     loadData();
   };
 

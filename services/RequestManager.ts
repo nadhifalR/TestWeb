@@ -1,27 +1,34 @@
 
-import { RequestForm, RequestStatus, UserRole, RequestItem } from '../types';
-import { TemporaryDatabase } from './TemporaryDatabase';
+import { RequestForm, RequestStatus, RequestItem } from '../types';
 import { LogManager } from './LogManager';
 import { NotificationManager } from './NotificationManager';
 import { AuthManager } from './AuthManager';
-import { AccountManager } from './AccountManager';
 import { RequestItemManager } from './RequestItemManager';
 import { RequestFormManager } from './RequestFormManager';
-import { MockApiService } from './MockApiService';
+import { supabase } from './SupabaseClient';
 
 export class RequestManager {
-  static getRequests(): RequestForm[] {
-    const db = TemporaryDatabase.getDB();
+  // Renamed from getRequestsAsync to getRequests for system-wide compatibility
+  static async getRequests(): Promise<RequestForm[]> {
     const user = AuthManager.getCurrentUser();
     if (!user) return [];
-    
-    return (db.requests || [])
-      .filter((r: any) => !r.deletedAt)
-      .filter((r: RequestForm) => AccountManager.hasPermission(user, 'VIEW', r.requesterId));
-  }
 
-  static async getRequestsAsync(): Promise<RequestForm[]> {
-    return MockApiService.request(() => this.getRequests());
+    let query = supabase
+      .from('requests')
+      .select('*, items:request_items(*)')
+      .is('deletedAt', null);
+
+    // Row level security would handle this in production, but we add a client-side filter for safety
+    if (user.role === 'REQUESTER') {
+      query = query.eq('requesterId', user.id);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+      console.error('Fetch requests error:', error);
+      return [];
+    }
+    return data as RequestForm[];
   }
 
   static getPresetsForCategory(category: string): RequestItem[] {
@@ -43,116 +50,108 @@ export class RequestManager {
   }
 
   static async createOrUpdateFromFormAsync(formData: any, items: RequestItem[], category: string, statusType: 'draft' | 'submit', viewingId?: string, tempId?: string): Promise<void> {
-    return MockApiService.request(() => {
-      const user = AuthManager.getCurrentUser();
-      if (!user) throw new Error("AUTH_ERROR: Session expired.");
+    const user = AuthManager.getCurrentUser();
+    if (!user) throw new Error("AUTH_ERROR: Session expired.");
 
-      this.validateRequest({ ...formData, items });
+    this.validateRequest({ ...formData, items });
+    const totalCost = RequestItemManager.calculateTotal(items);
 
-      const totalCost = RequestItemManager.calculateTotal(items);
-      const id = viewingId || `REQ-${Math.floor(Math.random() * 90000) + 10000}`;
+    const requestPayload = {
+      ...formData,
+      requesterId: user.id,
+      category,
+      totalCost,
+      status: statusType === 'draft' 
+        ? (formData.status === RequestStatus.REVISION ? RequestStatus.REVISION : RequestStatus.DRAFT)
+        : RequestStatus.PENDING,
+      createdAt: formData.createdAt || new Date().toISOString()
+    };
+
+    // Remove items from payload as they go to a different table
+    delete requestPayload.items;
+
+    let requestId = viewingId;
+
+    if (viewingId) {
+      // UPDATE
+      const { error: reqError } = await supabase
+        .from('requests')
+        .update(requestPayload)
+        .eq('id', viewingId);
+      if (reqError) throw reqError;
       
-      const requestData: RequestForm = {
-        ...formData,
-        id,
-        requesterId: user.id,
-        category,
-        items,
-        totalCost,
-        status: statusType === 'draft' 
-          ? (formData.status === RequestStatus.REVISION ? RequestStatus.REVISION : RequestStatus.DRAFT)
-          : RequestStatus.PENDING,
-        createdAt: formData.createdAt || new Date().toISOString()
-      };
-
-      if (statusType === 'draft') {
-        this.saveDraft(requestData);
-      } else {
-        this.submitRequest(requestData, viewingId ? undefined : tempId);
-      }
-    });
-  }
-
-  private static saveDraft(request: RequestForm): void {
-    const db = TemporaryDatabase.getDB();
-    if (!db.requests) db.requests = [];
-    
-    const idx = db.requests.findIndex((r: RequestForm) => r.id === request.id);
-    if (idx > -1) db.requests[idx] = request;
-    else db.requests.push(request);
-    
-    TemporaryDatabase.saveDB(db);
-    LogManager.addLog(request.requesterId, 'SAVE_DRAFT', `Draft persisted: ${request.id}`);
-  }
-
-  private static submitRequest(request: RequestForm, tempId?: string): void {
-    const db = TemporaryDatabase.getDB();
-    if (!db.requests) db.requests = [];
-    
-    const idx = db.requests.findIndex((r: RequestForm) => r.id === request.id);
-    if (idx > -1) db.requests[idx] = request;
-    else db.requests.push(request);
-
-    if (tempId && tempId.startsWith('TMP-')) {
-      db.comments = (db.comments || []).map((c: any) => c.requestId === tempId ? { ...c, requestId: request.id } : c);
-      db.attachments = (db.attachments || []).map((a: any) => a.requestId === tempId ? { ...a, requestId: request.id } : a);
+      // Delete old items and insert new ones (simulated transaction)
+      await supabase.from('request_items').delete().eq('requestId', viewingId);
+    } else {
+      // CREATE
+      const { data, error: reqError } = await supabase
+        .from('requests')
+        .insert([requestPayload])
+        .select()
+        .single();
+      if (reqError) throw reqError;
+      requestId = data.id;
     }
-    
-    TemporaryDatabase.saveDB(db);
 
-    LogManager.addLog(request.requesterId, 'SUBMIT_REQUEST', `Request submitted: ${request.id}`);
-    NotificationManager.addNotification({
-      userId: 'system',
-      role: UserRole.REVIEWER,
-      title: 'Clearance Required',
-      message: `${request.name} submitted for audit.`
-    });
+    // Insert line items
+    const itemsPayload = items.map(item => ({
+      ...item,
+      requestId,
+      id: undefined // Let DB generate UUID or use a standard serial
+    }));
+    const { error: itemsError } = await supabase.from('request_items').insert(itemsPayload);
+    if (itemsError) throw itemsError;
+
+    // Handle temp attachments/comments
+    if (tempId && tempId.startsWith('TMP-')) {
+      await supabase.from('comments').update({ requestId }).eq('requestId', tempId);
+      await supabase.from('attachments').update({ requestId }).eq('requestId', tempId);
+    }
+
+    LogManager.addLog(user.id, statusType === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Protocol ${statusType}: ${requestId}`);
+    
+    if (statusType === 'submit') {
+      NotificationManager.addNotification({
+        userId: 'system',
+        role: 'REVIEWER',
+        title: 'Clearance Required',
+        message: `${formData.name} submitted for audit.`
+      });
+    }
   }
 
   static async deleteRequest(requestId: string): Promise<void> {
-    return MockApiService.request(() => {
-      const user = AuthManager.getCurrentUser();
-      const db = TemporaryDatabase.getDB();
-      const request = db.requests?.find((r: any) => r.id === requestId);
-      
-      if (!user || !request || !AccountManager.hasPermission(user, 'DELETE', request.requesterId)) {
-        throw new Error("ACCESS_DENIED: Lacks authority to purge record.");
-      }
+    const user = AuthManager.getCurrentUser();
+    if (!user) throw new Error("AUTH_REQUIRED");
 
-      const now = new Date().toISOString();
-      const idx = db.requests.findIndex((r: any) => r.id === requestId);
-      if (idx !== -1) {
-        db.requests[idx].deletedAt = now;
-        db.comments = (db.comments || []).map((c: any) => c.requestId === requestId ? { ...c, deletedAt: now } : c);
-        db.attachments = (db.attachments || []).map((a: any) => a.requestId === requestId ? { ...a, deletedAt: now } : a);
-        TemporaryDatabase.saveDB(db);
-        LogManager.addLog(user.id, 'DELETE_REQUEST', `Purged ${requestId}`);
-      }
-    });
+    const { error } = await supabase
+      .from('requests')
+      .update({ deletedAt: new Date().toISOString() })
+      .eq('id', requestId);
+
+    if (error) throw error;
+    LogManager.addLog(user.id, 'DELETE_REQUEST', `Purged ${requestId}`);
   }
 
   static async processReviewAsync(requestId: string, decision: 'approve' | 'deny' | 'revision'): Promise<void> {
-    return MockApiService.request(() => {
-      const user = AuthManager.getCurrentUser();
-      if (!user || !AccountManager.hasPermission(user, 'APPROVE')) {
-        throw new Error("ACCESS_DENIED: Lacks APPROVE authority.");
-      }
+    const user = AuthManager.getCurrentUser();
+    if (!user) throw new Error("AUTH_REQUIRED");
 
-      const db = TemporaryDatabase.getDB();
-      const idx = db.requests.findIndex((r: RequestForm) => r.id === requestId);
-      
-      if (idx !== -1) {
-        const statusMap = { approve: RequestStatus.APPROVED, deny: RequestStatus.DENIED, revision: RequestStatus.REVISION };
-        db.requests[idx].status = statusMap[decision];
-        TemporaryDatabase.saveDB(db);
-        
-        LogManager.addLog(user.id, 'REVIEW_DECISION', `${decision.toUpperCase()} ${requestId}`);
-        NotificationManager.addNotification({
-          userId: db.requests[idx].requesterId,
-          title: `Protocol State: ${statusMap[decision]}`,
-          message: `Request ${requestId} updated.`
-        });
-      }
+    const statusMap = { approve: RequestStatus.APPROVED, deny: RequestStatus.DENIED, revision: RequestStatus.REVISION };
+    const { data: request, error: updateError } = await supabase
+      .from('requests')
+      .update({ status: statusMap[decision] })
+      .eq('id', requestId)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
+
+    LogManager.addLog(user.id, 'REVIEW_DECISION', `${decision.toUpperCase()} ${requestId}`);
+    NotificationManager.addNotification({
+      userId: request.requesterId,
+      title: `Protocol State: ${statusMap[decision]}`,
+      message: `Request ${requestId} updated.`
     });
   }
 }

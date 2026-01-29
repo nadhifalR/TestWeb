@@ -1,5 +1,5 @@
 
-import { TemporaryDatabase } from './TemporaryDatabase';
+import { supabase } from './SupabaseClient';
 import { AuthManager } from './AuthManager';
 
 export interface Notification {
@@ -13,68 +13,53 @@ export interface Notification {
 }
 
 export class NotificationManager {
-  static getNotifications(role: string): Notification[] {
-    const db = TemporaryDatabase.getDB();
+  static async getNotifications(role: string): Promise<Notification[]> {
     const user = AuthManager.getCurrentUser();
-    
     if (!user) return [];
 
-    return (db.notifications || []).filter((n: Notification) => 
-      n.userId === user.id || 
-      n.userId === 'system' || 
-      (n.role && n.role === role)
-    );
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .or(`userId.eq.${user.id},userId.eq.system,role.eq.${role}`)
+      .order('timestamp', { ascending: false });
+
+    if (error) return [];
+    return data as Notification[];
   }
 
-  static async requestPermission() {
-    if ('Notification' in window) {
-      return await Notification.requestPermission();
+  static async addNotification(notif: Omit<Notification, 'id' | 'timestamp' | 'read'>) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert([{
+        ...notif,
+        timestamp: new Date().toISOString(),
+        read: false
+      }])
+      .select()
+      .single();
+
+    if (!error && data) {
+      window.dispatchEvent(new CustomEvent('nexus-notification', { detail: data }));
     }
-    return 'denied';
   }
 
-  static addNotification(notif: Omit<Notification, 'id' | 'timestamp' | 'read'>) {
-    const db = TemporaryDatabase.getDB();
-    const newNotif: Notification = {
-      ...notif,
-      id: Math.random().toString(36).substr(2, 9),
-      timestamp: new Date().toISOString(),
-      read: false
-    };
-    db.notifications = [newNotif, ...(db.notifications || [])];
-    TemporaryDatabase.saveDB(db);
-
-    // OS Level Push
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(newNotif.title, { body: newNotif.message });
-    }
-
-    // Global event for Toast UI
-    window.dispatchEvent(new CustomEvent('nexus-notification', { detail: newNotif }));
-  }
-
-  static clearAll() {
-    const db = TemporaryDatabase.getDB();
+  static async clearAll() {
     const user = AuthManager.getCurrentUser();
     if (!user) return;
 
-    db.notifications = (db.notifications || []).filter((n: Notification) => 
-      n.userId !== user.id && n.role !== user.role
-    );
-    TemporaryDatabase.saveDB(db);
+    await supabase
+      .from('notifications')
+      .delete()
+      .or(`userId.eq.${user.id},role.eq.${user.role}`);
   }
 
-  static markAllAsRead() {
-    const db = TemporaryDatabase.getDB();
+  static async markAllAsRead() {
     const user = AuthManager.getCurrentUser();
     if (!user) return;
 
-    db.notifications = (db.notifications || []).map((n: Notification) => {
-      if (n.userId === user.id || n.role === user.role) {
-        return { ...n, read: true };
-      }
-      return n;
-    });
-    TemporaryDatabase.saveDB(db);
+    await supabase
+      .from('notifications')
+      .update({ read: true })
+      .or(`userId.eq.${user.id},role.eq.${user.role}`);
   }
 }

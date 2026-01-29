@@ -1,5 +1,5 @@
 {
-  "name": "Nexus Enterprise Request System 1.4",
+  "name": "Nexus Enterprise Request System 1.6",
   "description": "A high-fidelity production-ready testbed for enterprise request management, featuring role-based access control, complex form schemas, and manager-based architecture.",
   "requestFramePermissions": []
 }

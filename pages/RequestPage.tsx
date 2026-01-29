@@ -156,22 +156,23 @@ const RequestPage: React.FC = () => {
     { 
       header: 'ID', 
       accessorKey: 'id',
-      cell: (info) => <span className="font-mono text-[11px] font-bold text-slate-400">#{info.getValue() as string}</span>,
-      size: 90
+      size: 100,
+      cell: (info) => <span className="font-mono text-[11px] font-bold text-slate-400">#{info.getValue() as string}</span>
     },
     { 
       header: 'Date', 
       accessorKey: 'createdAt',
-      cell: (info) => <span className="text-[12px] font-medium theme-text-muted">{new Date(info.getValue() as string).toLocaleDateString()}</span>,
-      size: 110
+      size: 120,
+      cell: (info) => <span className="text-[12px] font-medium theme-text-muted">{new Date(info.getValue() as string).toLocaleDateString()}</span>
     },
     { 
       header: 'Initiative Context', 
       accessorKey: 'name',
+      size: 400,
       cell: (info) => {
         const r = info.row.original;
         return (
-          <div>
+          <div className="min-w-[250px]">
             <p className="font-bold theme-text text-[13px]">{r.name}</p>
             <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider">{r.category}</p>
           </div>
@@ -181,11 +182,13 @@ const RequestPage: React.FC = () => {
     { 
       header: 'Valuation', 
       accessorKey: 'totalCost',
+      size: 180,
       cell: (info) => <span className="font-bold theme-text text-[13px]">IDR {(info.getValue() as number).toLocaleString()}</span> 
     },
     { 
       header: 'State', 
       accessorKey: 'status',
+      size: 140,
       cell: (info) => {
         const status = info.getValue() as RequestStatus;
         return (
@@ -203,6 +206,7 @@ const RequestPage: React.FC = () => {
     { 
       id: 'actions',
       header: '', 
+      size: 100,
       cell: (info) => {
         const r = info.row.original;
         return (
@@ -213,8 +217,7 @@ const RequestPage: React.FC = () => {
             Audit
           </button>
         );
-      },
-      size: 100
+      }
     }
   ], [navigate]);
 

@@ -120,35 +120,41 @@ export function DataTable<T extends { id: string | number }>({
         <table 
           role="table" 
           aria-label="Data Registry"
-          className="w-full text-left border-collapse table-fixed"
-          style={{ width: table.getCenterTotalSize() }}
+          className="min-w-full text-left border-collapse table-fixed"
+          style={{ width: table.getTotalSize() }}
         >
           <thead role="rowgroup" className="theme-bg bg-opacity-50 border-b theme-border sticky top-0 z-10">
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id} role="row">
                 {headerGroup.headers.map(header => {
                   const isSorted = header.column.getIsSorted();
+                  const isResizing = header.column.getIsResizing();
                   return (
                     <th 
                       key={header.id} 
                       role="columnheader"
                       aria-sort={isSorted === 'asc' ? 'ascending' : isSorted === 'desc' ? 'descending' : 'none'}
-                      className="px-6 py-4 label-caps relative group select-none overflow-hidden"
-                      style={{ width: header.getSize() }}
+                      className="px-6 py-4 label-caps relative group select-none"
+                      style={{ 
+                        width: header.getSize(),
+                        minWidth: header.column.columnDef.minSize
+                      }}
                     >
                       <div 
                         className={`flex items-center gap-2 ${header.column.getCanSort() ? 'cursor-pointer hover:theme-text transition-colors' : ''}`}
                         onClick={header.column.getToggleSortingHandler()}
                       >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                        <span className="truncate">
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </span>
                         
                         {header.column.getCanSort() && (
-                          <div className="flex flex-col text-slate-400 group-hover:text-blue-500 transition-colors">
+                          <div className="flex flex-col text-slate-400 group-hover:text-blue-500 transition-colors shrink-0">
                             {isSorted === 'asc' ? (
                               <ChevronUp size={12} aria-hidden="true" />
                             ) : isSorted === 'desc' ? (
@@ -160,14 +166,20 @@ export function DataTable<T extends { id: string | number }>({
                         )}
                       </div>
 
-                      {/* Resizer */}
-                      <div
-                        onMouseDown={header.getResizeHandler()}
-                        onTouchStart={header.getResizeHandler()}
-                        className={`absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none hover:bg-blue-500/50 transition-colors ${
-                          header.column.getIsResizing() ? 'bg-blue-500' : 'bg-transparent'
-                        }`}
-                      />
+                      {/* Resizer - Clear vertical guide with Glow effect */}
+                      {header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className={`absolute right-0 top-0 h-full w-4 cursor-col-resize select-none touch-none flex justify-center group/resizer z-20`}
+                        >
+                          <div className={`w-[1px] h-full transition-all duration-200 ${
+                            isResizing 
+                            ? 'bg-blue-500 opacity-100 shadow-[0_0_8px_rgba(59,130,246,0.8)]' 
+                            : 'bg-slate-300 opacity-30 group-hover/resizer:opacity-100 group-hover/resizer:bg-blue-400'
+                          }`} />
+                        </div>
+                      )}
                     </th>
                   );
                 })}
@@ -189,7 +201,9 @@ export function DataTable<T extends { id: string | number }>({
                     key={cell.id} 
                     role="cell" 
                     className="px-6 py-4 text-[13px] font-medium theme-text truncate"
-                    style={{ width: cell.column.getSize() }}
+                    style={{ 
+                      width: cell.column.getSize()
+                    }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
@@ -209,7 +223,12 @@ export function DataTable<T extends { id: string | number }>({
               {table.getFooterGroups().map(footerGroup => (
                 <tr key={footerGroup.id} role="row">
                   {footerGroup.headers.map(header => (
-                    <td key={header.id} role="cell" className="px-6 py-4">
+                    <td 
+                      key={header.id} 
+                      role="cell" 
+                      className="px-6 py-4 truncate"
+                      style={{ width: header.getSize() }}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(

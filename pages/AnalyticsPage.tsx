@@ -25,7 +25,7 @@ const AnalyticsPage: React.FC = () => {
 
     const fetchData = async () => {
       setIsLoading(true);
-      const raw = RequestManager.getRequests();
+      const raw = await RequestManager.getRequests();
       try {
         const [s, t, v, d] = await Promise.all([
           AnalyticsManager.getDashboardStats(),

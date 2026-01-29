@@ -13,12 +13,11 @@ export interface ReportFilter {
 }
 
 export class ReportManager {
-  static getFilteredData(filters: ReportFilter): RequestForm[] {
-    let requests = RequestManager.getRequests();
-    // In production we would fetch users async, but here we use the cached matrix for filtering
-    const users = AccountManager.getPermissionMatrix(); // Use matrix as a temporary proxy or fetch users
+  static async getFilteredData(filters: ReportFilter): Promise<RequestForm[]> {
+    let requests = await RequestManager.getRequests();
+    // Fetch matrix for clearance checks if needed, but logic currently relies on request properties
+    await AccountManager.getPermissionMatrix();
     
-    // For now we assume the filtering logic remains synchronous as it operates on the already-fetched request registry
     if (filters.department && filters.department !== 'All' && filters.department !== 'All Departments') {
       // In a real app we'd map requesterId to department via a lookup table
       // Simplified for mock:

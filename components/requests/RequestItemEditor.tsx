@@ -1,12 +1,13 @@
 
-import React, { useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback, useState } from 'react';
 import { Plus, Trash2, Package, Sparkles } from 'lucide-react';
 import { RequestItem } from '../../types';
 import { 
   useReactTable, 
   getCoreRowModel, 
   flexRender, 
-  ColumnDef 
+  ColumnDef,
+  ColumnSizingState
 } from '@tanstack/react-table';
 
 interface RequestItemEditorProps {
@@ -17,6 +18,8 @@ interface RequestItemEditorProps {
 }
 
 export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onItemsChange, onLoadPresets, disabled }) => {
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
+
   const addItem = useCallback(() => {
     const newItem: RequestItem = {
       id: Math.random().toString(36).substr(2, 9),
@@ -50,6 +53,7 @@ export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onI
     {
       header: 'Resource Detail',
       accessorKey: 'name',
+      size: 400,
       cell: ({ row }) => (
         <input 
           disabled={disabled}
@@ -57,14 +61,14 @@ export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onI
           value={row.original.name} 
           placeholder="Specify resource..."
           onChange={(e) => updateItem(row.original.id, 'name', e.target.value)}
-          className="w-full px-3 py-2 bg-transparent outline-none font-bold text-xs theme-text focus:bg-white rounded-lg transition-all"
+          className="w-full px-3 py-2 bg-transparent outline-none font-bold text-xs theme-text focus:bg-white rounded-lg transition-all truncate"
         />
       ),
     },
     {
       header: 'Qty',
       accessorKey: 'quantity',
-      size: 100,
+      size: 80,
       cell: ({ row }) => (
         <input 
           disabled={disabled}
@@ -85,14 +89,14 @@ export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onI
           type="text" 
           value={row.original.unit} 
           onChange={(e) => updateItem(row.original.id, 'unit', e.target.value)}
-          className="w-full px-3 py-2 bg-transparent outline-none font-bold text-xs theme-text focus:bg-white rounded-lg transition-all uppercase"
+          className="w-full px-3 py-2 bg-transparent outline-none font-bold text-xs theme-text focus:bg-white rounded-lg transition-all uppercase truncate"
         />
       ),
     },
     {
       header: 'Unit Price',
       accessorKey: 'price',
-      size: 160,
+      size: 180,
       cell: ({ row }) => (
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-black">IDR</span>
@@ -109,9 +113,9 @@ export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onI
     {
       header: 'Total',
       accessorKey: 'total',
-      size: 160,
+      size: 180,
       cell: ({ row }) => (
-        <span className="font-black theme-text text-xs block text-right">
+        <span className="font-black theme-text text-xs block text-right min-w-[100px] truncate">
           {row.original.total.toLocaleString()}
         </span>
       ),
@@ -119,12 +123,13 @@ export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onI
     {
       id: 'actions',
       header: '',
-      size: 50,
+      size: 60,
+      enableResizing: false,
       cell: ({ row }) => !disabled && (
         <button 
           type="button"
           onClick={() => removeItem(row.original.id)}
-          className="p-2 text-slate-300 hover:text-red-500 transition-colors"
+          className="p-2 text-slate-300 hover:text-red-500 transition-colors mx-auto block"
         >
           <Trash2 size={14} />
         </button>
@@ -135,6 +140,11 @@ export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onI
   const table = useReactTable({
     data: items,
     columns,
+    state: {
+      columnSizing,
+    },
+    onColumnSizingChange: setColumnSizing,
+    columnResizeMode: 'onChange',
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -167,16 +177,40 @@ export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onI
         )}
       </div>
 
-      <div className="theme-card rounded-3xl border theme-border overflow-hidden shadow-sm">
-        <table className="w-full text-left">
+      <div className="theme-card rounded-3xl border theme-border overflow-x-auto shadow-sm">
+        <table 
+          className="min-w-full text-left table-fixed border-collapse"
+          style={{ width: table.getTotalSize() }}
+        >
           <thead className="theme-bg bg-opacity-50 border-b theme-border">
             {table.getHeaderGroups().map(headerGroup => (
               <tr key={headerGroup.id}>
-                {headerGroup.headers.map(header => (
-                  <th key={header.id} className="px-6 py-4 label-caps" style={{ width: header.getSize() !== 150 ? header.getSize() : undefined }}>
-                    {flexRender(header.column.columnDef.header, header.getContext())}
-                  </th>
-                ))}
+                {headerGroup.headers.map(header => {
+                  const isResizing = header.column.getIsResizing();
+                  return (
+                    <th 
+                      key={header.id} 
+                      className="px-6 py-4 label-caps relative group select-none" 
+                      style={{ width: header.getSize() }}
+                    >
+                      <span className="truncate">{flexRender(header.column.columnDef.header, header.getContext())}</span>
+                      
+                      {header.column.getCanResize() && (
+                        <div
+                          onMouseDown={header.getResizeHandler()}
+                          onTouchStart={header.getResizeHandler()}
+                          className="absolute right-0 top-0 h-full w-4 cursor-col-resize select-none touch-none flex justify-center group/resizer z-20"
+                        >
+                          <div className={`w-[1px] h-full transition-all duration-200 ${
+                            isResizing 
+                            ? 'bg-blue-500 opacity-100 shadow-[0_0_8px_rgba(59,130,246,0.8)]' 
+                            : 'bg-slate-300 opacity-30 group-hover/resizer:opacity-100 group-hover/resizer:bg-blue-400'
+                          }`} />
+                        </div>
+                      )}
+                    </th>
+                  );
+                })}
               </tr>
             ))}
           </thead>
@@ -184,7 +218,7 @@ export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onI
             {table.getRowModel().rows.map(row => (
               <tr key={row.id} className="hover:bg-slate-500/5 transition-colors">
                 {row.getVisibleCells().map(cell => (
-                  <td key={cell.id} className="px-4 py-2">
+                  <td key={cell.id} className="px-4 py-2 truncate" style={{ width: cell.column.getSize() }}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}

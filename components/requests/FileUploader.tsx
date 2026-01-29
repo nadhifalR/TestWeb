@@ -9,7 +9,7 @@ export const FileUploader: React.FC<{ requestId?: string }> = ({ requestId = 'te
   const [previewFile, setPreviewFile] = useState<Attachment | null>(null);
 
   useEffect(() => {
-    setAttachments(AttachmentManager.getAttachments(requestId));
+    AttachmentManager.getAttachments(requestId).then(setAttachments);
   }, [requestId]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,15 +19,17 @@ export const FileUploader: React.FC<{ requestId?: string }> = ({ requestId = 'te
     setIsUploading(true);
     try {
       await AttachmentManager.uploadFile(requestId, file);
-      setAttachments(AttachmentManager.getAttachments(requestId));
+      const data = await AttachmentManager.getAttachments(requestId);
+      setAttachments(data);
     } finally {
       setIsUploading(false);
     }
   };
 
-  const removeFile = (id: string) => {
-    AttachmentManager.removeAttachment(id);
-    setAttachments(AttachmentManager.getAttachments(requestId));
+  const removeFile = async (id: string) => {
+    await AttachmentManager.removeAttachment(id);
+    const data = await AttachmentManager.getAttachments(requestId);
+    setAttachments(data);
   };
 
   return (
