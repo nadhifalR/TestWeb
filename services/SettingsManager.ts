@@ -12,34 +12,27 @@ export interface SystemSettings {
 
 export class SettingsManager {
   private static DEFAULT_SETTINGS: SystemSettings = {
-    currency: 'IDR',
-    fiscalYearStart: '2024-01-01',
-    theme: 'light',
-    language: 'en',
-    maxFileUploadSize: 10
+    currency: 'IDR', fiscalYearStart: '2024-01-01', theme: 'light', language: 'en', maxFileUploadSize: 10
   };
 
   private static cache: SystemSettings = SettingsManager.DEFAULT_SETTINGS;
 
   static async getSettings(): Promise<SystemSettings> {
     try {
-      const { data, error } = await supabase
+      const { data, error, status } = await supabase
         .from('system_configs')
         .select('value')
         .eq('key', 'global_settings')
         .maybeSingle();
 
-      if (error) {
-        // If 404, the table doesn't exist, use defaults silently
+      if (error || status === 404) {
         this.cache = this.DEFAULT_SETTINGS;
         return this.DEFAULT_SETTINGS;
       }
       
-      const result = { ...this.DEFAULT_SETTINGS, ...(data?.value || {}) };
-      this.cache = result;
-      return result;
+      this.cache = { ...this.DEFAULT_SETTINGS, ...(data?.value || {}) };
+      return this.cache;
     } catch (err) {
-      this.cache = this.DEFAULT_SETTINGS;
       return this.DEFAULT_SETTINGS;
     }
   }
@@ -49,23 +42,15 @@ export class SettingsManager {
   }
 
   static async updateSettings(newSettings: Partial<SystemSettings>) {
+    const updated = { ...this.cache, ...newSettings };
+    this.cache = updated;
+    
     try {
-      const current = await this.getSettings();
-      const updated = { ...current, ...newSettings };
-      
-      this.cache = updated;
-      
-      const { error } = await supabase
-        .from('system_configs')
-        .upsert({ key: 'global_settings', value: updated });
-
-      if (error) throw error;
-
-      if (newSettings.theme) {
-        ThemeManager.applyTheme(newSettings.theme);
-      }
+      await supabase.from('system_configs').upsert({ key: 'global_settings', value: updated });
     } catch (err) {
-      console.warn("SettingsManager: system_configs table likely missing. Persistent settings unavailable.");
+      console.warn("SettingsManager: Database persistence skipped.");
     }
+
+    if (newSettings.theme) ThemeManager.applyTheme(newSettings.theme);
   }
 }

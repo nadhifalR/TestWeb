@@ -24,11 +24,10 @@ export class RequestManager {
 
       const { data, error } = await query;
       if (error) {
-        console.error('Fetch requests error:', error);
+        console.error('RequestManager: Fetch Error', error);
         return [];
       }
 
-      // Map snake_case from DB to camelCase for UI
       return (data || []).map((r: any) => ({
         ...r,
         requesterId: r.requester_id,
@@ -43,36 +42,23 @@ export class RequestManager {
         }))
       })) as RequestForm[];
     } catch (err) {
-      console.error('RequestManager.getRequests critical failure:', err);
       return [];
     }
   }
 
-  static getPresetsForCategory(category: string): RequestItem[] {
-    const schema = RequestFormManager.getSchemaByCategory(category);
-    return (schema.presets || []).map(p => ({
-      id: Math.random().toString(36).substr(2, 9),
-      name: p.name || '',
-      quantity: p.quantity || 1,
-      unit: p.unit || 'Units',
-      price: p.price || 0,
-      total: (p.quantity || 1) * (p.price || 0)
-    }));
-  }
-
-  static validateRequest(data: Partial<RequestForm>): void {
-    if (!data.name || data.name.trim().length < 3) throw new Error("VALIDATION_ERROR: Name too short.");
-    if (!data.eventDate) throw new Error("VALIDATION_ERROR: Date required.");
-    if (!data.items || data.items.length === 0) throw new Error("VALIDATION_ERROR: Items required.");
-  }
-
-  static async createOrUpdateFromFormAsync(formData: any, items: RequestItem[], category: string, statusType: 'draft' | 'submit', viewingId?: string, tempId?: string): Promise<void> {
+  // Fix: Added tempId parameter to handle migration of attachments/comments from temporary IDs to the new persistent request ID
+  static async createOrUpdateFromFormAsync(
+    formData: any, 
+    items: RequestItem[], 
+    category: string, 
+    statusType: 'draft' | 'submit', 
+    viewingId?: string,
+    tempId?: string
+  ): Promise<void> {
     const user = AuthManager.getCurrentUser();
-    if (!user) throw new Error("AUTH_ERROR: Session expired.");
+    if (!user) throw new Error("AUTH_SESSION_EXPIRED");
 
-    this.validateRequest({ ...formData, items });
     const totalCost = RequestItemManager.calculateTotal(items);
-
     const dbPayload = {
       name: formData.name,
       requester_id: user.id,
@@ -87,24 +73,28 @@ export class RequestManager {
     let requestId = viewingId;
 
     if (viewingId) {
-      await supabase
-        .from('requests')
-        .update(dbPayload)
-        .eq('id', viewingId);
-      
+      const { error: updateError } = await supabase.from('requests').update(dbPayload).eq('id', viewingId);
+      if (updateError) {
+        console.error('Request Update Failed:', updateError);
+        throw new Error(`DB_UPDATE_ERROR: ${updateError.message}`);
+      }
       await supabase.from('request_items').delete().eq('request_id', viewingId);
     } else {
-      const { data, error: reqError } = await supabase
-        .from('requests')
-        .insert([dbPayload])
-        .select()
-        .single();
-        
-      if (reqError) throw reqError;
+      const { data, error: insertError } = await supabase.from('requests').insert([dbPayload]).select().single();
+      if (insertError) {
+        console.error('Request Insert Failed:', insertError);
+        throw new Error(`DB_INSERT_ERROR: ${insertError.message}`);
+      }
       requestId = data?.id;
     }
 
-    if (!requestId) throw new Error("Database failed to return Request ID.");
+    if (!requestId) throw new Error("INTERNAL_ID_FAILURE");
+
+    // Fix: Migrate orphaned comments and attachments that were created using a temporary ID
+    if (!viewingId && tempId && requestId) {
+      await supabase.from('comments').update({ request_id: requestId }).eq('request_id', tempId);
+      await supabase.from('attachments').update({ request_id: requestId }).eq('request_id', tempId);
+    }
 
     const itemsPayload = items.map(item => ({
       name: item.name,
@@ -115,35 +105,10 @@ export class RequestManager {
       request_id: requestId
     }));
     
-    await supabase.from('request_items').insert(itemsPayload);
+    const { error: itemsError } = await supabase.from('request_items').insert(itemsPayload);
+    if (itemsError) console.error('Items Insertion Warning:', itemsError);
 
-    if (tempId && tempId.startsWith('TMP-')) {
-      await supabase.from('comments').update({ request_id: requestId }).eq('request_id', tempId);
-      await supabase.from('attachments').update({ request_id: requestId }).eq('request_id', tempId);
-    }
-
-    LogManager.addLog(user.id, statusType === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Protocol ${statusType}: ${requestId}`);
-    
-    if (statusType === 'submit') {
-      NotificationManager.addNotification({
-        userId: 'system',
-        role: 'REVIEWER',
-        title: 'Clearance Required',
-        message: `${formData.name} submitted for audit.`
-      });
-    }
-  }
-
-  static async deleteRequest(requestId: string): Promise<void> {
-    const user = AuthManager.getCurrentUser();
-    if (!user) throw new Error("AUTH_REQUIRED");
-
-    await supabase
-      .from('requests')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', requestId);
-
-    LogManager.addLog(user.id, 'DELETE_REQUEST', `Purged ${requestId}`);
+    LogManager.addLog(user.id, statusType === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Node ${requestId} persistence complete.`);
   }
 
   static async processReviewAsync(requestId: string, decision: 'approve' | 'deny' | 'revision'): Promise<void> {
@@ -151,21 +116,24 @@ export class RequestManager {
     if (!user) throw new Error("AUTH_REQUIRED");
 
     const statusMap = { approve: RequestStatus.APPROVED, deny: RequestStatus.DENIED, revision: RequestStatus.REVISION };
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('requests')
       .update({ status: statusMap[decision] })
-      .eq('id', requestId)
-      .select()
-      .single();
+      .eq('id', requestId);
 
     if (error) throw error;
+    LogManager.addLog(user.id, 'REVIEW_DECISION', `${decision.toUpperCase()} applied to ${requestId}`);
+  }
 
-    LogManager.addLog(user.id, 'REVIEW_DECISION', `${decision.toUpperCase()} ${requestId}`);
-    
-    NotificationManager.addNotification({
-      userId: data?.requester_id || 'unknown',
-      title: `Protocol State: ${statusMap[decision]}`,
-      message: `Request ${requestId} updated.`
-    });
+  static getPresetsForCategory(category: string): RequestItem[] {
+    const schema = RequestFormManager.getSchemaByCategory(category);
+    return (schema.presets || []).map(p => ({
+      id: Math.random().toString(36).substr(2, 9),
+      name: p.name || '',
+      quantity: p.quantity || 1,
+      unit: p.unit || 'Units',
+      price: p.price || 0,
+      total: (p.quantity || 1) * (p.price || 0)
+    }));
   }
 }
