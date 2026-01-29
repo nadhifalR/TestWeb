@@ -44,16 +44,26 @@ export class ReportManager {
   }
 
   static async getSnapshots(): Promise<any[]> {
-    const { data, error } = await supabase
-      .from('snapshots')
-      .select('*')
-      .order('timestamp', { ascending: false });
+    try {
+      const { data, error } = await supabase
+        .from('snapshots')
+        .select('*')
+        .order('timestamp', { ascending: false });
 
-    if (error) {
-      console.error('Failed to fetch snapshots from Supabase:', error);
+      if (error) {
+        console.error('Failed to fetch snapshots from Supabase:', error);
+        return [];
+      }
+      return (data || []).map((s: any) => ({
+        id: s.id,
+        checksum: s.checksum,
+        timestamp: s.timestamp,
+        recordCount: s.record_count,
+        totalValuation: s.total_valuation
+      }));
+    } catch (e) {
       return [];
     }
-    return data || [];
   }
 
   static async generateCSV(data: RequestForm[]): Promise<void> {
@@ -85,8 +95,8 @@ export class ReportManager {
       const snapshot = {
         checksum,
         timestamp: new Date().toISOString(),
-        recordCount: data.length,
-        totalValuation: this.calculateGrandTotal(data)
+        record_count: data.length,
+        total_valuation: this.calculateGrandTotal(data)
       };
       
       const { data: inserted, error } = await supabase

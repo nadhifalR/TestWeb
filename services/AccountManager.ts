@@ -8,7 +8,7 @@ export class AccountManager {
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .is('deletedAt', null);
+      .is('deleted_at', null);
 
     if (error) {
       console.error('Supabase fetch error:', error);
@@ -18,22 +18,25 @@ export class AccountManager {
   }
 
   static async getPermissionMatrix(): Promise<Record<UserRole, Permission[]>> {
-    // Permission matrix is usually served from a system_configs table
-    const { data, error } = await supabase
-      .from('system_configs')
-      .select('value')
-      .eq('key', 'permission_matrix')
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('system_configs')
+        .select('value')
+        .eq('key', 'permission_matrix')
+        .maybeSingle();
 
-    if (error || !data) {
-      return {
-        [UserRole.ADMIN]: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'APPROVE', 'SYSTEM_CONFIG', 'FINANCIAL_RECON', 'USER_PROVISION', 'COMMENT'],
-        [UserRole.REVIEWER]: ['VIEW', 'APPROVE', 'COMMENT', 'FINANCIAL_RECON'],
-        [UserRole.SUPERVISOR]: ['VIEW', 'EDIT', 'COMMENT', 'APPROVE'],
-        [UserRole.REQUESTER]: ['VIEW_OWN', 'CREATE', 'EDIT_OWN', 'COMMENT']
-      };
+      if (error || !data) {
+        return {
+          [UserRole.ADMIN]: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'APPROVE', 'SYSTEM_CONFIG', 'FINANCIAL_RECON', 'USER_PROVISION', 'COMMENT'],
+          [UserRole.REVIEWER]: ['VIEW', 'APPROVE', 'COMMENT', 'FINANCIAL_RECON'],
+          [UserRole.SUPERVISOR]: ['VIEW', 'EDIT', 'COMMENT', 'APPROVE'],
+          [UserRole.REQUESTER]: ['VIEW_OWN', 'CREATE', 'EDIT_OWN', 'COMMENT']
+        };
+      }
+      return data.value;
+    } catch (e) {
+      return {} as any;
     }
-    return data.value;
   }
 
   static async updatePermissionMatrix(matrix: Record<UserRole, Permission[]>) {
@@ -47,8 +50,6 @@ export class AccountManager {
   static hasPermission(user: User, permission: Permission, resourceOwnerId?: string): boolean {
     if (user.role === UserRole.ADMIN) return true;
 
-    // This logic stays synchronous but requires the matrix to be pre-loaded or 
-    // we use a hardcoded fallback for basic safety if the async fetch hasn't completed.
     const hardcodedMatrix: Record<string, string[]> = {
       [UserRole.ADMIN]: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'APPROVE', 'SYSTEM_CONFIG', 'FINANCIAL_RECON', 'USER_PROVISION', 'COMMENT'],
       [UserRole.REVIEWER]: ['VIEW', 'APPROVE', 'COMMENT', 'FINANCIAL_RECON'],
@@ -91,7 +92,7 @@ export class AccountManager {
   static async deleteUser(id: string): Promise<void> {
     const { error } = await supabase
       .from('profiles')
-      .update({ deletedAt: new Date().toISOString() })
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id);
     if (error) throw error;
   }

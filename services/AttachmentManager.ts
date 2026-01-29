@@ -18,11 +18,21 @@ export class AttachmentManager {
     const { data, error } = await supabase
       .from('attachments')
       .select('*')
-      .eq('requestId', requestId)
-      .is('deletedAt', null);
+      .eq('request_id', requestId)
+      .is('deleted_at', null);
 
     if (error) return [];
-    return data as Attachment[];
+    
+    return data.map((a: any) => ({
+      id: a.id,
+      requestId: a.request_id,
+      name: a.name,
+      size: a.size,
+      type: a.type,
+      url: a.url,
+      uploadedAt: a.uploaded_at,
+      deletedAt: a.deleted_at
+    })) as Attachment[];
   }
 
   static async uploadFile(requestId: string, file: File): Promise<Attachment> {
@@ -33,40 +43,46 @@ export class AttachmentManager {
     const fileName = `${requestId}/${Math.random().toString(36).substring(2)}.${fileExt}`;
     const filePath = `artifacts/${fileName}`;
 
-    // 1. Upload to Supabase Storage
     const { error: uploadError } = await supabase.storage
       .from('artifacts')
       .upload(filePath, file);
 
     if (uploadError) throw uploadError;
 
-    // 2. Get Public URL
     const { data: { publicUrl } } = supabase.storage
       .from('artifacts')
       .getPublicUrl(filePath);
 
-    // 3. Save metadata to DB
     const { data, error: dbError } = await supabase
       .from('attachments')
       .insert([{
-        requestId,
+        request_id: requestId,
         name: file.name,
         size: file.size,
         type: file.type,
         url: publicUrl,
-        uploadedAt: new Date().toISOString()
+        uploaded_at: new Date().toISOString()
       }])
       .select()
       .single();
 
     if (dbError) throw dbError;
-    return data as Attachment;
+
+    return {
+      id: data.id,
+      requestId: data.request_id,
+      name: data.name,
+      size: data.size,
+      type: data.type,
+      url: data.url,
+      uploadedAt: data.uploaded_at
+    } as Attachment;
   }
 
   static async removeAttachment(id: string): Promise<void> {
     const { error } = await supabase
       .from('attachments')
-      .update({ deletedAt: new Date().toISOString() })
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', id);
     if (error) throw error;
   }

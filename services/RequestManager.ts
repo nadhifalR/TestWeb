@@ -16,10 +16,10 @@ export class RequestManager {
       let query = supabase
         .from('requests')
         .select('*, items:request_items(*)')
-        .is('deletedAt', null);
+        .is('deleted_at', null);
 
       if (user.role === 'REQUESTER') {
-        query = query.eq('requesterId', user.id);
+        query = query.eq('requester_id', user.id);
       }
 
       const { data, error } = await query;
@@ -27,8 +27,21 @@ export class RequestManager {
         console.error('Fetch requests error:', error);
         return [];
       }
-      // Ensure we always return an array
-      return (data || []) as RequestForm[];
+
+      // Map snake_case from DB to camelCase for UI
+      return (data || []).map((r: any) => ({
+        ...r,
+        requesterId: r.requester_id,
+        eventDate: r.event_date,
+        budgetSource: r.budget_source,
+        totalCost: r.total_cost,
+        createdAt: r.created_at,
+        deletedAt: r.deleted_at,
+        items: (r.items || []).map((i: any) => ({
+          ...i,
+          requestId: i.request_id
+        }))
+      })) as RequestForm[];
     } catch (err) {
       console.error('RequestManager.getRequests critical failure:', err);
       return [];
@@ -60,50 +73,53 @@ export class RequestManager {
     this.validateRequest({ ...formData, items });
     const totalCost = RequestItemManager.calculateTotal(items);
 
-    const requestPayload = {
-      ...formData,
-      requesterId: user.id,
+    const dbPayload = {
+      name: formData.name,
+      requester_id: user.id,
       category,
-      totalCost,
-      status: statusType === 'draft' 
-        ? (formData.status === RequestStatus.REVISION ? RequestStatus.REVISION : RequestStatus.DRAFT)
-        : RequestStatus.PENDING,
-      createdAt: formData.createdAt || new Date().toISOString()
+      total_cost: totalCost,
+      status: statusType === 'submit' ? RequestStatus.PENDING : (formData.status || RequestStatus.DRAFT),
+      event_date: formData.eventDate,
+      budget_source: formData.budgetSource,
+      created_at: formData.createdAt || new Date().toISOString()
     };
-
-    delete requestPayload.items;
 
     let requestId = viewingId;
 
     if (viewingId) {
-      const { error: reqError } = await supabase
+      await supabase
         .from('requests')
-        .update(requestPayload)
+        .update(dbPayload)
         .eq('id', viewingId);
-      if (reqError) throw reqError;
       
-      await supabase.from('request_items').delete().eq('requestId', viewingId);
+      await supabase.from('request_items').delete().eq('request_id', viewingId);
     } else {
       const { data, error: reqError } = await supabase
         .from('requests')
-        .insert([requestPayload])
+        .insert([dbPayload])
         .select()
         .single();
+        
       if (reqError) throw reqError;
-      requestId = data.id;
+      requestId = data?.id;
     }
 
+    if (!requestId) throw new Error("Database failed to return Request ID.");
+
     const itemsPayload = items.map(item => ({
-      ...item,
-      requestId,
-      id: undefined
+      name: item.name,
+      quantity: item.quantity,
+      unit: item.unit,
+      price: item.price,
+      total: item.total,
+      request_id: requestId
     }));
-    const { error: itemsError } = await supabase.from('request_items').insert(itemsPayload);
-    if (itemsError) throw itemsError;
+    
+    await supabase.from('request_items').insert(itemsPayload);
 
     if (tempId && tempId.startsWith('TMP-')) {
-      await supabase.from('comments').update({ requestId }).eq('requestId', tempId);
-      await supabase.from('attachments').update({ requestId }).eq('requestId', tempId);
+      await supabase.from('comments').update({ request_id: requestId }).eq('request_id', tempId);
+      await supabase.from('attachments').update({ request_id: requestId }).eq('request_id', tempId);
     }
 
     LogManager.addLog(user.id, statusType === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Protocol ${statusType}: ${requestId}`);
@@ -122,12 +138,11 @@ export class RequestManager {
     const user = AuthManager.getCurrentUser();
     if (!user) throw new Error("AUTH_REQUIRED");
 
-    const { error } = await supabase
+    await supabase
       .from('requests')
-      .update({ deletedAt: new Date().toISOString() })
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', requestId);
 
-    if (error) throw error;
     LogManager.addLog(user.id, 'DELETE_REQUEST', `Purged ${requestId}`);
   }
 
@@ -136,18 +151,19 @@ export class RequestManager {
     if (!user) throw new Error("AUTH_REQUIRED");
 
     const statusMap = { approve: RequestStatus.APPROVED, deny: RequestStatus.DENIED, revision: RequestStatus.REVISION };
-    const { data: request, error: updateError } = await supabase
+    const { data, error } = await supabase
       .from('requests')
       .update({ status: statusMap[decision] })
       .eq('id', requestId)
       .select()
       .single();
 
-    if (updateError) throw updateError;
+    if (error) throw error;
 
     LogManager.addLog(user.id, 'REVIEW_DECISION', `${decision.toUpperCase()} ${requestId}`);
+    
     NotificationManager.addNotification({
-      userId: request.requesterId,
+      userId: data?.requester_id || 'unknown',
       title: `Protocol State: ${statusMap[decision]}`,
       message: `Request ${requestId} updated.`
     });

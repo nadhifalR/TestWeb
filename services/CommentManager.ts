@@ -20,19 +20,35 @@ export class CommentManager {
     const { data, error } = await supabase
       .from('comments')
       .select('*')
-      .eq('requestId', requestId)
-      .is('deletedAt', null)
+      .eq('request_id', requestId)
+      .is('deleted_at', null)
       .order('timestamp', { ascending: true });
 
     if (error) return [];
 
     const commentMap: Record<string, Comment> = {};
-    data.forEach((c: Comment) => { commentMap[c.id] = { ...c, replies: [] }; });
+    const mappedData = data.map((c: any) => ({
+      id: c.id,
+      requestId: c.request_id,
+      authorId: c.author_id,
+      authorName: c.author_name,
+      text: c.text,
+      timestamp: c.timestamp,
+      parentId: c.parent_id,
+      attachmentId: c.attachment_id,
+      deletedAt: c.deleted_at,
+      replies: []
+    }));
+
+    mappedData.forEach((c: Comment) => { commentMap[c.id] = c; });
 
     const thread: Comment[] = [];
-    data.forEach((c: Comment) => {
-      if (c.parentId && commentMap[c.parentId]) commentMap[c.parentId].replies?.push(commentMap[c.id]);
-      else thread.push(commentMap[c.id]);
+    mappedData.forEach((c: Comment) => {
+      if (c.parentId && commentMap[c.parentId]) {
+        commentMap[c.parentId].replies?.push(c);
+      } else {
+        thread.push(c);
+      }
     });
     return thread;
   }
@@ -41,12 +57,12 @@ export class CommentManager {
     const { error } = await supabase
       .from('comments')
       .insert([{
-        requestId,
-        authorId,
-        authorName,
+        request_id: requestId,
+        author_id: authorId,
+        author_name: authorName,
         text,
-        parentId,
-        attachmentId,
+        parent_id: parentId,
+        attachment_id: attachmentId,
         timestamp: new Date().toISOString()
       }]);
 
@@ -59,7 +75,7 @@ export class CommentManager {
 
     const { error } = await supabase
       .from('comments')
-      .update({ deletedAt: new Date().toISOString() })
+      .update({ deleted_at: new Date().toISOString() })
       .eq('id', commentId);
     
     if (error) throw error;

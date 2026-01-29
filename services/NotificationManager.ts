@@ -21,11 +21,20 @@ export class NotificationManager {
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .or(`userId.eq.${user.id},userId.eq.system,role.eq.${role}`)
+        .or(`user_id.eq.${user.id},user_id.eq.system,role.eq.${role}`)
         .order('timestamp', { ascending: false });
 
       if (error) return [];
-      return (data || []) as Notification[];
+      
+      return (data || []).map((n: any) => ({
+        id: n.id,
+        userId: n.user_id,
+        role: n.role,
+        title: n.title,
+        message: n.message,
+        timestamp: n.timestamp,
+        read: n.read
+      }));
     } catch (e) {
       return [];
     }
@@ -36,16 +45,27 @@ export class NotificationManager {
       const { data, error } = await supabase
         .from('notifications')
         .insert([{
-          ...notif,
+          user_id: notif.userId,
+          role: notif.role,
+          title: notif.title,
+          message: notif.message,
           timestamp: new Date().toISOString(),
           read: false
         }])
         .select()
         .single();
 
-      // Ensure data is truthy before dispatching event (mock returns empty array or null)
-      if (!error && data && !Array.isArray(data)) {
-        window.dispatchEvent(new CustomEvent('nexus-notification', { detail: data }));
+      if (!error && data) {
+        const mapped = {
+          id: data.id,
+          userId: data.user_id,
+          role: data.role,
+          title: data.title,
+          message: data.message,
+          timestamp: data.timestamp,
+          read: data.read
+        };
+        window.dispatchEvent(new CustomEvent('nexus-notification', { detail: mapped }));
       }
     } catch (e) {
       console.warn('Notification delivery failed:', e);
@@ -60,7 +80,7 @@ export class NotificationManager {
       await supabase
         .from('notifications')
         .delete()
-        .or(`userId.eq.${user.id},role.eq.${user.role}`);
+        .or(`user_id.eq.${user.id},role.eq.${user.role}`);
     } catch (e) {}
   }
 
@@ -72,7 +92,7 @@ export class NotificationManager {
       await supabase
         .from('notifications')
         .update({ read: true })
-        .or(`userId.eq.${user.id},role.eq.${user.role}`);
+        .or(`user_id.eq.${user.id},role.eq.${user.role}`);
     } catch (e) {}
   }
 }
