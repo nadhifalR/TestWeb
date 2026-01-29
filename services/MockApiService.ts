@@ -3,21 +3,26 @@ import { TemporaryDatabase } from './TemporaryDatabase';
 
 /**
  * PRODUCTION READY API SERVICE
- * In this version, we provide a bridge between the local mock DB 
- * and the potential FastAPI backend.
+ * Vite uses import.meta.env for environment variables.
  */
 export class MockApiService {
   private static LATENCY = 300;
-  private static USE_REAL_API = false; // Toggle this when your FastAPI routes are ready
+  
+  private static getBaseUrl() {
+    // VITE_ prefix is required for Vite to expose the variable to the client
+    return (import.meta as any).env?.VITE_BACKEND_URL || '';
+  }
 
   static async request<T>(action: () => T): Promise<T> {
-    if (this.USE_REAL_API) {
-      // Example of how you would transition:
-      // const response = await fetch('/api/v1/endpoint');
-      // return response.json();
+    const backendUrl = this.getBaseUrl();
+    
+    // In current phase, we use the mock DB. 
+    // Once backendUrl is set in Vercel, this is where real fetch logic would go.
+    if (backendUrl && false) { // Toggle false when ready for real API
+       const response = await fetch(`${backendUrl}/api/v1/endpoint`);
+       return response.json();
     }
 
-    // Default to the high-fidelity mock engine for now
     await new Promise(resolve => setTimeout(resolve, this.LATENCY));
     return action();
   }
