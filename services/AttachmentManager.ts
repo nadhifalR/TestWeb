@@ -13,11 +13,16 @@ export interface Attachment {
 }
 
 export class AttachmentManager {
+  private static stagedAttachments: Record<string, Attachment[]> = {};
+
   static async getAttachments(requestId: string): Promise<Attachment[]> {
+    if (requestId.startsWith('TMP-')) {
+      return this.stagedAttachments[requestId] || [];
+    }
+
     try {
-      // Short-circuit: BIGINT columns in Supabase throw 400 when queried with strings like 'TMP-...'
       const isNumeric = /^\d+$/.test(requestId);
-      if (!isNumeric || requestId.startsWith('TMP')) return [];
+      if (!isNumeric) return [];
 
       const queryId = parseInt(requestId, 10);
 
@@ -26,10 +31,7 @@ export class AttachmentManager {
         .select('*')
         .eq('request_id', queryId);
 
-      if (error) {
-        console.error('AttachmentManager: Fetch failed', error);
-        return [];
-      }
+      if (error) return [];
       
       return data.map((a: any) => ({
         id: a.id.toString(),
@@ -50,14 +52,11 @@ export class AttachmentManager {
     const user = AuthManager.getCurrentUser();
     if (!user) throw new Error("AUTH_REQUIRED");
 
-    // Clean check for numeric ID to avoid 400 errors on BIGINT columns
-    const isNumeric = /^\d+$/.test(requestId) && !requestId.startsWith('TMP');
     const fileExt = file.name.split('.').pop();
     const uniqueName = Math.random().toString(36).substring(2);
-    // Use requestId as a folder to keep artifacts organized
     const fileName = `${requestId}/${uniqueName}.${fileExt}`;
 
-    // Upload to Storage (always allowed if RLS policies permit)
+    // Upload to Storage (always allowed)
     const { error: uploadError } = await supabase.storage
       .from('artifacts')
       .upload(fileName, file, {
@@ -65,26 +64,26 @@ export class AttachmentManager {
         upsert: false
       });
 
-    if (uploadError) {
-      console.error('Storage Upload Error:', uploadError);
-      throw new Error(`STORAGE_UPLOAD_FAILED: ${uploadError.message}`);
-    }
+    if (uploadError) throw new Error(`STORAGE_UPLOAD_FAILED: ${uploadError.message}`);
 
     const { data: { publicUrl } } = supabase.storage
       .from('artifacts')
       .getPublicUrl(fileName);
 
-    // If request isn't persisted yet, return a local representation
-    if (!isNumeric) {
-      return {
-        id: "temp_" + uniqueName,
-        requestId: requestId,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        url: publicUrl,
-        uploadedAt: new Date().toISOString()
-      };
+    const attachmentObj: Attachment = {
+      id: `staged_${uniqueName}`,
+      requestId,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      url: publicUrl,
+      uploadedAt: new Date().toISOString()
+    };
+
+    if (requestId.startsWith('TMP-')) {
+      if (!this.stagedAttachments[requestId]) this.stagedAttachments[requestId] = [];
+      this.stagedAttachments[requestId].push(attachmentObj);
+      return attachmentObj;
     }
 
     try {
@@ -96,7 +95,7 @@ export class AttachmentManager {
           size: file.size,
           type: file.type,
           url: publicUrl,
-          uploaded_at: new Date().toISOString()
+          uploaded_at: attachmentObj.uploadedAt
         }])
         .select()
         .single();
@@ -117,15 +116,27 @@ export class AttachmentManager {
     }
   }
 
+  static async commitStaged(tempId: string, realId: number): Promise<void> {
+    const staged = this.stagedAttachments[tempId];
+    if (!staged || staged.length === 0) return;
+
+    const payload = staged.map(a => ({
+      request_id: realId,
+      name: a.name,
+      size: a.size,
+      type: a.type,
+      url: a.url,
+      uploaded_at: a.uploadedAt
+    }));
+
+    await supabase.from('attachments').insert(payload);
+    delete this.stagedAttachments[tempId];
+  }
+
   static async removeAttachment(id: string): Promise<void> {
+    if (id.startsWith('staged_')) return;
     try {
-      const isNumeric = /^\d+$/.test(id);
-      if (isNumeric) {
-        await supabase
-          .from('attachments')
-          .delete()
-          .eq('id', parseInt(id, 10));
-      }
+      await supabase.from('attachments').delete().eq('id', parseInt(id, 10));
     } catch (e) {}
   }
 }

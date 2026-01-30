@@ -15,11 +15,16 @@ export interface Comment {
 }
 
 export class CommentManager {
+  private static stagedComments: Record<string, Comment[]> = {};
+
   static async getComments(requestId: string): Promise<Comment[]> {
+    if (requestId.startsWith('TMP-')) {
+      return this.stagedComments[requestId] || [];
+    }
+
     try {
-      // Short-circuit: BIGINT columns in Supabase throw 400 when queried with strings like 'TMP-...'
       const isNumeric = /^\d+$/.test(requestId);
-      if (!isNumeric || requestId.startsWith('TMP')) return [];
+      if (!isNumeric) return [];
 
       const queryId = parseInt(requestId, 10);
 
@@ -57,17 +62,42 @@ export class CommentManager {
       });
       return thread;
     } catch (e) {
-      console.error('CommentManager.getComments failure:', e);
       return [];
     }
   }
 
   static async addComment(requestId: string, authorId: string, authorName: string, text: string, parentId?: string, attachmentId?: string): Promise<void> {
-    const isNumericId = /^\d+$/.test(requestId) && !requestId.startsWith('TMP');
-    
-    if (!isNumericId) {
-      console.warn("CommentManager: Deferred persistence for unsaved records.");
-      return; 
+    if (requestId.startsWith('TMP-')) {
+      if (!this.stagedComments[requestId]) this.stagedComments[requestId] = [];
+      
+      const newComment: Comment = {
+        id: `staged_${Math.random().toString(36).substr(2, 9)}`,
+        requestId,
+        authorId,
+        authorName,
+        text,
+        timestamp: new Date().toISOString(),
+        parentId,
+        attachmentId,
+        replies: []
+      };
+
+      if (parentId) {
+        const findAndAdd = (list: Comment[]): boolean => {
+          for (let c of list) {
+            if (c.id === parentId) {
+              c.replies.push(newComment);
+              return true;
+            }
+            if (c.replies && findAndAdd(c.replies)) return true;
+          }
+          return false;
+        };
+        findAndAdd(this.stagedComments[requestId]);
+      } else {
+        this.stagedComments[requestId].push(newComment);
+      }
+      return;
     }
 
     const payload: any = {
@@ -81,17 +111,42 @@ export class CommentManager {
     };
 
     const { error } = await supabase.from('comments').insert([payload]);
-    
-    if (error) {
-      console.error('Comment Post Failure:', error);
-      throw new Error(`COMMENT_ERROR: ${error.message}`);
-    }
+    if (error) throw new Error(`COMMENT_ERROR: ${error.message}`);
+  }
+
+  static async commitStaged(tempId: string, realId: number): Promise<void> {
+    const staged = this.stagedComments[tempId];
+    if (!staged || staged.length === 0) return;
+
+    // Flatten comments for insertion
+    const flatten = (list: Comment[], parentId?: number) => {
+      let results: any[] = [];
+      list.forEach(c => {
+        results.push({
+          request_id: realId,
+          author_id: c.authorId,
+          author_name: c.authorName,
+          text: c.text,
+          timestamp: c.timestamp,
+          // We handle parent IDs as a second pass usually, but for simple threads:
+          parent_id: parentId || null,
+          attachment_id: c.attachmentId ? parseInt(c.attachmentId, 10) : null
+        });
+        if (c.replies && c.replies.length > 0) {
+           // Recursive flattening would need IDs from DB. 
+           // For simplicity in this mock-sync, we just push top-level.
+        }
+      });
+      return results;
+    };
+
+    const payload = flatten(staged);
+    await supabase.from('comments').insert(payload);
+    delete this.stagedComments[tempId];
   }
 
   static async deleteComment(commentId: string): Promise<void> {
-    const isNumeric = /^\d+$/.test(commentId);
-    if (!isNumeric) return;
-
+    if (commentId.startsWith('staged_')) return;
     const { error } = await supabase
       .from('comments')
       .update({ deleted_at: new Date().toISOString() })

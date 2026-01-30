@@ -1,4 +1,3 @@
-
 import { RequestForm, RequestStatus, RequestItem } from '../types';
 import { LogManager } from './LogManager';
 import { NotificationManager } from './NotificationManager';
@@ -6,6 +5,8 @@ import { AuthManager } from './AuthManager';
 import { RequestItemManager } from './RequestItemManager';
 import { RequestFormManager } from './RequestFormManager';
 import { supabase } from './SupabaseClient';
+import { CommentManager } from './CommentManager';
+import { AttachmentManager } from './AttachmentManager';
 
 export class RequestManager {
   static async getRequests(): Promise<RequestForm[]> {
@@ -101,19 +102,26 @@ export class RequestManager {
       persistentId = data.id.toString();
     }
 
-    if (!viewingId && tempId && persistentId) {
-      const numericId = parseInt(persistentId, 10);
-      await supabase.from('comments').update({ request_id: numericId }).eq('request_id', tempId as any);
-      await supabase.from('attachments').update({ request_id: numericId }).eq('request_id', tempId as any);
+    const numericId = parseInt(persistentId, 10);
+
+    // Persist staged records if this was a new request using a temporary ID
+    if (!viewingId && tempId) {
+      try {
+        await Promise.all([
+          CommentManager.commitStaged(tempId, numericId),
+          AttachmentManager.commitStaged(tempId, numericId)
+        ]);
+      } catch (err) {
+        console.warn("Staged data persistence partial failure:", err);
+      }
     }
 
-    // Omit 'total' from items payload as DB handles it via DEFAULT
     const itemsPayload = items.map(item => ({
       name: item.name,
       quantity: item.quantity,
       unit: item.unit,
       price: item.price,
-      request_id: parseInt(persistentId, 10)
+      request_id: numericId
     }));
     
     if (itemsPayload.length > 0) {
