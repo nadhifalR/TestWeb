@@ -1,4 +1,3 @@
-
 import { supabase } from './SupabaseClient';
 import { AuthManager } from './AuthManager';
 
@@ -55,9 +54,10 @@ export class AttachmentManager {
     const isNumeric = /^\d+$/.test(requestId) && !requestId.startsWith('TMP');
     const fileExt = file.name.split('.').pop();
     const uniqueName = Math.random().toString(36).substring(2);
+    // Use requestId as a folder to keep artifacts organized
     const fileName = `${requestId}/${uniqueName}.${fileExt}`;
 
-    // Upload to Storage (always allowed for authenticated users if policies are set)
+    // Upload to Storage (always allowed if RLS policies permit)
     const { error: uploadError } = await supabase.storage
       .from('artifacts')
       .upload(fileName, file, {

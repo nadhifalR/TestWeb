@@ -1,4 +1,3 @@
-
 import { supabase } from './SupabaseClient';
 import { AuthManager } from './AuthManager';
 

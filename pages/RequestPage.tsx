@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Briefcase, User as UserIcon, DollarSign, Hash, LayoutGrid, X, Loader2, Sparkles, Wallet, Search, AlertCircle, Check, Send, Save, MessageSquare } from 'lucide-react';
