@@ -20,7 +20,7 @@ async def get_requests(
         start = page * page_size
         end = start + page_size - 1
         
-        response = query.range(start, end).order("created_at", descending=True).execute()
+        response = query.range(start, end).order("created_at", desc=True).execute()
         
         data = response.data
         count = response.count
@@ -47,7 +47,7 @@ async def get_requests(
                         "unit": i["unit"],
                         "price": float(i["price"]),
                         "request_id": str(i["request_id"])
-                    } for i in r.get("items", [])
+                    } for i in (r.get("items") or [])
                 ]
             })
             
