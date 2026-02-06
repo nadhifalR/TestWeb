@@ -8,44 +8,19 @@ import { supabase } from './SupabaseClient';
 import { CommentManager } from './CommentManager';
 import { AttachmentManager } from './AttachmentManager';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export class RequestManager {
   static async getRequests(): Promise<RequestForm[]> {
     const user = AuthManager.getCurrentUser();
     if (!user) return [];
 
     try {
-      let query = supabase
-        .from('requests')
-        .select('*, items:request_items(*)')
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false });
+      const response = await fetch(`${API_URL}/api/requests?requester_id=${user.role === 'REQUESTER' ? user.id : ''}`);
+      if (!response.ok) throw new Error('API_FETCH_ERROR');
 
-      if (user.role === 'REQUESTER') {
-        query = query.eq('requester_id', user.id);
-      }
-
-      const { data, error } = await query;
-      if (error) {
-        console.error('RequestManager: Fetch Error', error);
-        return [];
-      }
-
-      return (data || []).map((r: any) => ({
-        ...r,
-        id: r.id.toString(),
-        requesterId: r.requester_id,
-        eventDate: r.event_date,
-        budgetSource: r.budget_source,
-        cashAdvance: Number(r.cash_advance || 0),
-        totalCost: Number(r.total_cost || 0),
-        createdAt: r.created_at,
-        deletedAt: r.deleted_at,
-        items: (r.items || []).map((i: any) => ({
-          ...i,
-          id: i.id.toString(),
-          requestId: i.request_id?.toString()
-        }))
-      })) as RequestForm[];
+      const { data } = await response.json();
+      return data;
     } catch (err) {
       console.error('RequestManager critical failure:', err);
       return [];
@@ -57,44 +32,11 @@ export class RequestManager {
     if (!user) return { data: [], total: 0 };
 
     try {
-      let query = supabase
-        .from('requests')
-        .select('*, items:request_items(*)', { count: 'exact' })
-        .is('deleted_at', null);
+      const response = await fetch(`${API_URL}/api/requests?page=${page}&page_size=${pageSize}&requester_id=${user.role === 'REQUESTER' ? user.id : ''}`);
+      if (!response.ok) throw new Error('API_FETCH_ERROR');
 
-      if (user.role === 'REQUESTER') {
-        query = query.eq('requester_id', user.id);
-      }
-
-      const from = page * pageSize;
-      const to = from + pageSize - 1;
-
-      query = query.range(from, to).order('created_at', { ascending: false });
-
-      const { data, error, count } = await query;
-      if (error) {
-        console.error('RequestManager: Fetch Error', error);
-        return { data: [], total: 0 };
-      }
-
-      const formattedData = (data || []).map((r: any) => ({
-        ...r,
-        id: r.id.toString(),
-        requesterId: r.requester_id,
-        eventDate: r.event_date,
-        budgetSource: r.budget_source,
-        cashAdvance: Number(r.cash_advance || 0),
-        totalCost: Number(r.total_cost || 0),
-        createdAt: r.created_at,
-        deletedAt: r.deleted_at,
-        items: (r.items || []).map((i: any) => ({
-          ...i,
-          id: i.id.toString(),
-          requestId: i.request_id?.toString()
-        }))
-      })) as RequestForm[];
-
-      return { data: formattedData, total: count || 0 };
+      const { data, total } = await response.json();
+      return { data, total };
     } catch (err) {
       console.error('RequestManager critical failure:', err);
       return { data: [], total: 0 };
@@ -112,43 +54,39 @@ export class RequestManager {
     const user = AuthManager.getCurrentUser();
     if (!user) throw new Error("AUTH_SESSION_EXPIRED");
 
-    const totalCost = RequestItemManager.calculateTotal(items);
-
-    const dbPayload: any = {
+    const payload = {
       name: formData.name,
-      requester_id: user.id,
       category,
-      total_cost: totalCost,
-      status: statusType === 'submit' ? RequestStatus.PENDING : (formData.status || RequestStatus.DRAFT),
-      event_date: formData.eventDate,
       budget_source: formData.budgetSource,
       cash_advance: formData.cashAdvance || 0,
-      created_at: formData.createdAt || new Date().toISOString()
+      event_date: formData.eventDate,
+      status: statusType === 'submit' ? RequestStatus.PENDING : (formData.status || RequestStatus.DRAFT),
+      items: items.map(item => ({
+        name: item.name,
+        quantity: item.quantity,
+        unit: item.unit,
+        price: item.price
+      }))
     };
 
     let persistentId: string;
 
     if (viewingId) {
-      const { error: updateError } = await supabase
-        .from('requests')
-        .update(dbPayload)
-        .eq('id', parseInt(viewingId, 10));
-
-      if (updateError) throw new Error(`DB_UPDATE_ERROR: ${updateError.message}`);
+      const response = await fetch(`${API_URL}/api/requests/${viewingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) throw new Error(`API_UPDATE_ERROR: ${response.statusText}`);
       persistentId = viewingId;
-
-      await supabase.from('request_items').delete().eq('request_id', parseInt(viewingId, 10));
     } else {
-      const { data, error: insertError } = await supabase
-        .from('requests')
-        .insert([dbPayload])
-        .select()
-        .single();
-
-      if (insertError) {
-        console.error('Request Insert Failed:', insertError);
-        throw new Error(`DB_INSERT_ERROR: ${insertError.message}`);
-      }
+      const response = await fetch(`${API_URL}/api/requests/?requester_id=${user.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!response.ok) throw new Error(`API_INSERT_ERROR: ${response.statusText}`);
+      const data = await response.json();
       persistentId = data.id.toString();
     }
 
@@ -166,39 +104,20 @@ export class RequestManager {
       }
     }
 
-    const itemsPayload = items.map(item => ({
-      name: item.name,
-      quantity: item.quantity,
-      unit: item.unit,
-      price: item.price,
-      request_id: numericId
-    }));
-
-    if (itemsPayload.length > 0) {
-      const { error: itemsError } = await supabase.from('request_items').insert(itemsPayload);
-      if (itemsError) throw new Error(`ITEMS_SYNC_ERROR: ${itemsError.message}`);
-    }
-
-    LogManager.addLog(user.id, statusType === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Relational node ${persistentId} finalized.`);
+    LogManager.addLog(user.id, statusType === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Relational node ${persistentId} finalized via FastAPI.`);
   }
 
   static async processReviewAsync(requestId: string, decision: 'approve' | 'deny' | 'revision'): Promise<void> {
     const user = AuthManager.getCurrentUser();
     if (!user) throw new Error("AUTH_REQUIRED");
 
-    const statusMap = {
-      approve: RequestStatus.APPROVED,
-      deny: RequestStatus.DENIED,
-      revision: RequestStatus.REVISION
-    };
+    const response = await fetch(`${API_URL}/api/requests/${requestId}/review?decision=${decision}&reviewer_id=${user.id}`, {
+      method: 'POST'
+    });
 
-    const { error } = await supabase
-      .from('requests')
-      .update({ status: statusMap[decision] })
-      .eq('id', parseInt(requestId, 10));
+    if (!response.ok) throw new Error(`API_REVIEW_ERROR: ${response.statusText}`);
 
-    if (error) throw error;
-    LogManager.addLog(user.id, 'REVIEW_DECISION', `${decision.toUpperCase()} applied to Node ${requestId}`);
+    LogManager.addLog(user.id, 'REVIEW_DECISION', `${decision.toUpperCase()} applied to Node ${requestId} via FastAPI`);
   }
 
   static getPresetsForCategory(category: string): RequestItem[] {

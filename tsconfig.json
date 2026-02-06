@@ -1,9 +1,12 @@
-
 {
   "compilerOptions": {
     "target": "ESNext",
     "useDefineForClassFields": true,
-    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
     "allowJs": false,
     "skipLibCheck": true,
     "esModuleInterop": false,
@@ -17,5 +20,14 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["index.tsx", "App.tsx", "services/**/*.ts", "pages/**/*.tsx", "components/**/*.tsx", "hooks/**/*.ts", "types.ts"]
+  "include": [
+    "index.tsx",
+    "App.tsx",
+    "services/**/*.ts",
+    "pages/**/*.tsx",
+    "components/**/*.tsx",
+    "hooks/**/*.ts",
+    "types.ts",
+    "vite-env.d.ts"
+  ]
 }
