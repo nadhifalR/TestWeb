@@ -13,5 +13,5 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 # Copy the current directory contents into the container at /code
 COPY ./app /code/app
 
-# Run app.main:app when the container launches
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
+# Run app.main:app when the container launches. Render provides the PORT env var.
+CMD uvicorn app.main:app --host 0.0.0.0 --port $PORT
