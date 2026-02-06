@@ -1,0 +1,30 @@
+services:
+  # FastAPI Backend
+  - type: web
+    name: nexus-backend
+    env: docker
+    root: backend
+    plan: free
+    region: singapore
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: PORT
+        value: 8080
+
+  # React Frontend
+  - type: web
+    name: nexus-frontend
+    env: static
+    buildCommand: npm install && npm run build
+    staticPublishPath: ./dist
+    plan: free
+    region: singapore
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: nexus-backend
+          property: url
