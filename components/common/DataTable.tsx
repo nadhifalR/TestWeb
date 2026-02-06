@@ -12,13 +12,13 @@ import {
   VisibilityState,
   ColumnSizingState,
 } from '@tanstack/react-table';
-import { 
-  ChevronUp, 
-  ChevronDown, 
-  ChevronsUpDown, 
-  ChevronLeft, 
-  ChevronRight, 
-  ChevronsLeft, 
+import {
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
   ChevronsRight,
   Settings2,
   Check
@@ -34,9 +34,9 @@ interface DataTableProps<T> {
   pageSize?: number;
 }
 
-export function DataTable<T extends { id: string | number }>({ 
-  data, 
-  columns, 
+export function DataTable<T extends { id: string | number }>({
+  data,
+  columns,
   onRowClick,
   globalFilter,
   setGlobalFilter,
@@ -85,13 +85,13 @@ export function DataTable<T extends { id: string | number }>({
       {/* Table Toolbar */}
       <div className="flex justify-end p-4 border-b theme-border bg-opacity-30 theme-bg">
         <div className="relative">
-          <button 
+          <button
             onClick={() => setShowVisibilityMenu(!showVisibilityMenu)}
             className="flex items-center gap-2 px-4 py-2 theme-card border theme-border rounded-xl text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-text transition-all"
           >
             <Settings2 size={14} /> View Settings
           </button>
-          
+
           {showVisibilityMenu && (
             <>
               <div className="fixed inset-0 z-[60]" onClick={() => setShowVisibilityMenu(false)}></div>
@@ -117,8 +117,8 @@ export function DataTable<T extends { id: string | number }>({
 
       {/* Main Table Container */}
       <div className="w-full overflow-x-auto custom-scrollbar relative">
-        <table 
-          role="table" 
+        <table
+          role="table"
           aria-label="Data Registry"
           className="min-w-full text-left border-collapse table-fixed"
           style={{ width: table.getTotalSize() }}
@@ -130,17 +130,17 @@ export function DataTable<T extends { id: string | number }>({
                   const isSorted = header.column.getIsSorted();
                   const isResizing = header.column.getIsResizing();
                   return (
-                    <th 
-                      key={header.id} 
+                    <th
+                      key={header.id}
                       role="columnheader"
                       aria-sort={isSorted === 'asc' ? 'ascending' : isSorted === 'desc' ? 'descending' : 'none'}
                       className="px-6 py-4 label-caps relative group select-none"
-                      style={{ 
+                      style={{
                         width: header.getSize(),
                         minWidth: header.column.columnDef.minSize
                       }}
                     >
-                      <div 
+                      <div
                         className={`flex items-center gap-2 ${header.column.getCanSort() ? 'cursor-pointer hover:theme-text transition-colors' : ''}`}
                         onClick={header.column.getToggleSortingHandler()}
                       >
@@ -148,11 +148,11 @@ export function DataTable<T extends { id: string | number }>({
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                         </span>
-                        
+
                         {header.column.getCanSort() && (
                           <div className="flex flex-col text-slate-400 group-hover:text-blue-500 transition-colors shrink-0">
                             {isSorted === 'asc' ? (
@@ -173,11 +173,10 @@ export function DataTable<T extends { id: string | number }>({
                           onTouchStart={header.getResizeHandler()}
                           className={`absolute right-0 top-0 h-full w-4 cursor-col-resize select-none touch-none flex justify-center group/resizer z-20`}
                         >
-                          <div className={`w-[1px] h-full transition-all duration-200 ${
-                            isResizing 
-                            ? 'bg-blue-500 opacity-100 shadow-[0_0_8px_rgba(59,130,246,0.8)]' 
-                            : 'bg-slate-300 opacity-30 group-hover/resizer:opacity-100 group-hover/resizer:bg-blue-400'
-                          }`} />
+                          <div className={`w-[1px] h-full transition-all duration-200 ${isResizing
+                              ? 'bg-blue-500 opacity-100 shadow-[0_0_8px_rgba(59,130,246,0.8)]'
+                              : 'bg-slate-300 opacity-30 group-hover/resizer:opacity-100 group-hover/resizer:bg-blue-400'
+                            }`} />
                         </div>
                       )}
                     </th>
@@ -188,8 +187,8 @@ export function DataTable<T extends { id: string | number }>({
           </thead>
           <tbody role="rowgroup" className="divide-y theme-border">
             {table.getRowModel().rows.map(row => (
-              <tr 
-                key={row.id} 
+              <tr
+                key={row.id}
                 role="row"
                 tabIndex={onRowClick ? 0 : undefined}
                 onClick={() => onRowClick?.(row.original)}
@@ -197,11 +196,11 @@ export function DataTable<T extends { id: string | number }>({
                 className={`${onRowClick ? 'cursor-pointer hover:theme-bg hover:bg-opacity-80 outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset' : ''} transition-all duration-150 group animate-in fade-in duration-300`}
               >
                 {row.getVisibleCells().map(cell => (
-                  <td 
-                    key={cell.id} 
-                    role="cell" 
+                  <td
+                    key={cell.id}
+                    role="cell"
                     className="px-6 py-4 text-[13px] font-medium theme-text truncate"
-                    style={{ 
+                    style={{
                       width: cell.column.getSize()
                     }}
                   >
@@ -223,18 +222,18 @@ export function DataTable<T extends { id: string | number }>({
               {table.getFooterGroups().map(footerGroup => (
                 <tr key={footerGroup.id} role="row">
                   {footerGroup.headers.map(header => (
-                    <td 
-                      key={header.id} 
-                      role="cell" 
+                    <td
+                      key={header.id}
+                      role="cell"
                       className="px-6 py-4 truncate"
                       style={{ width: header.getSize() }}
                     >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.footer,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.footer,
+                          header.getContext()
+                        )}
                     </td>
                   ))}
                 </tr>
@@ -254,7 +253,7 @@ export function DataTable<T extends { id: string | number }>({
               onChange={e => table.setPageSize(Number(e.target.value))}
               className="bg-transparent theme-text text-xs font-bold outline-none cursor-pointer"
             >
-              {[10, 25, 50, 100].map(size => (
+              {[10, 25, 50, 100, 500, 1000].map(size => (
                 <option key={size} value={size}>{size}</option>
               ))}
             </select>
