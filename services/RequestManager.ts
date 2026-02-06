@@ -20,7 +20,19 @@ export class RequestManager {
       if (!response.ok) throw new Error('API_FETCH_ERROR');
 
       const { data } = await response.json();
-      return data;
+      return (data || []).map((r: any) => ({
+        ...r,
+        requesterId: r.requester_id,
+        eventDate: r.event_date,
+        budgetSource: r.budget_source,
+        cashAdvance: Number(r.cash_advance || 0),
+        totalCost: Number(r.total_cost || 0),
+        createdAt: r.created_at,
+        items: (r.items || []).map((i: any) => ({
+          ...i,
+          requestId: i.request_id
+        }))
+      })) as RequestForm[];
     } catch (err) {
       console.error('RequestManager critical failure:', err);
       return [];
@@ -36,7 +48,21 @@ export class RequestManager {
       if (!response.ok) throw new Error('API_FETCH_ERROR');
 
       const { data, total } = await response.json();
-      return { data, total };
+      const formattedData = (data || []).map((r: any) => ({
+        ...r,
+        requesterId: r.requester_id,
+        eventDate: r.event_date,
+        budgetSource: r.budget_source,
+        cashAdvance: Number(r.cash_advance || 0),
+        totalCost: Number(r.total_cost || 0),
+        createdAt: r.created_at,
+        items: (r.items || []).map((i: any) => ({
+          ...i,
+          requestId: i.request_id
+        }))
+      })) as RequestForm[];
+
+      return { data: formattedData, total };
     } catch (err) {
       console.error('RequestManager critical failure:', err);
       return { data: [], total: 0 };

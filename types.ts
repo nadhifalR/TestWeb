@@ -6,14 +6,14 @@ export enum UserRole {
   REQUESTER = 'REQUESTER'
 }
 
-export type Permission = 
-  | 'VIEW' 
-  | 'CREATE' 
-  | 'EDIT' 
-  | 'DELETE' 
-  | 'APPROVE' 
-  | 'SYSTEM_CONFIG' 
-  | 'FINANCIAL_RECON' 
+export type Permission =
+  | 'VIEW'
+  | 'CREATE'
+  | 'EDIT'
+  | 'DELETE'
+  | 'APPROVE'
+  | 'SYSTEM_CONFIG'
+  | 'FINANCIAL_RECON'
   | 'USER_PROVISION'
   | 'VIEW_OWN'
   | 'EDIT_OWN'
@@ -35,7 +35,10 @@ export enum RequestStatus {
   PENDING = 'PENDING',
   APPROVED = 'APPROVED',
   REVISION = 'REVISION',
-  DENIED = 'DENIED'
+  DENIED = 'DENIED',
+  SUBMITTED = 'SUBMITTED',
+  REJECTED = 'REJECTED',
+  CANCELLED = 'CANCELLED'
 }
 
 export interface RequestItem {
@@ -49,7 +52,7 @@ export interface RequestItem {
 
 export interface RequestForm {
   id: string;
-  requesterId: string;
+  requesterId?: string;
   name: string;
   category: string;
   eventDate: string;

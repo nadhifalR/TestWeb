@@ -25,36 +25,46 @@ async def get_requests(
         data = response.data
         count = response.count
         
+        print(f"DEBUG: Fetched {len(data) if data else 0} requests")
+        
         # Format data to match Pydantic model
         formatted_data = []
         for r in data:
-            formatted_data.append({
-                "id": str(r["id"]),
-                "name": r["name"],
-                "category": r["category"],
-                "budget_source": r["budget_source"],
-                "cash_advance": float(r["cash_advance"] or 0),
-                "event_date": r["event_date"],
-                "status": r["status"],
-                "total_cost": float(r["total_cost"] or 0),
-                "created_at": r["created_at"],
-                "requester_id": r["requester_id"],
-                "items": [
-                    {
-                        "id": str(i["id"]),
-                        "name": i["name"],
-                        "quantity": float(i["quantity"]),
-                        "unit": i["unit"],
-                        "price": float(i["price"]),
-                        "request_id": str(i["request_id"])
-                    } for i in (r.get("items") or [])
-                ]
-            })
+            try:
+                formatted_data.append({
+                    "id": str(r["id"]),
+                    "name": r["name"],
+                    "category": r["category"],
+                    "budget_source": r.get("budget_source", ""),
+                    "cash_advance": float(r.get("cash_advance") or 0),
+                    "event_date": r["event_date"],
+                    "status": r["status"],
+                    "total_cost": float(r.get("total_cost") or 0),
+                    "created_at": r["created_at"],
+                    "requester_id": r.get("requester_id", ""),
+                    "items": [
+                        {
+                            "id": str(i["id"]),
+                            "name": i["name"],
+                            "quantity": float(i["quantity"]),
+                            "unit": i["unit"],
+                            "price": float(i["price"]),
+                            "request_id": str(i["request_id"])
+                        } for i in (r.get("items") or [])
+                    ]
+                })
+            except Exception as format_error:
+                print(f"DEBUG: Formatting error for request {r.get('id')}: {format_error}")
+                # Log the specific row that failed
+                print(f"DEBUG: Row data: {r}")
+                raise format_error
             
         return PaginatedRequestsResponse(data=formatted_data, total=count or 0)
     except Exception as e:
-        print(f"Error fetching requests: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"CRITICAL ERROR: {e}\n{error_trace}")
+        raise HTTPException(status_code=500, detail=f"Backend Error: {str(e)}")
 
 @router.post("/", response_model=RequestForm)
 async def create_request(request_data: RequestFormCreate, requester_id: str):

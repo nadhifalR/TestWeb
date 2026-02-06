@@ -9,6 +9,9 @@ class RequestStatus(str, Enum):
     APPROVED = "APPROVED"
     DENIED = "DENIED"
     REVISION = "REVISION"
+    SUBMITTED = "SUBMITTED"
+    REJECTED = "REJECTED"
+    CANCELLED = "CANCELLED"
 
 class RequestItemBase(BaseModel):
     name: str
@@ -39,7 +42,7 @@ class RequestFormCreate(RequestFormBase):
 
 class RequestForm(RequestFormBase):
     id: str
-    requester_id: str
+    requester_id: Optional[str] = None
     status: RequestStatus
     total_cost: float
     created_at: datetime
