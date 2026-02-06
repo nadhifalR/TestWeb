@@ -12,6 +12,7 @@ class RequestStatus(str, Enum):
     SUBMITTED = "SUBMITTED"
     REJECTED = "REJECTED"
     CANCELLED = "CANCELLED"
+    COMPLETED = "COMPLETED"
 
 class RequestItemBase(BaseModel):
     name: str

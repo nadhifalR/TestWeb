@@ -38,7 +38,8 @@ export enum RequestStatus {
   DENIED = 'DENIED',
   SUBMITTED = 'SUBMITTED',
   REJECTED = 'REJECTED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
+  COMPLETED = 'COMPLETED'
 }
 
 export interface RequestItem {
