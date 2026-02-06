@@ -3,7 +3,7 @@ services:
   - type: web
     name: nexus-backend
     env: docker
-    root: backend
+    rootDir: backend
     plan: free
     region: singapore
     envVars:
