@@ -16,7 +16,7 @@ export class RequestManager {
     if (!user) return [];
 
     try {
-      const response = await fetch(`${API_URL}/api/requests?requester_id=${user.role === 'REQUESTER' ? user.id : ''}`);
+      const response = await fetch(`${API_URL}/api/requests?page_size=1000&requester_id=${user.role === 'REQUESTER' ? user.id : ''}`);
       if (!response.ok) throw new Error('API_FETCH_ERROR');
 
       const { data } = await response.json();
