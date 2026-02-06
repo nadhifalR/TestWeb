@@ -5,12 +5,12 @@ import { AnalyticsManager, DashboardStats } from '../services/AnalyticsManager';
 import { RequestManager } from '../services/RequestManager';
 import { TrendingUp, CheckCircle, Clock, Zap, AlertCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { ResponsiveBar } from '@nivo/bar';
+import { BarChart } from '@tremor/react';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const user = AuthManager.getCurrentUser();
-  
+
   const [themeTick, setThemeTick] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -20,7 +20,7 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const themeHandler = () => setThemeTick(t => t + 1);
     window.addEventListener('nexus-theme-change', themeHandler);
-    
+
     const fetchAnalytics = async () => {
       setIsLoading(true);
       try {
@@ -39,7 +39,7 @@ const Dashboard: React.FC = () => {
         setIsLoading(false);
       }
     };
-    
+
     fetchAnalytics();
     return () => window.removeEventListener('nexus-theme-change', themeHandler);
   }, []);
@@ -88,7 +88,7 @@ const Dashboard: React.FC = () => {
           <p className="theme-text-muted text-sm font-medium tracking-tight">Active session for {user?.username} • {user?.department}</p>
         </div>
         <div className="flex items-center gap-3">
-           <div className="px-3 py-1.5 theme-card rounded-xl flex items-center gap-2 border shadow-sm">
+          <div className="px-3 py-1.5 theme-card rounded-xl flex items-center gap-2 border shadow-sm">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
             <span className="text-[10px] font-bold theme-text-muted uppercase tracking-wider">Interface: Latency Optimized</span>
           </div>
@@ -107,8 +107,8 @@ const Dashboard: React.FC = () => {
               <s.icon size={64} />
             </div>
             <div className="flex items-center justify-between mb-4 relative z-10">
-               <span className="label-caps font-black">{s.label}</span>
-               <s.icon size={16} className={`${s.color} transition-colors`} />
+              <span className="label-caps font-black">{s.label}</span>
+              <s.icon size={16} className={`${s.color} transition-colors`} />
             </div>
             <div className="relative z-10">
               <p className="text-3xl font-black theme-text tracking-tighter">{s.value}</p>
@@ -126,10 +126,10 @@ const Dashboard: React.FC = () => {
               <p className="text-[10px] theme-text-muted font-bold uppercase tracking-widest opacity-50">Intra-week capital deployment</p>
             </div>
             <div className="flex items-center gap-4">
-               <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"></span>
-                  <span className="text-[9px] font-black uppercase tracking-widest theme-text-muted">Node Volume</span>
-               </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 bg-blue-500 rounded-full shadow-[0_0_8px_rgba(59,130,246,0.5)]"></span>
+                <span className="text-[9px] font-black uppercase tracking-widest theme-text-muted">Node Volume</span>
+              </div>
             </div>
           </div>
           <div className="flex-1 min-h-0">
@@ -138,33 +138,16 @@ const Dashboard: React.FC = () => {
                 <Loader2 size={32} className="animate-spin" />
               </div>
             ) : velocityData.length > 0 ? (
-              <ResponsiveBar
+              <BarChart
+                className="h-full"
                 data={velocityData}
-                keys={['val']}
-                indexBy="label"
-                margin={{ top: 10, right: 10, bottom: 40, left: 40 }}
-                padding={0.4}
-                colors={['#3b82f6']}
-                borderRadius={6}
-                theme={nivoTheme}
-                enableLabel={false}
-                axisLeft={{
-                  tickSize: 5,
-                  tickPadding: 5,
-                  tickRotation: 0,
-                  legend: '',
-                  legendPosition: 'middle',
-                  legendOffset: -40
-                }}
-                animate={true}
-                motionConfig="gentle"
-                tooltip={({ value, indexValue, data }) => (
-                  <div className="p-3 theme-card shadow-2xl border-none">
-                     <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest mb-1">{indexValue} Registry Audit</p>
-                     <p className="text-sm font-black theme-text">{value} Requests</p>
-                     <p className="text-[10px] font-bold theme-text-muted uppercase tracking-tighter mt-1">Value: {(data as any).vol}</p>
-                  </div>
-                )}
+                index="label"
+                categories={['val']}
+                colors={['blue']}
+                valueFormatter={(number) => Intl.NumberFormat('us').format(number).toString()}
+                yAxisWidth={48}
+                showAnimation={true}
+                showLegend={false}
               />
             ) : (
               <div className="h-full flex flex-col items-center justify-center opacity-30 text-slate-400">
@@ -182,9 +165,9 @@ const Dashboard: React.FC = () => {
           </div>
           <div className="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
             {(recentRequests || []).slice(0, 10).map((req, i) => (
-              <button 
-                key={req.id} 
-                onClick={() => navigate(`/requests?id=${req.id}`)} 
+              <button
+                key={req.id}
+                onClick={() => navigate(`/requests?id=${req.id}`)}
                 className="w-full text-left flex gap-4 items-start border-l-2 border-slate-800 hover:border-blue-500 pl-4 py-1.5 transition-all group active:scale-95 animate-in slide-in-from-right-2 duration-300"
                 style={{ animationDelay: `${i * 50}ms` }}
               >
@@ -193,11 +176,10 @@ const Dashboard: React.FC = () => {
                     <p className="text-[11px] text-white font-black leading-tight group-hover:text-blue-400 transition-colors uppercase tracking-tight truncate">#{req.id} • {req.name}</p>
                   </div>
                   <div className="flex items-center gap-3 mt-1.5">
-                    <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${
-                      req.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' :
+                    <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ${req.status === 'APPROVED' ? 'bg-emerald-500/10 text-emerald-400' :
                       req.status === 'PENDING' ? 'bg-amber-500/10 text-amber-400' :
-                      'bg-slate-800 text-slate-400'
-                    }`}>
+                        'bg-slate-800 text-slate-400'
+                      }`}>
                       {req.status}
                     </span>
                     <p className="text-[9px] text-slate-500 font-bold uppercase tabular-nums">IDR {req.totalCost.toLocaleString()}</p>
@@ -212,8 +194,8 @@ const Dashboard: React.FC = () => {
               </div>
             )}
           </div>
-          <button 
-            onClick={() => navigate('/requests')} 
+          <button
+            onClick={() => navigate('/requests')}
             className="mt-10 w-full py-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl text-[9px] font-black uppercase tracking-[0.25em] text-slate-400 transition-all active:scale-95"
           >
             Access Full Registry

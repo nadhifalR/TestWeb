@@ -32,6 +32,9 @@ interface DataTableProps<T> {
   setGlobalFilter?: (value: string) => void;
   showFooter?: boolean;
   pageSize?: number;
+  pageCount?: number;
+  pagination?: { pageIndex: number; pageSize: number };
+  onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void;
 }
 
 export function DataTable<T extends { id: string | number }>({
@@ -41,26 +44,48 @@ export function DataTable<T extends { id: string | number }>({
   globalFilter,
   setGlobalFilter,
   showFooter = false,
-  pageSize = 10
+  pageSize = 10,
+  pageCount,
+  onPaginationChange,
+  pagination: controlledPagination
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
   const [showVisibilityMenu, setShowVisibilityMenu] = useState(false);
+  const [internalPagination, setInternalPagination] = useState({
+    pageIndex: 0,
+    pageSize: pageSize,
+  });
+
+  const finalPagination = controlledPagination ?? internalPagination;
 
   const table = useReactTable({
     data,
     columns,
+    pageCount: pageCount ?? -1,
     state: {
       sorting,
       globalFilter,
       columnVisibility,
       columnSizing,
+      pagination: finalPagination,
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnSizingChange: setColumnSizing,
+    onPaginationChange: (updater) => {
+      if (onPaginationChange) {
+        const nextState = typeof updater === 'function'
+          ? updater(finalPagination)
+          : updater;
+        onPaginationChange(nextState);
+      } else {
+        setInternalPagination(updater);
+      }
+    },
+    manualPagination: !!pageCount,
     columnResizeMode: 'onChange',
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -81,9 +106,9 @@ export function DataTable<T extends { id: string | number }>({
   };
 
   return (
-    <div className="w-full flex flex-col">
+    <div className="w-full flex flex-col" >
       {/* Table Toolbar */}
-      <div className="flex justify-end p-4 border-b theme-border bg-opacity-30 theme-bg">
+      < div className="flex justify-end p-4 border-b theme-border bg-opacity-30 theme-bg" >
         <div className="relative">
           <button
             onClick={() => setShowVisibilityMenu(!showVisibilityMenu)}
@@ -113,10 +138,10 @@ export function DataTable<T extends { id: string | number }>({
             </>
           )}
         </div>
-      </div>
+      </div >
 
       {/* Main Table Container */}
-      <div className="w-full overflow-x-auto custom-scrollbar relative">
+      < div className="w-full overflow-x-auto custom-scrollbar relative" >
         <table
           role="table"
           aria-label="Data Registry"
@@ -174,8 +199,8 @@ export function DataTable<T extends { id: string | number }>({
                           className={`absolute right-0 top-0 h-full w-4 cursor-col-resize select-none touch-none flex justify-center group/resizer z-20`}
                         >
                           <div className={`w-[1px] h-full transition-all duration-200 ${isResizing
-                              ? 'bg-blue-500 opacity-100 shadow-[0_0_8px_rgba(59,130,246,0.8)]'
-                              : 'bg-slate-300 opacity-30 group-hover/resizer:opacity-100 group-hover/resizer:bg-blue-400'
+                            ? 'bg-blue-500 opacity-100 shadow-[0_0_8px_rgba(59,130,246,0.8)]'
+                            : 'bg-slate-300 opacity-30 group-hover/resizer:opacity-100 group-hover/resizer:bg-blue-400'
                             }`} />
                         </div>
                       )}
@@ -241,10 +266,10 @@ export function DataTable<T extends { id: string | number }>({
             </tfoot>
           )}
         </table>
-      </div>
+      </div >
 
       {/* Pagination Controls */}
-      <div className="flex items-center justify-between px-6 py-4 border-t theme-border theme-bg bg-opacity-30">
+      < div className="flex items-center justify-between px-6 py-4 border-t theme-border theme-bg bg-opacity-30" >
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
             <p className="text-[10px] font-black theme-text-muted uppercase tracking-widest">Rows per page</p>
@@ -301,7 +326,7 @@ export function DataTable<T extends { id: string | number }>({
             <ChevronsRight size={16} />
           </button>
         </div>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 }

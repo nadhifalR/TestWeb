@@ -25,25 +25,28 @@ const RequestPage: React.FC = () => {
   const [items, setItems] = useState<RequestItem[]>([]);
   const [formState, setFormState] = useState<Record<string, any>>({});
   const [requests, setRequests] = useState<RequestForm[]>([]);
+  const [totalRequests, setTotalRequests] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [globalFilter, setGlobalFilter] = useState('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [tempId] = useState(`TMP-${Math.random().toString(36).substr(2, 6).toUpperCase()}`);
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
 
-  const loadRequests = async () => {
+  const loadRequests = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await RequestManager.getRequests();
+      const { data, total } = await RequestManager.getRequestsPaginated(pagination.pageIndex, pagination.pageSize);
       setRequests(data);
+      setTotalRequests(total);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [pagination.pageIndex, pagination.pageSize]);
 
   useEffect(() => {
     loadRequests();
-  }, []);
+  }, [loadRequests]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -185,9 +188,9 @@ const RequestPage: React.FC = () => {
         const status = info.getValue() as RequestStatus;
         return (
           <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${status === RequestStatus.PENDING ? 'bg-amber-50 text-amber-600 border-amber-200' :
-              status === RequestStatus.APPROVED ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
-                status === RequestStatus.DENIED ? 'bg-red-50 text-red-600 border-red-200' :
-                  'theme-bg theme-text-muted theme-border'
+            status === RequestStatus.APPROVED ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+              status === RequestStatus.DENIED ? 'bg-red-50 text-red-600 border-red-200' :
+                'theme-bg theme-text-muted theme-border'
             }`}>
             {status}
           </span>
@@ -272,6 +275,9 @@ const RequestPage: React.FC = () => {
                 onRowClick={(r) => navigate(`/requests?id=${r.id}`)}
                 globalFilter={globalFilter}
                 setGlobalFilter={setGlobalFilter}
+                pageCount={Math.ceil(totalRequests / pagination.pageSize)}
+                onPaginationChange={setPagination}
+                pagination={pagination}
               />
             )}
           </div>
