@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MainLayout from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
 import AccountsPage from './pages/AccountsPage';
@@ -15,6 +14,7 @@ import { SettingsManager } from './services/SettingsManager';
 import { ThemeManager } from './services/ThemeManager';
 import { AccountManager } from './services/AccountManager';
 import { Permission } from './types';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
 // Guard component to handle Permission-based routing security
 const PermissionGuard: React.FC<{ children: React.ReactNode, permission: Permission }> = ({ children, permission }) => {
@@ -31,18 +31,51 @@ const PermissionGuard: React.FC<{ children: React.ReactNode, permission: Permiss
 };
 
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(AuthManager.checkAuth());
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    try { return AuthManager.checkAuth(); } catch { return false; }
+  });
+  const [initStatus, setInitStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const user = AuthManager.getCurrentUser();
 
   useEffect(() => {
-    const settings = SettingsManager.getSettings();
-    ThemeManager.applyTheme(settings.theme);
+    const initApp = async () => {
+      try {
+        const settings = await SettingsManager.getSettings();
+        ThemeManager.applyTheme(settings.theme || 'light');
+        setInitStatus('ready');
+      } catch (err) {
+        console.error("System boot failed:", err);
+        setInitStatus('error');
+      }
+    };
+
+    initApp();
 
     const interval = setInterval(() => {
       setIsAuthenticated(AuthManager.checkAuth());
-    }, 1000);
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
+
+  if (initStatus === 'loading') {
+    return (
+      <div className="min-h-screen theme-bg flex flex-col items-center justify-center gap-4">
+        <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] theme-text-muted animate-pulse">Initialising System Node...</p>
+      </div>
+    );
+  }
+
+  if (initStatus === 'error') {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-10 text-center">
+        <AlertCircle size={48} className="text-red-500 mb-4" />
+        <h1 className="text-white text-2xl font-black uppercase mb-2">Protocol Failure</h1>
+        <p className="text-slate-400 text-sm max-w-sm mb-8">Critical system nodes failed to initialize. Please check network connectivity or configuration.</p>
+        <button onClick={() => window.location.reload()} className="px-10 py-4 bg-white text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3"><RefreshCw size={16} /> Retry Boot</button>
+      </div>
+    );
+  }
 
   return (
     <HashRouter>

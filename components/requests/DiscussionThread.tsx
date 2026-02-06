@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Reply, ChevronDown, ChevronUp, Send, FileText, Trash2, Paperclip, Loader2 } from 'lucide-react';
 import { CommentManager, Comment } from '../../services/CommentManager';
@@ -81,7 +80,7 @@ const CommentItem: React.FC<{
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
                     placeholder="Input reply text..."
-                    className="w-full p-3 text-[12px] theme-bg border theme-border rounded-lg outline-none focus:border-slate-900 font-medium min-h-[60px]"
+                    className="w-full p-3 theme-bg border theme-border rounded-lg outline-none focus:border-slate-900 font-medium min-h-[60px]"
                   />
                   
                   {replyFile && (
@@ -148,10 +147,12 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
   
   const user = AuthManager.getCurrentUser();
 
-  const loadData = () => {
+  const loadData = async () => {
     if (!requestId) return;
-    setComments(CommentManager.getComments(requestId));
-    setAllAttachments(AttachmentManager.getAttachments(requestId));
+    const commentsData = await CommentManager.getComments(requestId);
+    const attachmentsData = await AttachmentManager.getAttachments(requestId);
+    setComments(commentsData);
+    setAllAttachments(attachmentsData);
   };
 
   useEffect(() => {
@@ -174,7 +175,7 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
       }
     }
 
-    CommentManager.addComment(requestId, user.id, user.username, newCommentText, undefined, attachmentId);
+    await CommentManager.addComment(requestId, user.id, user.username, newCommentText, undefined, attachmentId);
     setNewCommentText('');
     setSelectedFile(null);
     setIsProcessing(false);
@@ -195,12 +196,12 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
       }
     }
 
-    CommentManager.addComment(requestId, user.id, user.username, text, parentId, attachmentId);
+    await CommentManager.addComment(requestId, user.id, user.username, text, parentId, attachmentId);
     loadData();
   };
 
-  const handleDelete = (id: string) => {
-    CommentManager.deleteComment(id);
+  const handleDelete = async (id: string) => {
+    await CommentManager.deleteComment(id);
     loadData();
   };
 

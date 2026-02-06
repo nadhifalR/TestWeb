@@ -1,13 +1,18 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save, Globe, Paintbrush, Check, Database, Shield } from 'lucide-react';
 import { SettingsManager, SystemSettings } from '../services/SettingsManager';
 import { TranslationManager } from '../services/TranslationManager';
 import { Theme } from '../services/ThemeManager';
 
 const SettingsPage: React.FC = () => {
-  const [settings, setSettings] = useState<SystemSettings>(SettingsManager.getSettings());
+  // Fix: Initializing state synchronously using the cached settings
+  const [settings, setSettings] = useState<SystemSettings>(SettingsManager.getSettingsSync());
   const [isSaved, setIsSaved] = useState(false);
+
+  // Fix: Ensure we have the latest settings from the backend on mount
+  useEffect(() => {
+    SettingsManager.getSettings().then(setSettings);
+  }, []);
 
   const handleUpdate = (updates: Partial<SystemSettings>) => {
     const newSettings = { ...settings, ...updates };

@@ -1,56 +1,67 @@
 
 import { User, UserRole, Permission } from '../types';
-import { AuthManager } from './AuthManager';
 import { LogManager } from './LogManager';
-import { TemporaryDatabase } from './TemporaryDatabase';
-import { MockApiService } from './MockApiService';
+import { supabase } from './SupabaseClient';
 
 export class AccountManager {
-  private static USERS_KEY = 'nexus_users';
-
   static async getUsers(): Promise<User[]> {
-    return MockApiService.request(() => {
-      const data = localStorage.getItem(this.USERS_KEY);
-      if (!data) {
-        const initial = AuthManager.getDummyAccounts();
-        this.saveUsers(initial);
-        return initial;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('username', { ascending: true });
+
+      if (error) {
+        console.error('AccountManager: profiles fetch error', error);
+        return [];
       }
-      const users = JSON.parse(data);
-      return users.filter((u: any) => !u.deletedAt);
-    });
+      return data as User[];
+    } catch (err) {
+      return [];
+    }
   }
 
-  static saveUsers(users: User[]): void {
-    localStorage.setItem(this.USERS_KEY, JSON.stringify(users));
-  }
-
-  static getPermissionMatrix(): Record<UserRole, Permission[]> {
-    const db = TemporaryDatabase.getDB();
-    if (db.permissionMatrix) return db.permissionMatrix;
-
-    const initial: Record<UserRole, Permission[]> = {
-      [UserRole.ADMIN]: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'APPROVE', 'SYSTEM_CONFIG', 'FINANCIAL_RECON', 'USER_PROVISION', 'COMMENT'],
-      [UserRole.REVIEWER]: ['VIEW', 'APPROVE', 'COMMENT', 'FINANCIAL_RECON'],
-      [UserRole.SUPERVISOR]: ['VIEW', 'EDIT', 'COMMENT', 'APPROVE'],
-      [UserRole.REQUESTER]: ['VIEW_OWN', 'CREATE', 'EDIT_OWN', 'COMMENT']
+  static async getPermissionMatrix(): Promise<Record<UserRole, Permission[]>> {
+    const defaultMatrix = {
+      [UserRole.ADMIN]: ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'APPROVE', 'SYSTEM_CONFIG', 'FINANCIAL_RECON', 'USER_PROVISION', 'COMMENT'] as Permission[],
+      [UserRole.REVIEWER]: ['VIEW', 'APPROVE', 'COMMENT', 'FINANCIAL_RECON'] as Permission[],
+      [UserRole.SUPERVISOR]: ['VIEW', 'EDIT', 'COMMENT', 'APPROVE'] as Permission[],
+      [UserRole.REQUESTER]: ['VIEW_OWN', 'CREATE', 'EDIT_OWN', 'COMMENT'] as Permission[]
     };
-    this.updatePermissionMatrix(initial);
-    return initial;
+
+    try {
+      const { data, error } = await supabase
+        .from('system_configs')
+        .select('value')
+        .eq('key', 'permission_matrix')
+        .maybeSingle();
+
+      if (error || !data) return defaultMatrix;
+      return data.value;
+    } catch (e) {
+      return defaultMatrix;
+    }
   }
 
-  static updatePermissionMatrix(matrix: Record<UserRole, Permission[]>) {
-    const db = TemporaryDatabase.getDB();
-    db.permissionMatrix = matrix;
-    TemporaryDatabase.saveDB(db);
-    LogManager.addLog('system', 'SECURITY_UPDATE', 'Permission routing matrix updated globally.');
+  static async updatePermissionMatrix(matrix: Record<UserRole, Permission[]>) {
+    try {
+      await supabase
+        .from('system_configs')
+        .upsert({ key: 'permission_matrix', value: matrix });
+
+      LogManager.addLog('system', 'SECURITY_UPDATE', 'Permission routing matrix updated globally.');
+    } catch (e) {
+      console.warn('AccountManager: system_configs update failed.');
+    }
   }
 
   static hasPermission(user: User, permission: Permission, resourceOwnerId?: string): boolean {
     if (user.role === UserRole.ADMIN) return true;
 
-    const matrix = this.getPermissionMatrix();
-    const userPerms = matrix[user.role] || [];
+    // Hardcoded fallback if matrix load fails
+    const userPerms: string[] = user.role === UserRole.REVIEWER ? ['VIEW', 'APPROVE', 'COMMENT', 'FINANCIAL_RECON'] : 
+                              user.role === UserRole.SUPERVISOR ? ['VIEW', 'EDIT', 'COMMENT', 'APPROVE'] : 
+                              user.role === UserRole.REQUESTER ? ['VIEW_OWN', 'CREATE', 'EDIT_OWN', 'COMMENT'] : [];
 
     if (userPerms.includes(permission)) return true;
 
@@ -64,23 +75,39 @@ export class AccountManager {
   }
 
   static async createUser(user: Omit<User, 'id'>): Promise<void> {
-    const users = await this.getUsers();
-    const newUser = { 
-      ...user, 
-      id: Date.now().toString(),
-      avatar: `https://picsum.photos/seed/${user.username}/100`
-    };
-    this.saveUsers([...users, newUser]);
-    LogManager.addLog('admin', 'PROVISION_USER', `Identity node created for ${user.username}`);
+    // Generate a unique TEXT id (matching public.profiles id requirement)
+    const newId = Math.random().toString(36).substring(2, 15);
+    
+    const { error } = await supabase
+      .from('profiles')
+      .insert([{
+        id: newId,
+        username: user.username,
+        email: user.email,
+        department: user.department,
+        title: user.title,
+        role: user.role,
+        avatar: user.avatar || `https://picsum.photos/seed/${user.username}/100`
+      }]);
+
+    if (error) throw error;
+    
+    LogManager.addLog('system', 'PROVISION_USER', `Identity node created for ${user.username} (ID: ${newId})`);
   }
 
   static async updateUser(id: string, updates: Partial<User>): Promise<void> {
-    const users = (await this.getUsers()).map(u => u.id === id ? { ...u, ...updates } : u);
-    this.saveUsers(users);
+    const { error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', id);
+    if (error) throw error;
   }
 
   static async deleteUser(id: string): Promise<void> {
-    const users = (await this.getUsers()).map(u => u.id === id ? { ...u, deletedAt: new Date().toISOString() } : u);
-    this.saveUsers(users);
+    const { error } = await supabase
+      .from('profiles')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
   }
 }

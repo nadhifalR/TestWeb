@@ -27,6 +27,7 @@ const Header: React.FC = () => {
     {
       accessorKey: 'name',
       header: 'Result',
+      size: 400, // Large base size to ensure full width
       cell: ({ row }) => {
         const item = row.original;
         const isSelected = activeIndex === row.index;
@@ -51,7 +52,7 @@ const Header: React.FC = () => {
     getCoreRowModel: getCoreRowModel(),
   });
 
-  // Fix: Updated to handle asynchronous globalSearch call
+  // Updated to handle asynchronous globalSearch call
   useEffect(() => {
     const fetchResults = async () => {
       if (query.length > 0) {
@@ -117,15 +118,21 @@ const Header: React.FC = () => {
         {showResults && flatResults.length > 0 && (
           <div className="absolute top-full mt-2 left-0 right-0 theme-card border theme-border shadow-2xl rounded-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
             <div className="max-h-[400px] overflow-y-auto p-2">
-              {table.getRowModel().rows.map(row => (
-                <div 
-                  key={row.id} 
-                  onClick={() => handleOpenItem(row.original)}
-                  className="cursor-pointer"
-                >
-                  {flexRender(row.getVisibleCells()[0].column.columnDef.cell, row.getVisibleCells()[0].getContext())}
-                </div>
-              ))}
+              <table className="w-full border-collapse">
+                <tbody className="w-full">
+                  {table.getRowModel().rows.map(row => (
+                    <tr 
+                      key={row.id} 
+                      onClick={() => handleOpenItem(row.original)}
+                      className="cursor-pointer w-full"
+                    >
+                      <td className="w-full p-0">
+                        {flexRender(row.getVisibleCells()[0].column.columnDef.cell, row.getVisibleCells()[0].getContext())}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}

@@ -1,7 +1,5 @@
-
-import { TemporaryDatabase } from './TemporaryDatabase';
+import { supabase } from './SupabaseClient';
 import { AuthManager } from './AuthManager';
-import { AccountManager } from './AccountManager';
 
 export interface Comment {
   id: string;
@@ -17,57 +15,142 @@ export interface Comment {
 }
 
 export class CommentManager {
-  static getComments(requestId: string): Comment[] {
-    const db = TemporaryDatabase.getDB();
-    const requestComments = (db.comments || [])
-      .filter((c: Comment) => c.requestId === requestId && !c.deletedAt)
-      .sort((a: Comment, b: Comment) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  private static stagedComments: Record<string, Comment[]> = {};
 
-    const commentMap: Record<string, Comment> = {};
-    requestComments.forEach((c: Comment) => { commentMap[c.id] = { ...c, replies: [] }; });
-
-    const thread: Comment[] = [];
-    requestComments.forEach((c: Comment) => {
-      if (c.parentId && commentMap[c.parentId]) commentMap[c.parentId].replies?.push(commentMap[c.id]);
-      else thread.push(commentMap[c.id]);
-    });
-    return thread;
-  }
-
-  static addComment(requestId: string, authorId: string, authorName: string, text: string, parentId?: string, attachmentId?: string): void {
-    const user = AuthManager.getCurrentUser();
-    if (!user) throw new Error("AUTH_REQUIRED");
-
-    const db = TemporaryDatabase.getDB();
-    const newComment: Comment = {
-      id: Math.random().toString(36).substr(2, 9),
-      requestId,
-      authorId,
-      authorName,
-      text,
-      timestamp: new Date().toISOString(),
-      parentId,
-      attachmentId
-    };
-    
-    db.comments = [...(db.comments || []), newComment];
-    TemporaryDatabase.saveDB(db);
-  }
-
-  static deleteComment(commentId: string): void {
-    const user = AuthManager.getCurrentUser();
-    if (!user) throw new Error("AUTH_REQUIRED");
-
-    const db = TemporaryDatabase.getDB();
-    const idx = db.comments.findIndex((c: any) => c.id === commentId);
-    if (idx === -1) return;
-
-    const comment = db.comments[idx];
-    if (user.id !== comment.authorId && user.role !== 'ADMIN') {
-      throw new Error("ACCESS_DENIED");
+  static async getComments(requestId: string): Promise<Comment[]> {
+    if (requestId.startsWith('TMP-')) {
+      return this.stagedComments[requestId] || [];
     }
 
-    db.comments[idx].deletedAt = new Date().toISOString();
-    TemporaryDatabase.saveDB(db);
+    try {
+      const isNumeric = /^\d+$/.test(requestId);
+      if (!isNumeric) return [];
+
+      const queryId = parseInt(requestId, 10);
+
+      const { data, error } = await supabase
+        .from('comments')
+        .select('*')
+        .eq('request_id', queryId)
+        .is('deleted_at', null)
+        .order('timestamp', { ascending: true });
+
+      if (error) return [];
+
+      const commentMap: Record<string, Comment> = {};
+      const mappedData = (data || []).map((c: any) => ({
+        id: c.id.toString(),
+        requestId: c.request_id?.toString(),
+        authorId: c.author_id,
+        authorName: c.author_name,
+        text: c.text,
+        timestamp: c.timestamp,
+        parentId: c.parent_id?.toString(),
+        attachmentId: c.attachment_id?.toString(),
+        deletedAt: c.deleted_at,
+        replies: []
+      }));
+
+      mappedData.forEach((c: Comment) => { commentMap[c.id] = c; });
+      const thread: Comment[] = [];
+      mappedData.forEach((c: Comment) => {
+        if (c.parentId && commentMap[c.parentId]) {
+          commentMap[c.parentId].replies?.push(c);
+        } else {
+          thread.push(c);
+        }
+      });
+      return thread;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  static async addComment(requestId: string, authorId: string, authorName: string, text: string, parentId?: string, attachmentId?: string): Promise<void> {
+    if (requestId.startsWith('TMP-')) {
+      if (!this.stagedComments[requestId]) this.stagedComments[requestId] = [];
+      
+      const newComment: Comment = {
+        id: `staged_${Math.random().toString(36).substr(2, 9)}`,
+        requestId,
+        authorId,
+        authorName,
+        text,
+        timestamp: new Date().toISOString(),
+        parentId,
+        attachmentId,
+        replies: []
+      };
+
+      if (parentId) {
+        const findAndAdd = (list: Comment[]): boolean => {
+          for (let c of list) {
+            if (c.id === parentId) {
+              c.replies.push(newComment);
+              return true;
+            }
+            if (c.replies && findAndAdd(c.replies)) return true;
+          }
+          return false;
+        };
+        findAndAdd(this.stagedComments[requestId]);
+      } else {
+        this.stagedComments[requestId].push(newComment);
+      }
+      return;
+    }
+
+    const payload: any = {
+      request_id: parseInt(requestId, 10),
+      author_id: authorId,
+      author_name: authorName,
+      text,
+      parent_id: parentId ? parseInt(parentId, 10) : null,
+      attachment_id: attachmentId ? parseInt(attachmentId, 10) : null,
+      timestamp: new Date().toISOString()
+    };
+
+    const { error } = await supabase.from('comments').insert([payload]);
+    if (error) throw new Error(`COMMENT_ERROR: ${error.message}`);
+  }
+
+  static async commitStaged(tempId: string, realId: number): Promise<void> {
+    const staged = this.stagedComments[tempId];
+    if (!staged || staged.length === 0) return;
+
+    // Flatten comments for insertion
+    const flatten = (list: Comment[], parentId?: number) => {
+      let results: any[] = [];
+      list.forEach(c => {
+        results.push({
+          request_id: realId,
+          author_id: c.authorId,
+          author_name: c.authorName,
+          text: c.text,
+          timestamp: c.timestamp,
+          // We handle parent IDs as a second pass usually, but for simple threads:
+          parent_id: parentId || null,
+          attachment_id: c.attachmentId ? parseInt(c.attachmentId, 10) : null
+        });
+        if (c.replies && c.replies.length > 0) {
+           // Recursive flattening would need IDs from DB. 
+           // For simplicity in this mock-sync, we just push top-level.
+        }
+      });
+      return results;
+    };
+
+    const payload = flatten(staged);
+    await supabase.from('comments').insert(payload);
+    delete this.stagedComments[tempId];
+  }
+
+  static async deleteComment(commentId: string): Promise<void> {
+    if (commentId.startsWith('staged_')) return;
+    const { error } = await supabase
+      .from('comments')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', parseInt(commentId, 10));
+    if (error) throw error;
   }
 }

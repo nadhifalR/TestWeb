@@ -1,4 +1,3 @@
-
 import { SettingsManager } from './SettingsManager';
 
 const translations: Record<string, Record<string, string>> = {
@@ -40,7 +39,8 @@ const translations: Record<string, Record<string, string>> = {
 
 export class TranslationManager {
   static getLanguage(): 'en' | 'id' {
-    return SettingsManager.getSettings().language || 'en';
+    // Fix: Using synchronous getter to avoid returning a Promise
+    return SettingsManager.getSettingsSync().language || 'en';
   }
 
   static t(key: string): string {

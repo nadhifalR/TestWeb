@@ -1,10 +1,10 @@
 
-import { RequestForm, User } from '../types';
+import { RequestForm } from '../types';
 import { RequestManager } from './RequestManager';
 import { AccountManager } from './AccountManager';
-import { TemporaryDatabase } from './TemporaryDatabase';
 import { LogManager } from './LogManager';
 import { MockApiService } from './MockApiService';
+import { supabase } from './SupabaseClient';
 
 export interface ReportFilter {
   dateRange: { start: string; end: string } | null;
@@ -13,15 +13,11 @@ export interface ReportFilter {
 }
 
 export class ReportManager {
-  static getFilteredData(filters: ReportFilter): RequestForm[] {
-    let requests = RequestManager.getRequests();
-    // In production we would fetch users async, but here we use the cached matrix for filtering
-    const users = AccountManager.getPermissionMatrix(); // Use matrix as a temporary proxy or fetch users
+  static async getFilteredData(filters: ReportFilter): Promise<RequestForm[]> {
+    let requests = await RequestManager.getRequests();
+    await AccountManager.getPermissionMatrix();
     
-    // For now we assume the filtering logic remains synchronous as it operates on the already-fetched request registry
     if (filters.department && filters.department !== 'All' && filters.department !== 'All Departments') {
-      // In a real app we'd map requesterId to department via a lookup table
-      // Simplified for mock:
       requests = requests.filter(r => r.budgetSource.includes(filters.department));
     }
 
@@ -47,9 +43,28 @@ export class ReportManager {
     return data.reduce((sum, item) => sum + item.totalCost, 0);
   }
 
-  static getSnapshots(): any[] {
-    const db = TemporaryDatabase.getDB();
-    return (db.snapshots || []).sort((a: any, b: any) => b.timestamp.localeCompare(a.timestamp));
+  static async getSnapshots(): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('snapshots')
+        .select('*')
+        .order('timestamp', { ascending: false });
+
+      if (error) {
+        // Log but don't crash UI - likely table doesn't exist yet
+        console.warn('Snapshots table unavailable or unreachable:', error.message);
+        return [];
+      }
+      return (data || []).map((s: any) => ({
+        id: s.id,
+        checksum: s.checksum,
+        timestamp: s.timestamp,
+        recordCount: s.record_count,
+        totalValuation: s.total_valuation
+      }));
+    } catch (e) {
+      return [];
+    }
   }
 
   static async generateCSV(data: RequestForm[]): Promise<void> {
@@ -76,20 +91,24 @@ export class ReportManager {
   }
 
   static async persistSnapshot(data: RequestForm[]): Promise<string> {
-    return MockApiService.request(() => {
-      const db = TemporaryDatabase.getDB();
+    return MockApiService.request(async () => {
       const checksum = Math.random().toString(36).substr(2, 16).toUpperCase();
       const snapshot = {
-        id: `SNP-${Date.now()}`,
         checksum,
         timestamp: new Date().toISOString(),
-        recordCount: data.length,
-        totalValuation: this.calculateGrandTotal(data)
+        record_count: data.length,
+        total_valuation: this.calculateGrandTotal(data)
       };
       
-      db.snapshots = [...(db.snapshots || []), snapshot];
-      TemporaryDatabase.saveDB(db);
-      LogManager.addLog('system', 'ARCHIVE_PERSISTED', `Snapshot ${snapshot.id} committed with checksum ${checksum}`);
+      const { data: inserted, error } = await supabase
+        .from('snapshots')
+        .insert([snapshot])
+        .select()
+        .single();
+
+      if (error) throw new Error(`SNAPSHOT_PERSIST_FAILED: ${error.message}`);
+
+      LogManager.addLog('system', 'ARCHIVE_PERSISTED', `Snapshot SNP-${inserted.id} committed with checksum ${checksum}`);
       return checksum;
     });
   }
