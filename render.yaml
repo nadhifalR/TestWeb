@@ -20,11 +20,6 @@ services:
     env: static
     buildCommand: npm install && npm run build
     staticPublishPath: ./dist
-    plan: free
-    region: singapore
     envVars:
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: nexus-backend
-          property: url
+      - key: http://localhost:8080
+        sync: false
