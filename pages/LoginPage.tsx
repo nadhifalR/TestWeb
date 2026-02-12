@@ -21,10 +21,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center theme-bg p-6 transition-colors duration-500">
-      <div className="max-w-md w-full space-y-8 theme-card p-10 rounded-[2.5rem] shadow-2xl border theme-border animate-in zoom-in-95 duration-500">
+      <div className="max-w-md w-full space-y-8 theme-card p-10 rounded-lg shadow-2xl border theme-border animate-in zoom-in-95 duration-500">
         <div className="text-center">
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/20">
+            <div className="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center shadow-xl shadow-blue-500/20">
               <Hexagon size={32} className="text-white fill-white/20" />
             </div>
           </div>
@@ -39,7 +39,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               <input 
                 type="email" 
                 defaultValue="admin@nexus.com" 
-                className="w-full px-5 py-4 theme-bg border theme-border rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all theme-text font-bold text-sm"
+                className="w-full px-5 py-4 theme-bg border theme-border rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all theme-text font-bold text-sm"
               />
             </div>
             <div className="space-y-2">
@@ -47,14 +47,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               <input 
                 type="password" 
                 defaultValue="password123" 
-                className="w-full px-5 py-4 theme-bg border theme-border rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all theme-text font-bold text-sm"
+                className="w-full px-5 py-4 theme-bg border theme-border rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all theme-text font-bold text-sm"
               />
             </div>
           </div>
 
           <button 
             onClick={() => handleQuickLogin(dummyAccounts[0])}
-            className="w-full py-4 px-4 bg-slate-900 dark:bg-blue-600 text-white font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl transition-all shadow-xl hover:scale-[1.02] active:scale-95"
+            className="w-full py-4 px-4 bg-slate-900 dark:bg-blue-600 text-white font-black text-[11px] uppercase tracking-[0.2em] rounded-lg transition-all shadow-xl hover:scale-[1.02] active:scale-95"
           >
             Authenticate Node
           </button>
@@ -71,9 +71,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             <button
               key={acc.id}
               onClick={() => handleQuickLogin(acc)}
-              className="group flex items-center gap-4 p-4 theme-bg border theme-border rounded-2xl hover:border-blue-500 transition-all text-left"
+              className="group flex items-center gap-4 p-4 theme-bg border theme-border rounded-lg hover:border-blue-500 transition-all text-left"
             >
-              <img src={acc.avatar} className="w-10 h-10 rounded-xl object-cover grayscale group-hover:grayscale-0 transition-all" alt="" />
+              <img src={acc.avatar} className="w-10 h-10 rounded-lg object-cover grayscale group-hover:grayscale-0 transition-all" alt="" />
               <div className="flex-1">
                 <p className="text-xs font-black theme-text uppercase tracking-tight">{acc.username}</p>
                 <p className="text-[10px] theme-text-muted font-bold uppercase tracking-widest">{acc.role}</p>

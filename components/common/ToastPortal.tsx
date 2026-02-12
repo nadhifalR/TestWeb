@@ -23,8 +23,8 @@ export const ToastPortal: React.FC = () => {
   return (
     <div className="fixed bottom-6 right-6 z-[300] space-y-3 w-80">
       {toasts.map(t => (
-        <div key={t.internalId} className="bg-slate-900 border border-white/10 p-4 rounded-2xl shadow-2xl text-white flex gap-4 animate-in slide-in-from-right-10 duration-300">
-          <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shrink-0">
+        <div key={t.internalId} className="bg-slate-900 border border-white/10 p-4 rounded-lg shadow-2xl text-white flex gap-4 animate-in slide-in-from-right-10 duration-300">
+          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shrink-0">
             <Bell size={18} />
           </div>
           <div className="flex-1 min-w-0">

@@ -206,7 +206,7 @@ const RequestPage: React.FC = () => {
         return (
           <button
             onClick={(e) => { e.stopPropagation(); navigate(`/requests?id=${r.id}`); }}
-            className="px-3 py-1.5 border theme-border rounded-xl text-[10px] font-black uppercase hover:bg-slate-900 hover:text-white transition-all"
+            className="px-3 py-1.5 border theme-border rounded-lg text-[10px] font-black uppercase hover:bg-slate-900 hover:text-white transition-all"
           >
             Audit
           </button>
@@ -231,7 +231,7 @@ const RequestPage: React.FC = () => {
           <div><h1 className="text-2xl font-extrabold theme-text uppercase tracking-tight">Requests</h1></div>
         </div>
         {!selectedCategory && !viewingRequest && (
-          <div className="flex theme-bg border theme-border rounded-xl p-1 shadow-sm">
+          <div className="flex theme-bg border theme-border rounded-lg p-1 shadow-sm">
             <button onClick={() => setActiveSubPage('initiate')} className={`px-6 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest ${activeSubPage === 'initiate' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400'}`}>Create new</button>
             <button onClick={() => setActiveSubPage('registry')} className={`px-6 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest ${activeSubPage === 'registry' ? 'bg-slate-900 text-white shadow-md' : 'text-slate-400'}`}>Submitted</button>
           </div>
@@ -241,7 +241,7 @@ const RequestPage: React.FC = () => {
       {!selectedCategory && !viewingRequest && activeSubPage === 'initiate' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 py-6">
           {categories.map((cat) => (
-            <button key={cat.name} onClick={() => setSelectedCategory(cat.name)} className="theme-card p-10 rounded-3xl border theme-border hover:border-slate-900 transition-all text-center group active:scale-95">
+            <button key={cat.name} onClick={() => setSelectedCategory(cat.name)} className="theme-card p-10 rounded-lg border theme-border hover:border-slate-900 transition-all text-center group active:scale-95">
               <div className="text-4xl mb-4 grayscale group-hover:grayscale-0 transition-all group-hover:scale-110">{cat.icon}</div>
               <h3 className="font-bold theme-text text-[13px] uppercase tracking-wider">{cat.name}</h3>
             </button>
@@ -259,11 +259,11 @@ const RequestPage: React.FC = () => {
                 value={globalFilter}
                 onChange={(e) => setGlobalFilter(e.target.value)}
                 placeholder="Submitted filter (ID, Name)..."
-                className="w-full pl-11 pr-4 py-2 theme-bg border theme-border rounded-xl text-xs font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
+                className="w-full pl-11 pr-4 py-2 theme-bg border theme-border rounded-lg text-xs font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
               />
             </div>
           </div>
-          <div className="theme-card rounded-[2rem] border theme-border shadow-xl overflow-hidden">
+          <div className="theme-card rounded-lg border theme-border shadow-xl overflow-hidden">
             {isLoading ? (
               <div className="flex items-center justify-center py-20">
                 <Loader2 className="animate-spin text-slate-300" />
@@ -286,10 +286,10 @@ const RequestPage: React.FC = () => {
 
       {(selectedCategory || viewingRequest) && (
         <div className="space-y-8 pb-64 animate-in zoom-in-95 duration-300 max-w-6xl mx-auto">
-          <div className="theme-card rounded-[3rem] border theme-border shadow-2xl overflow-hidden">
+          <div className="theme-card rounded-lg border theme-border shadow-2xl overflow-hidden">
             <div className="p-8 theme-bg bg-opacity-30 border-b theme-border flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <div className="p-4 bg-slate-900 text-white rounded-2xl">
+                <div className="p-4 bg-slate-900 text-white rounded-lg">
                   <Hash size={20} />
                 </div>
                 <div>
@@ -310,7 +310,7 @@ const RequestPage: React.FC = () => {
                       disabled={!isEditable}
                       value={formState.name}
                       onChange={(e) => setFormState({ ...formState, name: e.target.value })}
-                      className={`w-full px-6 py-4 theme-bg border ${validationErrors.name ? 'border-red-500 bg-red-50/10' : 'theme-border'} rounded-2xl font-bold text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text`}
+                      className={`w-full px-6 py-4 theme-bg border ${validationErrors.name ? 'border-red-500 bg-red-50/10' : 'theme-border'} rounded-lg font-bold text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text`}
                       placeholder="e.g. Q4 Brand Expansion"
                     />
                     {validationErrors.name && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest flex items-center gap-1"><AlertCircle size={10} /> {validationErrors.name}</p>}
@@ -323,7 +323,7 @@ const RequestPage: React.FC = () => {
                         disabled={!isEditable}
                         value={formState.eventDate}
                         onChange={(e) => setFormState({ ...formState, eventDate: e.target.value })}
-                        className="w-full px-6 py-4 theme-bg border theme-border rounded-2xl font-bold text-xs outline-none theme-text"
+                        className="w-full px-6 py-4 theme-bg border theme-border rounded-lg font-bold text-xs outline-none theme-text"
                       />
                     </div>
                     <div className="space-y-3">
@@ -332,7 +332,7 @@ const RequestPage: React.FC = () => {
                         disabled={!isEditable}
                         value={formState.budgetSource}
                         onChange={(e) => setFormState({ ...formState, budgetSource: e.target.value })}
-                        className="w-full px-6 py-4 theme-bg border theme-border rounded-2xl font-bold text-xs outline-none theme-text"
+                        className="w-full px-6 py-4 theme-bg border theme-border rounded-lg font-bold text-xs outline-none theme-text"
                       >
                         <option>Strategic Fund</option>
                         <option>Operational Reserve</option>
@@ -342,7 +342,7 @@ const RequestPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="theme-bg bg-opacity-30 p-8 rounded-[2rem] border theme-border flex flex-col justify-center text-center">
+                <div className="theme-bg bg-opacity-30 p-8 rounded-lg border theme-border flex flex-col justify-center text-center">
                   <p className="label-caps mb-4">Total Aggregate Valuation</p>
                   <p className="text-5xl font-black theme-text tracking-tighter">IDR {totalCost.toLocaleString()}</p>
 
@@ -359,7 +359,7 @@ const RequestPage: React.FC = () => {
                         value={formState.cashAdvance || ''}
                         onChange={(e) => setFormState({ ...formState, cashAdvance: Number(e.target.value) })}
                         placeholder="0"
-                        className="w-full pl-12 pr-4 py-3 bg-white border theme-border rounded-2xl font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 text-center transition-all theme-text"
+                        className="w-full pl-12 pr-4 py-3 bg-white border theme-border rounded-lg font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 text-center transition-all theme-text"
                       />
                     </div>
                     <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-2 italic">Standard Provision: 80% Max</p>
@@ -381,19 +381,19 @@ const RequestPage: React.FC = () => {
               <div className="flex gap-4">
                 {isEditable ? (
                   <>
-                    <button disabled={isSubmitting} onClick={() => handleAction('draft')} className="px-8 py-4 theme-card border theme-border rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] theme-text hover:bg-white transition-all shadow-sm flex items-center gap-2">
+                    <button disabled={isSubmitting} onClick={() => handleAction('draft')} className="px-8 py-4 theme-card border theme-border rounded-lg text-[10px] font-black uppercase tracking-[0.2em] theme-text hover:bg-white transition-all shadow-sm flex items-center gap-2">
                       <Save size={16} /> Save Manifest
                     </button>
-                    <button disabled={isSubmitting} onClick={() => handleAction('submit')} className="px-10 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-black shadow-2xl transition-all flex items-center gap-3">
+                    <button disabled={isSubmitting} onClick={() => handleAction('submit')} className="px-10 py-4 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-[0.2em] hover:bg-black shadow-2xl transition-all flex items-center gap-3">
                       {isSubmitting ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />} Deploy for Audit
                     </button>
                   </>
                 ) : (
                   AccountManager.hasPermission(user!, 'APPROVE') && viewingRequest?.status === RequestStatus.PENDING && (
                     <div className="flex gap-3">
-                      <button onClick={() => handleReview(viewingRequest.id, 'revision')} className="px-8 py-4 bg-amber-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest">Request Revision</button>
-                      <button onClick={() => handleReview(viewingRequest.id, 'deny')} className="px-8 py-4 bg-red-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest">Deny Access</button>
-                      <button onClick={() => handleReview(viewingRequest.id, 'approve')} className="px-10 py-4 bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-2"><Check size={18} /> Authorize Deployment</button>
+                      <button onClick={() => handleReview(viewingRequest.id, 'revision')} className="px-8 py-4 bg-amber-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Request Revision</button>
+                      <button onClick={() => handleReview(viewingRequest.id, 'deny')} className="px-8 py-4 bg-red-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Deny Access</button>
+                      <button onClick={() => handleReview(viewingRequest.id, 'approve')} className="px-10 py-4 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-2"><Check size={18} /> Authorize Deployment</button>
                     </div>
                   )
                 )}

@@ -42,35 +42,35 @@ const SettingsPage: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-        <section className="theme-card rounded-[2.5rem] border theme-border overflow-hidden">
+        <section className="theme-card rounded-lg border theme-border overflow-hidden">
           <div className="p-6 border-b theme-border bg-opacity-30 theme-bg">
             <span className="font-black text-[10px] uppercase tracking-widest theme-text">Localization</span>
           </div>
           <div className="p-10 space-y-8">
             <div className="space-y-4">
               <label className="label-caps">Currency</label>
-              <select value={settings.currency} onChange={(e) => handleUpdate({ currency: e.target.value })} className="w-full px-6 py-4 theme-bg border theme-border rounded-2xl font-black text-sm theme-text">
+              <select value={settings.currency} onChange={(e) => handleUpdate({ currency: e.target.value })} className="w-full px-6 py-4 theme-bg border theme-border rounded-lg font-black text-sm theme-text">
                 <option value="IDR">IDR</option><option value="USD">USD</option>
               </select>
             </div>
             <div className="space-y-4">
               <label className="label-caps">Language</label>
               <div className="flex gap-4">
-                 <button onClick={() => handleUpdate({ language: 'en' })} className={`flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all ${settings.language === 'en' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'theme-card'}`}>English</button>
-                 <button onClick={() => handleUpdate({ language: 'id' })} className={`flex-1 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all ${settings.language === 'id' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'theme-card'}`}>Indonesia</button>
+                 <button onClick={() => handleUpdate({ language: 'en' })} className={`flex-1 py-4 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all ${settings.language === 'en' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'theme-card'}`}>English</button>
+                 <button onClick={() => handleUpdate({ language: 'id' })} className={`flex-1 py-4 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all ${settings.language === 'id' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'theme-card'}`}>Indonesia</button>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="theme-card rounded-[2.5rem] border theme-border overflow-hidden">
+        <section className="theme-card rounded-lg border theme-border overflow-hidden">
           <div className="p-6 border-b theme-border bg-opacity-30 theme-bg">
             <span className="font-black text-[10px] uppercase tracking-widest theme-text">Interface Engine</span>
           </div>
           <div className="p-10">
             <div className="grid grid-cols-2 gap-6">
               {themes.map((t) => (
-                <button key={t.id} onClick={() => handleUpdate({ theme: t.id })} className={`p-6 border-2 rounded-[2rem] text-left transition-all ${settings.theme === t.id ? 'border-blue-500 bg-blue-500/5' : 'theme-border theme-bg'}`}>
+                <button key={t.id} onClick={() => handleUpdate({ theme: t.id })} className={`p-6 border-2 rounded-lg text-left transition-all ${settings.theme === t.id ? 'border-blue-500 bg-blue-500/5' : 'theme-border theme-bg'}`}>
                   <div className={`w-10 h-10 rounded-full mb-3 ${t.bg} ${t.border}`} />
                   <span className="text-[9px] font-black uppercase">{t.label}</span>
                 </button>
@@ -81,7 +81,7 @@ const SettingsPage: React.FC = () => {
       </div>
 
       <div className="flex justify-end pt-10">
-        <button onClick={handleSave} className="px-12 py-5 bg-slate-900 dark:bg-blue-600 text-white font-black text-[11px] uppercase tracking-[0.3em] rounded-2xl shadow-2xl flex items-center gap-4">
+        <button onClick={handleSave} className="px-12 py-5 bg-slate-900 dark:bg-blue-600 text-white font-black text-[11px] uppercase tracking-[0.3em] rounded-lg shadow-2xl flex items-center gap-4">
           <Save size={20} /> {TranslationManager.t('common.save')}
         </button>
       </div>

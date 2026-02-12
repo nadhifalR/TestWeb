@@ -88,7 +88,7 @@ const Dashboard: React.FC = () => {
           <p className="theme-text-muted text-sm font-medium tracking-tight">Active session for {user?.username} • {user?.department}</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="px-3 py-1.5 theme-card rounded-xl flex items-center gap-2 border shadow-sm">
+          <div className="px-3 py-1.5 theme-card rounded-lg flex items-center gap-2 border shadow-sm">
             <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
             <span className="text-[10px] font-bold theme-text-muted uppercase tracking-wider">Interface: Latency Optimized</span>
           </div>
@@ -102,7 +102,7 @@ const Dashboard: React.FC = () => {
           { label: 'Registry Nodes', value: stats?.totalRequests || 0, desc: 'Operational Contexts', icon: Zap, color: 'text-indigo-500' },
           { label: 'Success Protocols', value: stats?.approvedCount || 0, desc: 'Finalized Clearances', icon: CheckCircle, color: 'text-emerald-500' },
         ].map((s, idx) => (
-          <div key={idx} className="theme-card p-6 rounded-2xl flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden">
+          <div key={idx} className="theme-card p-6 rounded-lg flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
               <s.icon size={64} />
             </div>
@@ -119,7 +119,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 theme-card rounded-[2.5rem] p-10 shadow-sm flex flex-col h-[450px] relative overflow-hidden">
+        <div className="lg:col-span-2 theme-card rounded-lg p-10 shadow-sm flex flex-col h-[450px] relative overflow-hidden">
           <div className="flex justify-between items-center mb-10">
             <div>
               <h3 className="text-xs font-black theme-text uppercase tracking-[0.3em] mb-1">Financial Velocity</h3>
@@ -158,7 +158,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-slate-950 border border-slate-800 rounded-[2.5rem] p-10 text-white flex flex-col shadow-2xl h-[450px]">
+        <div className="bg-slate-950 border border-slate-800 rounded-lg p-10 text-white flex flex-col shadow-2xl h-[450px]">
           <div className="flex items-center justify-between mb-10">
             <h3 className="text-[10px] font-black tracking-[0.3em] uppercase text-slate-500">Telemetry Stream</h3>
             <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Real-time</span>
@@ -196,7 +196,7 @@ const Dashboard: React.FC = () => {
           </div>
           <button
             onClick={() => navigate('/requests')}
-            className="mt-10 w-full py-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl text-[9px] font-black uppercase tracking-[0.25em] text-slate-400 transition-all active:scale-95"
+            className="mt-10 w-full py-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg text-[9px] font-black uppercase tracking-[0.25em] text-slate-400 transition-all active:scale-95"
           >
             Access Full Registry
           </button>

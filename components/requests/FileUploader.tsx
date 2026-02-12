@@ -97,13 +97,13 @@ export const FileUploader: React.FC<{ requestId?: string }> = ({ requestId = 'te
       {previewFile && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-12">
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setPreviewFile(null)}></div>
-          <div className="relative w-full max-w-5xl bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col h-full max-h-[85vh]">
+          <div className="relative w-full max-w-5xl bg-white rounded-lg overflow-hidden shadow-2xl flex flex-col h-full max-h-[85vh]">
             <div className="p-6 border-b theme-border flex justify-between items-center bg-slate-50">
                <div>
                  <h4 className="font-black theme-text uppercase tracking-widest text-xs">{previewFile.name}</h4>
                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Artifact Type: {previewFile.type} • Created {new Date(previewFile.uploadedAt).toLocaleString()}</p>
                </div>
-               <button onClick={() => setPreviewFile(null)} className="p-2 hover:bg-white rounded-xl shadow-sm transition-all"><X size={20}/></button>
+               <button onClick={() => setPreviewFile(null)} className="p-2 hover:bg-white rounded-lg shadow-sm transition-all"><X size={20}/></button>
             </div>
             <div className="flex-1 overflow-auto p-12 bg-slate-100 flex items-center justify-center">
                {previewFile.type.startsWith('image/') ? (
@@ -112,7 +112,7 @@ export const FileUploader: React.FC<{ requestId?: string }> = ({ requestId = 'te
                  <div className="flex flex-col items-center gap-6 text-slate-400">
                     <File size={120} strokeWidth={1} />
                     <p className="font-black uppercase tracking-widest text-xs">Preview not available for this MIME type</p>
-                    <a href={previewFile.url} download={previewFile.name} className="px-8 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest">Download Artifact</a>
+                    <a href={previewFile.url} download={previewFile.name} className="px-8 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Download Artifact</a>
                  </div>
                )}
             </div>

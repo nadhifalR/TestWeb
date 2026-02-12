@@ -75,7 +75,7 @@ const CommentItem: React.FC<{
               </div>
 
               {showReply && (
-                <div className="mt-2 p-3 bg-slate-50/50 rounded-xl border theme-border animate-in fade-in slide-in-from-top-1 duration-200">
+                <div className="mt-2 p-3 bg-slate-50/50 rounded-lg border theme-border animate-in fade-in slide-in-from-top-1 duration-200">
                   <textarea 
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
@@ -212,17 +212,17 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
         <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest">Protocol Discussion</h3>
       </div>
       
-      <div className="theme-bg border theme-border rounded-[2rem] p-6 w-full shadow-sm">
+      <div className="theme-bg border theme-border rounded-lg p-6 w-full shadow-sm">
         <div className="flex flex-col gap-3 mb-6 w-full">
           <textarea 
             value={newCommentText}
             onChange={(e) => setNewCommentText(e.target.value)}
             placeholder="Commit entry to discussion thread..."
-            className="w-full p-4 theme-bg border theme-border rounded-2xl outline-none focus:border-slate-900 text-[13px] font-medium transition-all min-h-[100px]"
+            className="w-full p-4 theme-bg border theme-border rounded-lg outline-none focus:border-slate-900 text-[13px] font-medium transition-all min-h-[100px]"
           />
           
           {selectedFile && (
-            <div className="flex items-center justify-between px-4 py-3 bg-blue-50 border border-blue-100 rounded-xl animate-in slide-in-from-left-2">
+            <div className="flex items-center justify-between px-4 py-3 bg-blue-50 border border-blue-100 rounded-lg animate-in slide-in-from-left-2">
               <div className="flex items-center gap-3 text-blue-600">
                 <FileText size={16} />
                 <div className="flex flex-col">
@@ -246,7 +246,7 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
               />
               <button 
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 px-4 py-2 theme-card border theme-border rounded-xl text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:border-blue-500 hover:text-blue-600 transition-all"
+                className="flex items-center gap-2 px-4 py-2 theme-card border theme-border rounded-lg text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:border-blue-500 hover:text-blue-600 transition-all"
               >
                 <Paperclip size={14} /> Provision File
               </button>
@@ -254,7 +254,7 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
             <button 
               disabled={isProcessing}
               onClick={handlePost}
-              className="px-8 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-black transition-all flex items-center gap-3 shadow-lg disabled:opacity-50"
+              className="px-8 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-black transition-all flex items-center gap-3 shadow-lg disabled:opacity-50"
             >
               {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
               Post Entry
@@ -274,7 +274,7 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
             />
           ))}
           {comments.length === 0 && (
-            <div className="py-16 text-center text-slate-300 italic text-[11px] font-medium uppercase tracking-widest border border-dashed theme-border rounded-[2rem]">
+            <div className="py-16 text-center text-slate-300 italic text-[11px] font-medium uppercase tracking-widest border border-dashed theme-border rounded-lg">
               Zero records in thread
             </div>
           )}

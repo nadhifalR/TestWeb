@@ -120,13 +120,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
       {showSwitcherModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
           <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowSwitcherModal(false)}></div>
-          <div className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+          <div className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-8 border-b border-slate-800 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-black text-white uppercase tracking-[0.3em]">Identity Hub</h3>
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Select Security Context</p>
               </div>
-              <button onClick={() => setShowSwitcherModal(false)} className="p-2 hover:bg-white/5 rounded-xl transition-all text-slate-500"><X size={20}/></button>
+              <button onClick={() => setShowSwitcherModal(false)} className="p-2 hover:bg-white/5 rounded-lg transition-all text-slate-500"><X size={20}/></button>
             </div>
             
             <div className="p-8 space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar">
@@ -134,9 +134,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
                 <button 
                   key={acc.id} 
                   onClick={() => switchAccount(acc)} 
-                  className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all border ${user?.id === acc.id ? 'bg-blue-600/10 border-blue-500/30' : 'bg-slate-950/50 border-slate-800 hover:border-slate-600 hover:bg-slate-800'}`}
+                  className={`w-full flex items-center gap-4 p-4 rounded-lg transition-all border ${user?.id === acc.id ? 'bg-blue-600/10 border-blue-500/30' : 'bg-slate-950/50 border-slate-800 hover:border-slate-600 hover:bg-slate-800'}`}
                 >
-                  <img src={acc.avatar} className="w-12 h-12 rounded-xl object-cover border border-slate-700 shadow-md" alt="" />
+                  <img src={acc.avatar} className="w-12 h-12 rounded-lg object-cover border border-slate-700 shadow-md" alt="" />
                   <div className="text-left flex-1 min-w-0">
                     <p className={`text-[13px] font-bold ${user?.id === acc.id ? 'text-blue-400' : 'text-white'}`}>{acc.username}</p>
                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{acc.role} — {acc.department}</p>
@@ -152,7 +152,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
               </div>
               <button 
                 onClick={handleLogout} 
-                className="px-6 py-2.5 bg-red-900/20 text-red-400 border border-red-900/40 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-red-900/40 transition-all flex items-center gap-2"
+                className="px-6 py-2.5 bg-red-900/20 text-red-400 border border-red-900/40 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-red-900/40 transition-all flex items-center gap-2"
               >
                 <LogOut size={14} /> Terminate Session
               </button>

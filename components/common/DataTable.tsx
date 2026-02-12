@@ -112,7 +112,7 @@ export function DataTable<T extends { id: string | number }>({
         <div className="relative">
           <button
             onClick={() => setShowVisibilityMenu(!showVisibilityMenu)}
-            className="flex items-center gap-2 px-4 py-2 theme-card border theme-border rounded-xl text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-text transition-all"
+            className="flex items-center gap-2 px-4 py-2 theme-card border theme-border rounded-lg text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-text transition-all"
           >
             <Settings2 size={14} /> View Settings
           </button>
@@ -120,14 +120,14 @@ export function DataTable<T extends { id: string | number }>({
           {showVisibilityMenu && (
             <>
               <div className="fixed inset-0 z-[60]" onClick={() => setShowVisibilityMenu(false)}></div>
-              <div className="absolute right-0 mt-2 w-56 theme-card border theme-border shadow-2xl rounded-2xl overflow-hidden z-[70] p-2 animate-in fade-in slide-in-from-top-2">
+              <div className="absolute right-0 mt-2 w-56 theme-card border theme-border shadow-2xl rounded-lg overflow-hidden z-[70] p-2 animate-in fade-in slide-in-from-top-2">
                 <p className="px-3 py-2 text-[9px] font-black theme-text-muted uppercase tracking-widest border-b theme-border mb-2">Toggle Columns</p>
                 <div className="max-h-64 overflow-y-auto custom-scrollbar">
                   {table.getAllLeafColumns().map(column => (
                     <button
                       key={column.id}
                       onClick={() => column.toggleVisibility()}
-                      className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-[11px] font-bold theme-text hover:theme-bg transition-colors"
+                      className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-[11px] font-bold theme-text hover:theme-bg transition-colors"
                     >
                       <span className="capitalize">{column.id}</span>
                       {column.getIsVisible() && <Check size={12} className="text-blue-500" />}

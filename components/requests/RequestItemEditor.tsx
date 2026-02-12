@@ -161,7 +161,7 @@ export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onI
               <button
                 type="button"
                 onClick={onLoadPresets}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600/10 text-blue-600 border border-blue-600/20 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600/10 text-blue-600 border border-blue-600/20 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all"
               >
                 <Sparkles size={14} /> Load Presets
               </button>
@@ -169,7 +169,7 @@ export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onI
             <button
               type="button"
               onClick={addItem}
-              className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all"
+              className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all"
             >
               <Plus size={14} /> Add Line Item
             </button>
@@ -177,7 +177,7 @@ export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onI
         )}
       </div>
 
-      <div className="theme-card rounded-3xl border theme-border overflow-x-auto shadow-sm">
+      <div className="theme-card rounded-lg border theme-border overflow-x-auto shadow-sm">
         <table
           className="min-w-full text-left table-fixed border-collapse"
           style={{ width: table.getTotalSize() }}

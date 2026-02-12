@@ -19,14 +19,14 @@ import { AlertCircle, RefreshCw } from 'lucide-react';
 // Guard component to handle Permission-based routing security
 const PermissionGuard: React.FC<{ children: React.ReactNode, permission: Permission }> = ({ children, permission }) => {
   const user = AuthManager.getCurrentUser();
-  
+
   if (!user) return <Navigate to="/login" replace />;
-  
+
   const hasAccess = AccountManager.hasPermission(user, permission);
   if (!hasAccess) {
     return <Navigate to="/" replace />;
   }
-  
+
   return <>{children}</>;
 };
 
@@ -72,7 +72,7 @@ const App: React.FC = () => {
         <AlertCircle size={48} className="text-red-500 mb-4" />
         <h1 className="text-white text-2xl font-black uppercase mb-2">Protocol Failure</h1>
         <p className="text-slate-400 text-sm max-w-sm mb-8">Critical system nodes failed to initialize. Please check network connectivity or configuration.</p>
-        <button onClick={() => window.location.reload()} className="px-10 py-4 bg-white text-slate-900 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3"><RefreshCw size={16} /> Retry Boot</button>
+        <button onClick={() => window.location.reload()} className="px-10 py-4 bg-white text-slate-900 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-3"><RefreshCw size={16} /> Retry Boot</button>
       </div>
     );
   }
@@ -81,9 +81,9 @@ const App: React.FC = () => {
     <HashRouter>
       <Routes>
         <Route path="/login" element={<LoginPage onLogin={() => setIsAuthenticated(true)} />} />
-        
-        <Route 
-          path="/*" 
+
+        <Route
+          path="/*"
           element={
             isAuthenticated ? (
               <MainLayout>

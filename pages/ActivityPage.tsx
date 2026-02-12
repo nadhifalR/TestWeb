@@ -79,23 +79,23 @@ const ActivityPage: React.FC = () => {
           <h1 className="text-3xl font-black theme-text tracking-tight uppercase">Activity</h1>
           <p className="theme-text-muted font-medium">Immutable tracking of all system-wide events and state transitions.</p>
         </div>
-        <div className="flex theme-bg border theme-border rounded-2xl p-1 shadow-sm">
+        <div className="flex theme-bg border theme-border rounded-lg p-1 shadow-sm">
           <button 
             onClick={() => setActiveTab('notifications')}
-            className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'notifications' ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : 'theme-text-muted hover:bg-slate-500/5'}`}
+            className={`px-8 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'notifications' ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : 'theme-text-muted hover:bg-slate-500/5'}`}
           >
             <Bell size={14} /> Alerts
           </button>
           <button 
             onClick={() => setActiveTab('logs')}
-            className={`px-8 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'logs' ? 'bg-slate-900 text-white dark:bg-blue-600 shadow-xl' : 'theme-text-muted hover:bg-slate-500/5'}`}
+            className={`px-8 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'logs' ? 'bg-slate-900 text-white dark:bg-blue-600 shadow-xl' : 'theme-text-muted hover:bg-slate-500/5'}`}
           >
             <Terminal size={14} /> System Logs
           </button>
         </div>
       </div>
 
-      <div className="theme-card rounded-[2.5rem] border theme-border shadow-xl overflow-hidden min-h-[600px] flex flex-col">
+      <div className="theme-card rounded-lg border theme-border shadow-xl overflow-hidden min-h-[600px] flex flex-col">
         <div className="p-6 theme-bg bg-opacity-30 border-b theme-border flex items-center justify-between">
           <div className="relative max-w-sm w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 theme-text-muted" size={16} />
@@ -104,16 +104,16 @@ const ActivityPage: React.FC = () => {
               placeholder="Filter events..." 
               value={globalFilter}
               onChange={(e) => setGlobalFilter(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 theme-bg border theme-border rounded-xl text-sm font-medium outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text"
+              className="w-full pl-11 pr-4 py-3 theme-bg border theme-border rounded-lg text-sm font-medium outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text"
             />
           </div>
           <div className="flex gap-4">
              {activeTab === 'notifications' && notifications.length > 0 && (
                <>
-                 <button onClick={handleMarkRead} className="flex items-center gap-2 px-4 py-2 theme-text-muted font-black text-[9px] uppercase tracking-widest hover:bg-emerald-500/10 hover:text-emerald-500 rounded-xl transition-all">
+                 <button onClick={handleMarkRead} className="flex items-center gap-2 px-4 py-2 theme-text-muted font-black text-[9px] uppercase tracking-widest hover:bg-emerald-500/10 hover:text-emerald-500 rounded-lg transition-all">
                     <CheckSquare size={14} /> Mark Read
                  </button>
-                 <button onClick={handleClearAll} className="flex items-center gap-2 px-4 py-2 theme-text-muted font-black text-[9px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 rounded-xl transition-all">
+                 <button onClick={handleClearAll} className="flex items-center gap-2 px-4 py-2 theme-text-muted font-black text-[9px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 rounded-lg transition-all">
                     <Trash2 size={14} /> Purge All
                  </button>
                </>
@@ -127,7 +127,7 @@ const ActivityPage: React.FC = () => {
               {notifications.length > 0 ? (
                 notifications.map((n) => (
                   <div key={n.id} className={`p-8 flex items-start gap-6 transition-colors ${n.read ? 'opacity-50' : 'hover:theme-bg hover:bg-opacity-50'}`}>
-                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${n.read ? 'theme-bg theme-text-muted' : 'bg-blue-500/10 text-blue-500'}`}>
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${n.read ? 'theme-bg theme-text-muted' : 'bg-blue-500/10 text-blue-500'}`}>
                       <Bell size={24} />
                     </div>
                     <div className="space-y-1 flex-1">
@@ -152,7 +152,7 @@ const ActivityPage: React.FC = () => {
           ) : (
             <Can perform="SYSTEM_CONFIG" fallback={
               <div className="h-full flex flex-col items-center justify-center p-20 theme-bg bg-opacity-20 flex-1">
-                <div className="w-20 h-20 theme-card border theme-border rounded-3xl flex items-center justify-center mb-6 shadow-xl">
+                <div className="w-20 h-20 theme-card border theme-border rounded-lg flex items-center justify-center mb-6 shadow-xl">
                   <Terminal size={32} className="theme-text-muted" />
                 </div>
                 <h3 className="text-lg font-black theme-text mb-2 uppercase tracking-tight">Access Restricted</h3>

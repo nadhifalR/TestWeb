@@ -55,7 +55,7 @@ export const AnalyticsTremor: React.FC<AnalyticsTremorProps> = ({
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="theme-card p-10 rounded-[3rem] border theme-border flex flex-col h-[500px]">
+                <div className="theme-card p-10 rounded-lg border theme-border flex flex-col h-[500px]">
                     <h3 className="font-black theme-text uppercase tracking-widest text-[11px] mb-8 text-center">Spend Velocity</h3>
                     <div className="flex-1 min-h-0">
                         <BarChart
@@ -71,7 +71,7 @@ export const AnalyticsTremor: React.FC<AnalyticsTremorProps> = ({
                     </div>
                 </div>
 
-                <div className="theme-card p-10 rounded-[3rem] border theme-border flex flex-col h-[500px]">
+                <div className="theme-card p-10 rounded-lg border theme-border flex flex-col h-[500px]">
                     <h3 className="font-black theme-text uppercase tracking-widest text-[11px] mb-8 text-center">Daily Audit Volume</h3>
                     <div className="flex-1 min-h-0">
                         <AreaChart
@@ -88,7 +88,7 @@ export const AnalyticsTremor: React.FC<AnalyticsTremorProps> = ({
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="theme-card p-10 rounded-[3rem] border theme-border flex flex-col h-[400px]">
+                <div className="theme-card p-10 rounded-lg border theme-border flex flex-col h-[400px]">
                     <h3 className="font-black theme-text uppercase tracking-widest text-[10px] mb-6 text-center">Asset Saturation</h3>
                     <div className="flex-1 min-h-0 flex items-center justify-center">
                         <DonutChart
@@ -103,14 +103,14 @@ export const AnalyticsTremor: React.FC<AnalyticsTremorProps> = ({
                     </div>
                 </div>
 
-                <div className="lg:col-span-2 bg-slate-900 p-12 rounded-[3.5rem] text-white flex flex-col justify-between shadow-2xl h-[400px]">
+                <div className="lg:col-span-2 bg-slate-900 p-12 rounded-lg text-white flex flex-col justify-between shadow-2xl h-[400px]">
                     <div className="relative z-10">
                         <h3 className="text-4xl font-black uppercase tracking-tighter mb-4">Strategic Audit<br />Archive</h3>
                         <p className="text-slate-400 text-sm font-medium max-w-md">Export comprehensive telemetry of institutional expenditure for immutable compliance trails.</p>
                     </div>
                     <div className="flex gap-4 relative z-10">
-                        <button onClick={() => navigate('/reports')} className="px-10 py-5 bg-white text-slate-900 rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center gap-3">Reports <ArrowRight size={18} /></button>
-                        <button onClick={() => navigate('/activity')} className="px-10 py-5 bg-white/5 border border-white/10 rounded-2xl text-[11px] font-black uppercase tracking-widest">Activity</button>
+                        <button onClick={() => navigate('/reports')} className="px-10 py-5 bg-white text-slate-900 rounded-lg text-[11px] font-black uppercase tracking-widest flex items-center gap-3">Reports <ArrowRight size={18} /></button>
+                        <button onClick={() => navigate('/activity')} className="px-10 py-5 bg-white/5 border border-white/10 rounded-lg text-[11px] font-black uppercase tracking-widest">Activity</button>
                     </div>
                 </div>
             </div>

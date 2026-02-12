@@ -88,8 +88,8 @@ const AnalyticsPage: React.FC = () => {
           { icon: <Users size={24} />, label: 'Auditors', value: '4' },
           { icon: <Calendar size={24} />, label: 'Contexts', value: stats?.totalRequests || 0 },
         ].map((stat, i) => (
-          <div key={i} className="theme-card p-8 rounded-[2rem] border theme-border flex items-center gap-6">
-            <div className="w-14 h-14 theme-bg rounded-2xl flex items-center justify-center text-slate-400">{stat.icon}</div>
+          <div key={i} className="theme-card p-8 rounded-lg border theme-border flex items-center gap-6">
+            <div className="w-14 h-14 theme-bg rounded-lg flex items-center justify-center text-slate-400">{stat.icon}</div>
             <div>
               <p className="text-[10px] font-black theme-text-muted uppercase tracking-widest mb-1">{stat.label}</p>
               <p className="text-2xl font-black theme-text tracking-tight">{stat.value}</p>

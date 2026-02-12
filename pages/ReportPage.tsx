@@ -110,19 +110,19 @@ const ReportPage: React.FC = () => {
           </div>
         </div>
         <div className="flex gap-3">
-          <button onClick={() => setShowSnapshots(!showSnapshots)} className="flex items-center gap-2 px-5 py-3 theme-card border theme-border rounded-2xl text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-bg">
+          <button onClick={() => setShowSnapshots(!showSnapshots)} className="flex items-center gap-2 px-5 py-3 theme-card border theme-border rounded-lg text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-bg">
             <History size={16} /> History
           </button>
           {archiveSuccess ? (
-            <div className="flex items-center gap-3 px-6 py-3 bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest animate-in zoom-in-95">
+            <div className="flex items-center gap-3 px-6 py-3 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest animate-in zoom-in-95">
               <Check size={16} /> Archive: {archiveSuccess.slice(0, 8)}...
             </div>
           ) : (
-            <button onClick={executeSnapshot} disabled={isSnapshotting || data.length === 0} className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 shadow-xl transition-all disabled:opacity-50">
+            <button onClick={executeSnapshot} disabled={isSnapshotting || data.length === 0} className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 shadow-xl transition-all disabled:opacity-50">
               {isSnapshotting ? 'Generating...' : <><ShieldCheck size={16} /> Finalize Archive</>}
             </button>
           )}
-          <button onClick={handleExportCSV} disabled={data.length === 0} className="flex items-center gap-2 px-5 py-3 theme-card border theme-border rounded-2xl text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-bg">
+          <button onClick={handleExportCSV} disabled={data.length === 0} className="flex items-center gap-2 px-5 py-3 theme-card border theme-border rounded-lg text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-bg">
             <Download size={16} /> Export CSV
           </button>
         </div>
@@ -130,7 +130,7 @@ const ReportPage: React.FC = () => {
 
       {showSnapshots ? (
         <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-           <div className="theme-card rounded-[3rem] border theme-border shadow-2xl overflow-hidden mb-10">
+           <div className="theme-card rounded-lg border theme-border shadow-2xl overflow-hidden mb-10">
               <div className="p-8 theme-bg bg-opacity-50 border-b theme-border flex justify-between items-center">
                  <h3 className="label-caps">Institutional Archive Log</h3>
                  <button onClick={() => setShowSnapshots(false)} className="text-[9px] font-black uppercase tracking-widest text-blue-500">Close Browser</button>
@@ -139,7 +139,7 @@ const ReportPage: React.FC = () => {
                 {snapshots.length > 0 ? snapshots.map(snap => (
                   <div key={snap.id} className="p-8 flex items-center justify-between hover:theme-bg transition-colors">
                     <div className="flex items-center gap-6">
-                      <div className="w-12 h-12 bg-blue-600/10 text-blue-600 rounded-2xl flex items-center justify-center">
+                      <div className="w-12 h-12 bg-blue-600/10 text-blue-600 rounded-lg flex items-center justify-center">
                         <Archive size={20} />
                       </div>
                       <div>
@@ -160,10 +160,10 @@ const ReportPage: React.FC = () => {
         </div>
       ) : (
         <>
-          <div className="theme-card p-10 rounded-[3rem] border theme-border shadow-sm flex flex-wrap gap-10 items-end bg-opacity-30">
+          <div className="theme-card p-10 rounded-lg border theme-border shadow-sm flex flex-wrap gap-10 items-end bg-opacity-30">
             <div className="space-y-3">
               <label className="label-caps">Institutional Node</label>
-              <select value={filters.department} onChange={(e) => setFilters({...filters, department: e.target.value})} className="block w-64 px-6 py-4 theme-bg border theme-border rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text">
+              <select value={filters.department} onChange={(e) => setFilters({...filters, department: e.target.value})} className="block w-64 px-6 py-4 theme-bg border theme-border rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text">
                 <option>All Departments</option>
                 <option>Marketing</option>
                 <option>Finance</option>
@@ -173,7 +173,7 @@ const ReportPage: React.FC = () => {
 
             <div className="space-y-3">
               <label className="label-caps">Strategic Category</label>
-              <select value={filters.category} onChange={(e) => setFilters({...filters, category: e.target.value})} className="block w-64 px-6 py-4 theme-bg border theme-border rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text">
+              <select value={filters.category} onChange={(e) => setFilters({...filters, category: e.target.value})} className="block w-64 px-6 py-4 theme-bg border theme-border rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text">
                 <option>All Categories</option>
                 <option>Brand</option>
                 <option>Production</option>
@@ -185,20 +185,20 @@ const ReportPage: React.FC = () => {
             
             <div className="space-y-3">
               <label className="label-caps">Temporal Start</label>
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="block w-48 px-6 py-4 theme-bg border theme-border rounded-2xl text-xs font-bold outline-none theme-text" />
+              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="block w-48 px-6 py-4 theme-bg border theme-border rounded-lg text-xs font-bold outline-none theme-text" />
             </div>
 
             <div className="space-y-3">
               <label className="label-caps">Temporal End</label>
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="block w-48 px-6 py-4 theme-bg border theme-border rounded-2xl text-xs font-bold outline-none theme-text" />
+              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="block w-48 px-6 py-4 theme-bg border theme-border rounded-lg text-xs font-bold outline-none theme-text" />
             </div>
 
-            <button onClick={handleApplyFilters} className="px-10 py-4 bg-slate-900 dark:bg-zinc-800 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-3 shadow-2xl">
+            <button onClick={handleApplyFilters} className="px-10 py-4 bg-slate-900 dark:bg-zinc-800 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-3 shadow-2xl">
                <Filter size={16} /> Synthesize Reports
             </button>
           </div>
 
-          <div className="theme-card rounded-[3.5rem] border theme-border shadow-2xl overflow-hidden mb-20">
+          <div className="theme-card rounded-lg border theme-border shadow-2xl overflow-hidden mb-20">
             <DataTable data={data} columns={columns} showFooter={true} />
           </div>
         </>
