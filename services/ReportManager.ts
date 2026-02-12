@@ -3,7 +3,6 @@ import { RequestForm } from '../types';
 import { RequestManager } from './RequestManager';
 import { AccountManager } from './AccountManager';
 import { LogManager } from './LogManager';
-import { MockApiService } from './MockApiService';
 import { supabase } from './SupabaseClient';
 
 export interface ReportFilter {
@@ -16,7 +15,7 @@ export class ReportManager {
   static async getFilteredData(filters: ReportFilter): Promise<RequestForm[]> {
     let requests = await RequestManager.getRequests();
     await AccountManager.getPermissionMatrix();
-    
+
     if (filters.department && filters.department !== 'All' && filters.department !== 'All Departments') {
       requests = requests.filter(r => r.budgetSource.includes(filters.department));
     }
@@ -29,7 +28,7 @@ export class ReportManager {
       const startDate = new Date(filters.dateRange.start);
       const endDate = new Date(filters.dateRange.end);
       endDate.setHours(23, 59, 59, 999);
-      
+
       requests = requests.filter(r => {
         const d = new Date(r.createdAt);
         return d >= startDate && d <= endDate;
@@ -77,7 +76,7 @@ export class ReportManager {
       r.totalCost,
       r.status
     ]);
-    
+
     const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
@@ -91,25 +90,23 @@ export class ReportManager {
   }
 
   static async persistSnapshot(data: RequestForm[]): Promise<string> {
-    return MockApiService.request(async () => {
-      const checksum = Math.random().toString(36).substr(2, 16).toUpperCase();
-      const snapshot = {
-        checksum,
-        timestamp: new Date().toISOString(),
-        record_count: data.length,
-        total_valuation: this.calculateGrandTotal(data)
-      };
-      
-      const { data: inserted, error } = await supabase
-        .from('snapshots')
-        .insert([snapshot])
-        .select()
-        .single();
+    const checksum = Math.random().toString(36).substr(2, 16).toUpperCase();
+    const snapshot = {
+      checksum,
+      timestamp: new Date().toISOString(),
+      record_count: data.length,
+      total_valuation: this.calculateGrandTotal(data)
+    };
 
-      if (error) throw new Error(`SNAPSHOT_PERSIST_FAILED: ${error.message}`);
+    const { data: inserted, error } = await supabase
+      .from('snapshots')
+      .insert([snapshot])
+      .select()
+      .single();
 
-      LogManager.addLog('system', 'ARCHIVE_PERSISTED', `Snapshot SNP-${inserted.id} committed with checksum ${checksum}`);
-      return checksum;
-    });
+    if (error) throw new Error(`SNAPSHOT_PERSIST_FAILED: ${error.message}`);
+
+    LogManager.addLog('system', 'ARCHIVE_PERSISTED', `Snapshot SNP-${inserted.id} committed with checksum ${checksum}`);
+    return checksum;
   }
 }
