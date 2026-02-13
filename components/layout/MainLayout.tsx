@@ -45,21 +45,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-200 mb-2">
               <button
                 onClick={() => { setGlobalDrawerTab('registry'); setIsGlobalDrawerOpen(true); setIsFabHovered(false); }}
-                className="btn btn-secondary shadow-xl group"
+                className="btn btn-primary shadow-xl group px-6 py-3"
               >
-                <span className="xs-label theme-text">Request List</span>
-                <div className="p-1 bg-blue-100 text-blue-600 rounded-full group-hover:scale-110 transition-transform">
-                  <List size={14} />
-                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest mr-4">Request List</span>
+                <List size={18} className="text-white" />
               </button>
               <button
                 onClick={() => { setGlobalDrawerTab('initiate'); setIsGlobalDrawerOpen(true); setIsFabHovered(false); }}
-                className="btn btn-secondary shadow-xl group"
+                className="btn btn-primary shadow-xl group px-6 py-3"
               >
-                <span className="xs-label theme-text">New Request</span>
-                <div className="p-1 bg-emerald-100 text-emerald-600 rounded-full group-hover:scale-110 transition-transform">
-                  <FileText size={14} />
-                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest mr-4">New Request</span>
+                <FileText size={18} className="text-white" />
               </button>
             </div>
           )}
