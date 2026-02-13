@@ -80,6 +80,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <RequestPanel
           initialTab={globalDrawerTab}
           isDrawerMode={true}
+          isFullscreen={isFullscreenDrawer}
           onClose={() => setIsGlobalDrawerOpen(false)}
         />
       </Drawer>

@@ -15,6 +15,7 @@ import { RequestForm, RequestItem, RequestStatus } from '../../types';
 interface RequestPanelProps {
     initialTab?: 'initiate' | 'registry';
     isDrawerMode?: boolean;
+    isFullscreen?: boolean;
     onClose?: () => void;
     overrideRequestId?: string | null;
 }
@@ -22,6 +23,7 @@ interface RequestPanelProps {
 export const RequestPanel: React.FC<RequestPanelProps> = ({
     initialTab = 'initiate',
     isDrawerMode = false,
+    isFullscreen = false,
     onClose,
     overrideRequestId
 }) => {
@@ -220,7 +222,11 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
                 /* 2. DASHBOARD VIEW (If nothing selected) */
                 <>
                     {activeSubPage === 'initiate' && (
-                        <RequestCategoryGrid onSelect={setSelectedCategory} />
+                        <RequestCategoryGrid
+                            onSelect={setSelectedCategory}
+                            isDrawerMode={isDrawerMode}
+                            isFullscreen={isFullscreen}
+                        />
                     )}
 
                     {activeSubPage === 'registry' && (

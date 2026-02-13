@@ -2,9 +2,15 @@ import React from 'react';
 
 interface RequestCategoryGridProps {
     onSelect: (category: string) => void;
+    isDrawerMode?: boolean;
+    isFullscreen?: boolean;
 }
 
-export const RequestCategoryGrid: React.FC<RequestCategoryGridProps> = ({ onSelect }) => {
+export const RequestCategoryGrid: React.FC<RequestCategoryGridProps> = ({
+    onSelect,
+    isDrawerMode = false,
+    isFullscreen = false
+}) => {
     const categories = [
         { name: 'Brand', icon: '🎨' },
         { name: 'Production', icon: '⚙️' },
@@ -13,8 +19,16 @@ export const RequestCategoryGrid: React.FC<RequestCategoryGridProps> = ({ onSele
         { name: 'Logistics', icon: '📦' },
     ];
 
+    // Responsive Logic:
+    // - Default (Page Mode): grid-cols-1 sm:2 lg:5
+    // - Drawer Minimized: grid-cols-2 (Constraint)
+    // - Drawer Fullscreen: grid-cols-1 sm:2 lg:5 (Wide)
+    const gridClass = isDrawerMode && !isFullscreen
+        ? "grid grid-cols-2 gap-4 py-6 animate-in fade-in duration-300"
+        : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 py-6 animate-in fade-in duration-300";
+
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 py-6 animate-in fade-in duration-300">
+        <div className={gridClass}>
             {categories.map((cat) => (
                 <button
                     key={cat.name}
