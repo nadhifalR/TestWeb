@@ -22,6 +22,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const isRequestPage = location.pathname === '/requests';
 
+  // Sync sidebar width as a CSS variable for the Drawer's dynamic width calculation
+  React.useEffect(() => {
+    const sidebarWidth = isSidebarCollapsed ? 64 : 256;
+    document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
+  }, [isSidebarCollapsed]);
+
   return (
     <div className="flex min-h-screen theme-bg theme-text transition-all duration-300">
       <Sidebar

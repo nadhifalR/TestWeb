@@ -49,7 +49,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                                 leaveFrom="translate-x-0"
                                 leaveTo="translate-x-full"
                             >
-                                <Dialog.Panel className={`pointer-events-auto w-screen transform transition-all duration-300 ease-in-out ${isFullscreen ? 'max-w-7xl' : width}`}>
+                                <Dialog.Panel className={`pointer-events-auto w-screen transform transition-all duration-300 ease-in-out ${isFullscreen ? 'max-w-[calc(100vw-var(--sidebar-width,256px))]' : width}`}>
                                     <div className="flex h-full flex-col theme-bg shadow-xl border-l theme-border">
                                         {/* Header */}
                                         <div className="flex items-center justify-between p-6 border-b theme-border bg-opacity-50">
