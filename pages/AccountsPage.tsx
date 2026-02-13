@@ -134,7 +134,7 @@ const AccountsPage: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b theme-border pb-10">
         <div>
           <h1 className="text-3xl font-black theme-text tracking-tight uppercase">Accounts</h1>
-          <p className="theme-text-muted font-medium text-sm italic opacity-80 font-mono">Manage users and access permissions.</p>
+          <p className="theme-text-muted text-sm font-medium tracking-tight">Manage users and access permissions.</p>
         </div>
         <div className="flex theme-bg border theme-border rounded-lg p-1.5 shadow-sm">
           <button onClick={() => setActiveTab('users')} className={`btn btn-sm ${activeTab === 'users' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'btn-ghost'}`}>User List</button>

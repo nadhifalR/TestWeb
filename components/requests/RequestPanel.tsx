@@ -180,7 +180,10 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
                 <div className="flex items-center justify-between border-b theme-border pb-6">
                     <div className="flex items-center gap-4">
                         {(selectedCategory || viewingRequest) && <button onClick={clearSelection} className="p-1.5 hover:theme-bg border theme-border rounded transition-all text-slate-500"><ChevronLeft size={18} /></button>}
-                        <div><h1 className="text-2xl font-extrabold theme-text uppercase tracking-tight">Requests</h1></div>
+                        <div>
+                            <h1 className="text-3xl font-black theme-text uppercase tracking-tight">Requests</h1>
+                            <p className="theme-text-muted text-sm font-medium tracking-tight">Manage and track all service requests.</p>
+                        </div>
                     </div>
                     {!selectedCategory && !viewingRequest && (
                         <div className="flex theme-bg border theme-border rounded-lg p-1.5 shadow-sm">

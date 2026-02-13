@@ -113,7 +113,7 @@ const ReportPage: React.FC = () => {
         <div className="flex items-center gap-4">
           <div>
             <h1 className="text-3xl font-black theme-text tracking-tight uppercase">{t('reports.title')}</h1>
-            <p className="theme-text-muted font-medium text-sm italic">Generate and export financial reports.</p>
+            <p className="theme-text-muted text-sm font-medium tracking-tight">Generate and export financial reports.</p>
           </div>
         </div>
         <div className="flex gap-3">

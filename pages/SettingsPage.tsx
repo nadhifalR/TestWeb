@@ -38,7 +38,7 @@ const SettingsPage: React.FC = () => {
     <div className="max-w-5xl space-y-10 animate-in fade-in duration-500 pb-20">
       <div className="border-b theme-border pb-8">
         <h1 className="text-3xl font-black theme-text tracking-tight uppercase">{TranslationManager.t('settings.title')}</h1>
-        <p className="theme-text-muted font-medium text-sm italic">Application and system preferences.</p>
+        <p className="theme-text-muted text-sm font-medium tracking-tight">Application and system preferences.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">

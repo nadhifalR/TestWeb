@@ -101,7 +101,7 @@ const ActivityPage: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black theme-text tracking-tight uppercase">Activity</h1>
-          <p className="theme-text-muted font-medium">Track system activity and user notifications.</p>
+          <p className="theme-text-muted text-sm font-medium tracking-tight">Track system activity and user notifications.</p>
         </div>
         <div className="flex theme-bg border theme-border rounded-lg p-1.5 shadow-sm">
           <button

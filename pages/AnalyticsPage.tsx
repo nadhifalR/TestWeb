@@ -48,7 +48,7 @@ const AnalyticsPage: React.FC = () => {
       <div className="flex items-center justify-between border-b theme-border pb-6">
         <div>
           <h1 className="text-3xl font-black theme-text tracking-tight uppercase">Analytics</h1>
-          <p className="theme-text-muted font-medium text-sm">Monitor and analyze spending data across departments.</p>
+          <p className="theme-text-muted text-sm font-medium tracking-tight">Monitor and analyze spending data across departments.</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex theme-bg border theme-border rounded-lg p-1.5 shadow-sm">
