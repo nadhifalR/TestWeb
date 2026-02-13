@@ -59,7 +59,7 @@ export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onI
           disabled={disabled}
           type="text"
           value={row.original.name}
-          placeholder="Specify resource..."
+          placeholder="Item description..."
           onChange={(e) => updateItem(row.original.id, 'name', e.target.value)}
           className="w-full px-3 py-2 bg-transparent outline-none font-bold text-xs theme-text focus:bg-white rounded-lg transition-all truncate"
         />
@@ -153,7 +153,7 @@ export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onI
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Package size={14} className="text-slate-400" />
-          <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest">Resource Allocation</h3>
+          <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest">Line Items</h3>
         </div>
         {!disabled && (
           <div className="flex gap-2">
@@ -202,8 +202,8 @@ export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onI
                           className="absolute right-0 top-0 h-full w-4 cursor-col-resize select-none touch-none flex justify-center group/resizer z-20"
                         >
                           <div className={`w-[1px] h-full transition-all duration-200 ${isResizing
-                              ? 'bg-blue-500 opacity-100 shadow-[0_0_8px_rgba(59,130,246,0.8)]'
-                              : 'bg-slate-300 opacity-30 group-hover/resizer:opacity-100 group-hover/resizer:bg-blue-400'
+                            ? 'bg-blue-500 opacity-100 shadow-[0_0_8px_rgba(59,130,246,0.8)]'
+                            : 'bg-slate-300 opacity-30 group-hover/resizer:opacity-100 group-hover/resizer:bg-blue-400'
                             }`} />
                         </div>
                       )}
@@ -226,7 +226,7 @@ export const RequestItemEditor: React.FC<RequestItemEditorProps> = ({ items, onI
             {items.length === 0 && (
               <tr>
                 <td colSpan={columns.length} className="px-6 py-10 text-center text-[10px] font-black uppercase tracking-widest theme-text-muted italic opacity-50">
-                  Resource ledger is vacant.
+                  No items added.
                 </td>
               </tr>
             )}

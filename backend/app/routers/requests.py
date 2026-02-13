@@ -46,7 +46,7 @@ async def get_requests(
                         {
                             "id": str(i["id"]),
                             "name": i["name"],
-                            "quantity": float(i["quantity"]),
+                            "quantity": int(i["quantity"]),
                             "unit": i["unit"],
                             "price": float(i["price"]),
                             "request_id": str(i["request_id"])
@@ -94,7 +94,7 @@ async def create_request(request_data: RequestFormCreate, requester_id: str):
             items_payload = [
                 {
                     "name": item.name,
-                    "quantity": item.quantity,
+                    "quantity": int(item.quantity),
                     "unit": item.unit,
                     "price": item.price,
                     "request_id": request_id
@@ -121,7 +121,7 @@ async def create_request(request_data: RequestFormCreate, requester_id: str):
                 {
                     "id": str(i["id"]),
                     "name": i["name"],
-                    "quantity": float(i["quantity"]),
+                    "quantity": int(i["quantity"]),
                     "unit": i["unit"],
                     "price": float(i["price"]),
                     "request_id": str(i["request_id"])
@@ -157,7 +157,7 @@ async def update_request(request_id: int, request_data: RequestFormCreate):
             items_payload = [
                 {
                     "name": item.name,
-                    "quantity": item.quantity,
+                    "quantity": int(item.quantity),
                     "unit": item.unit,
                     "price": item.price,
                     "request_id": request_id
@@ -184,7 +184,7 @@ async def update_request(request_id: int, request_data: RequestFormCreate):
                 {
                     "id": str(i["id"]),
                     "name": i["name"],
-                    "quantity": float(i["quantity"]),
+                    "quantity": int(i["quantity"]),
                     "unit": i["unit"],
                     "price": float(i["price"]),
                     "request_id": str(i["request_id"])

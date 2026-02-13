@@ -8,6 +8,7 @@ import { RequestStatus, RequestForm, RequestItem } from '../types';
 import { AuthManager } from '../services/AuthManager';
 import { AccountManager } from '../services/AccountManager';
 import { NotificationManager } from '../services/NotificationManager';
+import { LogManager } from '../services/LogManager';
 import { DiscussionThread } from '../components/requests/DiscussionThread';
 import { FileUploader } from '../components/requests/FileUploader';
 import { DataTable } from '../components/common/DataTable';
@@ -104,8 +105,11 @@ const RequestPage: React.FC = () => {
       NotificationManager.addNotification({
         userId: user?.id || 'system',
         title: 'Success',
-        message: status === 'submit' ? 'Request submitted for audit.' : 'Draft saved successfully.',
+        message: status === 'submit' ? 'Request submitted successfully.' : 'Draft saved successfully.',
       });
+      if (user) { // Ensure user is not null before logging
+        LogManager.addLog(user.id, status === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Request ${viewingRequest?.id || tempId} finalized via FastAPI.`);
+      }
     } catch (e: any) {
       const errorMsg = e.message || 'System error occurred.';
       NotificationManager.addNotification({
@@ -209,7 +213,7 @@ const RequestPage: React.FC = () => {
             onClick={(e) => { e.stopPropagation(); navigate(`/requests?id=${r.id}`); }}
             className="px-3 py-1.5 border theme-border rounded-lg text-[10px] font-black uppercase hover:bg-slate-900 hover:text-white transition-all"
           >
-            Audit
+            View
           </button>
         );
       }
@@ -293,7 +297,7 @@ const RequestPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 className="text-sm font-black theme-text uppercase tracking-widest">
-                    {viewingRequest ? `Protocol Audit: ${viewingRequest.id}` : `New Initiative: ${selectedCategory}`}
+                    {viewingRequest ? `Request Details: ${viewingRequest.id}` : `New Request: ${selectedCategory}`}
                   </h3>
                   {viewingRequest && <p className="text-[10px] theme-text-muted font-bold uppercase tracking-widest mt-1">Status: {viewingRequest.status} • Created {new Date(viewingRequest.createdAt).toLocaleDateString()}</p>}
                 </div>
@@ -304,7 +308,7 @@ const RequestPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div className="space-y-6">
                   <div className="space-y-3">
-                    <label className="label-caps">Tactical Initiative Name</label>
+                    <label className="label-caps">Request Name</label>
                     <input
                       disabled={!isEditable}
                       value={formState.name}
@@ -316,7 +320,7 @@ const RequestPage: React.FC = () => {
                   </div>
                   <div className="grid grid-cols-2 gap-6">
                     <div className="space-y-3">
-                      <label className="label-caps">Temporal Window</label>
+                      <label className="label-caps">Date</label>
                       <input
                         type="date"
                         disabled={!isEditable}
@@ -326,7 +330,7 @@ const RequestPage: React.FC = () => {
                       />
                     </div>
                     <div className="space-y-3">
-                      <label className="label-caps">Fiscal Source</label>
+                      <label className="label-caps">Source</label>
                       <select
                         disabled={!isEditable}
                         value={formState.budgetSource}
@@ -342,13 +346,13 @@ const RequestPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="theme-bg bg-opacity-30 p-8 rounded-lg border theme-border flex flex-col justify-center text-center">
-                  <p className="label-caps mb-4">Total Aggregate Valuation</p>
+                  <p className="label-caps mb-4">Total Request Cost</p>
                   <p className="text-5xl font-black theme-text tracking-tighter">IDR {totalCost.toLocaleString()}</p>
 
                   <div className="mt-8 pt-6 border-t theme-border border-opacity-20 flex flex-col items-center">
                     <div className="flex items-center gap-2 mb-3">
                       <Wallet size={14} className="text-slate-400" />
-                      <label className="label-caps">Cash Advance Request</label>
+                      <label className="label-caps">Advance Request</label>
                     </div>
                     <div className="relative w-full max-w-[240px]">
                       <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">IDR</span>
@@ -375,24 +379,32 @@ const RequestPage: React.FC = () => {
             </div>
 
             <div className="p-10 border-t theme-border theme-bg bg-opacity-50 flex justify-between items-center">
-              <button onClick={() => { setSelectedCategory(null); setViewingRequest(null); navigate('/requests'); }} className="px-8 py-4 text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-text transition-all">Abort Action</button>
+              <button onClick={() => { setSelectedCategory(null); setViewingRequest(null); navigate('/requests'); }} className="px-8 py-4 text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-text transition-all">Cancel</button>
 
               <div className="flex gap-4">
                 {isEditable ? (
                   <>
-                    <button disabled={isSubmitting} onClick={() => handleAction('draft')} className="px-8 py-4 theme-card border theme-border rounded-lg text-[10px] font-black uppercase tracking-[0.2em] theme-text hover:bg-white transition-all shadow-sm flex items-center gap-2">
-                      <Save size={16} /> Save Manifest
+                    <button
+                      disabled={isSubmitting}
+                      onClick={() => handleAction('draft')}
+                      className="flex items-center gap-2 px-6 py-3 theme-card border theme-border rounded-lg text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-bg"
+                    >
+                      <Save size={16} /> Save to Draft
                     </button>
-                    <button disabled={isSubmitting} onClick={() => handleAction('submit')} className="px-10 py-4 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-[0.2em] hover:bg-black shadow-2xl transition-all flex items-center gap-3">
-                      {isSubmitting ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />} Deploy for Audit
+                    <button
+                      disabled={validationErrors.name !== undefined || isSubmitting || items.length === 0}
+                      onClick={() => handleAction('submit')}
+                      className="flex items-center gap-3 px-8 py-3 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/20 transition-all disabled:opacity-50"
+                    >
+                      {isSubmitting ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />} Submit Request
                     </button>
                   </>
                 ) : (
                   AccountManager.hasPermission(user!, 'APPROVE') && viewingRequest?.status === RequestStatus.PENDING && (
                     <div className="flex gap-3">
-                      <button onClick={() => handleReview(viewingRequest.id, 'revision')} className="px-8 py-4 bg-amber-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Request Revision</button>
-                      <button onClick={() => handleReview(viewingRequest.id, 'deny')} className="px-8 py-4 bg-red-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Deny Access</button>
-                      <button onClick={() => handleReview(viewingRequest.id, 'approve')} className="px-10 py-4 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-2"><Check size={18} /> Authorize Deployment</button>
+                      <button onClick={() => handleReview(viewingRequest.id, 'revision')} className="px-8 py-4 bg-amber-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Revision</button>
+                      <button onClick={() => handleReview(viewingRequest.id, 'deny')} className="px-8 py-4 bg-red-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Deny</button>
+                      <button onClick={() => handleReview(viewingRequest.id, 'approve')} className="px-10 py-4 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-2"><Check size={18} /> Approve</button>
                     </div>
                   )
                 )}

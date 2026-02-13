@@ -36,16 +36,16 @@ export const FileUploader: React.FC<{ requestId?: string }> = ({ requestId = 'te
     <section className="space-y-4 w-full">
       <div className="flex items-center gap-2">
         <Upload size={14} className="text-slate-400" />
-        <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest">Protocol Artifacts</h3>
+        <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest">Attachments</h3>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
         <label className="group relative border border-dashed theme-border rounded p-6 flex flex-col items-center justify-center text-center hover:bg-slate-50 transition-all cursor-pointer min-h-[140px]">
           <input type="file" className="hidden" onChange={handleFileChange} disabled={isUploading} />
           <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
             {isUploading ? <Loader2 className="animate-spin" size={20} /> : <Upload size={20} />}
           </div>
-          <p className="text-[10px] font-bold theme-text uppercase tracking-widest">Provision Artifact</p>
+          <p className="text-[10px] font-bold theme-text uppercase tracking-widest">Upload File</p>
           <p className="text-[9px] text-slate-400 mt-1 font-medium uppercase">Max Payload: 10MB</p>
         </label>
 
@@ -60,22 +60,22 @@ export const FileUploader: React.FC<{ requestId?: string }> = ({ requestId = 'te
                 <p className="text-[9px] text-slate-400 font-bold uppercase">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
               </div>
               <div className="flex items-center gap-1">
-                <button 
+                <button
                   onClick={() => setPreviewFile(file)}
                   className="p-1.5 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded transition-all"
                   title="Preview"
                 >
                   <Eye size={16} />
                 </button>
-                <a 
-                  href={file.url} 
+                <a
+                  href={file.url}
                   download={file.name}
                   className="p-1.5 text-slate-300 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-all"
                   title="Download"
                 >
                   <Download size={16} />
                 </a>
-                <button 
+                <button
                   onClick={() => removeFile(file.id)}
                   className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded transition-all"
                   title="Remove"
@@ -87,7 +87,7 @@ export const FileUploader: React.FC<{ requestId?: string }> = ({ requestId = 'te
           ))}
           {attachments.length === 0 && !isUploading && (
             <div className="h-full flex items-center justify-center text-slate-300 text-[10px] font-bold uppercase tracking-widest italic border border-dashed theme-border rounded min-h-[140px]">
-              No artifacts archived
+              No files attached
             </div>
           )}
         </div>
@@ -99,22 +99,22 @@ export const FileUploader: React.FC<{ requestId?: string }> = ({ requestId = 'te
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm" onClick={() => setPreviewFile(null)}></div>
           <div className="relative w-full max-w-5xl bg-white rounded-lg overflow-hidden shadow-2xl flex flex-col h-full max-h-[85vh]">
             <div className="p-6 border-b theme-border flex justify-between items-center bg-slate-50">
-               <div>
-                 <h4 className="font-black theme-text uppercase tracking-widest text-xs">{previewFile.name}</h4>
-                 <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">Artifact Type: {previewFile.type} • Created {new Date(previewFile.uploadedAt).toLocaleString()}</p>
-               </div>
-               <button onClick={() => setPreviewFile(null)} className="p-2 hover:bg-white rounded-lg shadow-sm transition-all"><X size={20}/></button>
+              <div>
+                <h4 className="font-black theme-text uppercase tracking-widest text-xs">{previewFile.name}</h4>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">File Type: {previewFile.type} • Created {new Date(previewFile.uploadedAt).toLocaleString()}</p>
+              </div>
+              <button onClick={() => setPreviewFile(null)} className="p-2 hover:bg-white rounded-lg shadow-sm transition-all"><X size={20} /></button>
             </div>
             <div className="flex-1 overflow-auto p-12 bg-slate-100 flex items-center justify-center">
-               {previewFile.type.startsWith('image/') ? (
-                 <img src={previewFile.url} alt={previewFile.name} className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
-               ) : (
-                 <div className="flex flex-col items-center gap-6 text-slate-400">
-                    <File size={120} strokeWidth={1} />
-                    <p className="font-black uppercase tracking-widest text-xs">Preview not available for this MIME type</p>
-                    <a href={previewFile.url} download={previewFile.name} className="px-8 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Download Artifact</a>
-                 </div>
-               )}
+              {previewFile.type.startsWith('image/') ? (
+                <img src={previewFile.url} alt={previewFile.name} className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" />
+              ) : (
+                <div className="flex flex-col items-center gap-6 text-slate-400">
+                  <File size={120} strokeWidth={1} />
+                  <p className="font-black uppercase tracking-widest text-xs">Preview not available for this MIME type</p>
+                  <a href={previewFile.url} download={previewFile.name} className="px-8 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Download File</a>
+                </div>
+              )}
             </div>
           </div>
         </div>

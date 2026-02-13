@@ -4,9 +4,9 @@ import { CommentManager, Comment } from '../../services/CommentManager';
 import { AttachmentManager, Attachment } from '../../services/AttachmentManager';
 import { AuthManager } from '../../services/AuthManager';
 
-const CommentItem: React.FC<{ 
-  comment: Comment; 
-  depth: number; 
+const CommentItem: React.FC<{
+  comment: Comment;
+  depth: number;
   onReply: (id: string, text: string, file?: File) => void;
   onDelete: (id: string) => void;
   allAttachments: Attachment[];
@@ -47,15 +47,15 @@ const CommentItem: React.FC<{
               </button>
             )}
           </div>
-          
+
           {!isCollapsed && (
             <>
               <div className="space-y-2">
                 <p className="text-[12px] theme-text-muted leading-relaxed font-medium">{comment.text}</p>
                 {linkedAttachment && (
-                  <a 
-                    href={linkedAttachment.url} 
-                    target="_blank" 
+                  <a
+                    href={linkedAttachment.url}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg border border-blue-100 hover:bg-blue-100 transition-all"
                   >
@@ -64,9 +64,9 @@ const CommentItem: React.FC<{
                   </a>
                 )}
               </div>
-              
+
               <div className="flex items-center gap-4 mt-2">
-                <button 
+                <button
                   onClick={() => setShowReply(!showReply)}
                   className="flex items-center gap-1 text-[9px] font-bold text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest"
                 >
@@ -76,42 +76,42 @@ const CommentItem: React.FC<{
 
               {showReply && (
                 <div className="mt-2 p-3 bg-slate-50/50 rounded-lg border theme-border animate-in fade-in slide-in-from-top-1 duration-200">
-                  <textarea 
+                  <textarea
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
-                    placeholder="Input reply text..."
+                    placeholder="Add a comment..."
                     className="w-full p-3 theme-bg border theme-border rounded-lg outline-none focus:border-slate-900 font-medium min-h-[60px]"
                   />
-                  
+
                   {replyFile && (
                     <div className="mt-2 flex items-center justify-between px-3 py-2 bg-blue-50 border border-blue-100 rounded-lg">
                       <div className="flex items-center gap-2 text-blue-600">
                         <FileText size={12} />
                         <span className="text-[10px] font-bold truncate max-w-[150px]">{replyFile.name}</span>
                       </div>
-                      <button onClick={() => setReplyFile(null)} className="text-blue-400 hover:text-blue-600"><Trash2 size={12}/></button>
+                      <button onClick={() => setReplyFile(null)} className="text-blue-400 hover:text-blue-600"><Trash2 size={12} /></button>
                     </div>
                   )}
 
                   <div className="flex items-center justify-between mt-3">
                     <div className="flex gap-2">
-                      <input 
-                        type="file" 
-                        className="hidden" 
+                      <input
+                        type="file"
+                        className="hidden"
                         ref={replyFileInputRef}
                         onChange={(e) => setReplyFile(e.target.files?.[0] || null)}
                       />
-                      <button 
+                      <button
                         onClick={() => replyFileInputRef.current?.click()}
                         className="p-2 theme-bg border theme-border rounded-lg text-slate-500 hover:text-blue-600 hover:border-blue-200 transition-all"
-                        title="Provision Artifact"
+                        title="Attach File"
                       >
                         <Paperclip size={14} />
                       </button>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => setShowReply(false)} className="px-3 py-1.5 text-slate-400 text-[9px] font-bold uppercase tracking-widest hover:text-slate-600">Abort</button>
-                      <button onClick={handleReplySubmit} className="px-4 py-1.5 bg-slate-900 text-white text-[9px] font-bold uppercase tracking-widest rounded-lg shadow-sm">Execute</button>
+                      <button onClick={() => setShowReply(false)} className="px-3 py-1.5 text-slate-400 text-[9px] font-bold uppercase tracking-widest hover:text-slate-600">Cancel</button>
+                      <button onClick={handleReplySubmit} className="px-4 py-1.5 bg-slate-900 text-white text-[9px] font-bold uppercase tracking-widest rounded-lg shadow-sm">Post</button>
                     </div>
                   </div>
                 </div>
@@ -119,13 +119,13 @@ const CommentItem: React.FC<{
 
               <div className="space-y-1">
                 {comment.replies?.map((reply: any) => (
-                  <CommentItem 
-                    key={reply.id} 
-                    comment={reply} 
-                    depth={depth + 1} 
-                    onReply={onReply} 
+                  <CommentItem
+                    key={reply.id}
+                    comment={reply}
+                    depth={depth + 1}
+                    onReply={onReply}
                     onDelete={onDelete}
-                    allAttachments={allAttachments} 
+                    allAttachments={allAttachments}
                   />
                 ))}
               </div>
@@ -144,7 +144,7 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const user = AuthManager.getCurrentUser();
 
   const loadData = async () => {
@@ -162,7 +162,7 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
   const handlePost = async () => {
     if (!newCommentText.trim() || !user || !requestId) return;
     setIsProcessing(true);
-    
+
     let attachmentId: string | undefined;
     if (selectedFile) {
       try {
@@ -184,7 +184,7 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
 
   const handleReply = async (parentId: string, text: string, file?: File) => {
     if (!user || !requestId) return;
-    
+
     let attachmentId: string | undefined;
     if (file) {
       try {
@@ -209,18 +209,18 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
     <section className="space-y-4 w-full">
       <div className="flex items-center gap-2 mb-2">
         <MessageSquare size={14} className="text-slate-400" />
-        <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest">Protocol Discussion</h3>
+        <h3 className="text-[11px] font-bold text-slate-900 uppercase tracking-widest">Comments</h3>
       </div>
-      
+
       <div className="theme-bg border theme-border rounded-lg p-6 w-full shadow-sm">
         <div className="flex flex-col gap-3 mb-6 w-full">
-          <textarea 
+          <textarea
             value={newCommentText}
             onChange={(e) => setNewCommentText(e.target.value)}
-            placeholder="Commit entry to discussion thread..."
+            placeholder="Add a comment..."
             className="w-full p-4 theme-bg border theme-border rounded-lg outline-none focus:border-slate-900 text-[13px] font-medium transition-all min-h-[100px]"
           />
-          
+
           {selectedFile && (
             <div className="flex items-center justify-between px-4 py-3 bg-blue-50 border border-blue-100 rounded-lg animate-in slide-in-from-left-2">
               <div className="flex items-center gap-3 text-blue-600">
@@ -238,44 +238,44 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
 
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-2">
-              <input 
-                type="file" 
-                className="hidden" 
-                ref={fileInputRef} 
-                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)} 
+              <input
+                type="file"
+                className="hidden"
+                ref={fileInputRef}
+                onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
               />
-              <button 
+              <button
                 onClick={() => fileInputRef.current?.click()}
                 className="flex items-center gap-2 px-4 py-2 theme-card border theme-border rounded-lg text-[10px] font-bold uppercase tracking-widest text-slate-500 hover:border-blue-500 hover:text-blue-600 transition-all"
               >
-                <Paperclip size={14} /> Provision File
+                <Paperclip size={14} /> Attach File
               </button>
             </div>
-            <button 
+            <button
               disabled={isProcessing}
               onClick={handlePost}
               className="px-8 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-black transition-all flex items-center gap-3 shadow-lg disabled:opacity-50"
             >
               {isProcessing ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
-              Post Entry
+              Send
             </button>
           </div>
         </div>
 
         <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar w-full">
           {comments.map(c => (
-            <CommentItem 
-              key={c.id} 
-              comment={c} 
-              depth={0} 
-              onReply={handleReply} 
+            <CommentItem
+              key={c.id}
+              comment={c}
+              depth={0}
+              onReply={handleReply}
               onDelete={handleDelete}
-              allAttachments={allAttachments} 
+              allAttachments={allAttachments}
             />
           ))}
           {comments.length === 0 && (
             <div className="py-16 text-center text-slate-300 italic text-[11px] font-medium uppercase tracking-widest border border-dashed theme-border rounded-lg">
-              Zero records in thread
+              No comments yet
             </div>
           )}
         </div>

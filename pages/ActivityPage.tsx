@@ -8,6 +8,8 @@ import { Clock, Terminal, Bell, Search, Trash2, CheckSquare } from 'lucide-react
 import { Can } from '../components/common/Can';
 import { DataTable } from '../components/common/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
+import { SkeletonCard } from '../components/common/SkeletonCard';
+import { LoadingSpinner } from '../components/common/LoadingSpinner';
 
 const ActivityPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'notifications' | 'logs'>('notifications');
@@ -15,16 +17,26 @@ const ActivityPage: React.FC = () => {
   const [globalFilter, setGlobalFilter] = useState('');
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [logs, setLogs] = useState<SystemLog[]>([]);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(true);
+  const [isLoadingLogs, setIsLoadingLogs] = useState(true);
   const user = AuthManager.getCurrentUser();
-  
+
   useEffect(() => {
     if (user?.role) {
-      NotificationManager.getNotifications(user.role).then(setNotifications);
+      setIsLoadingNotifications(true);
+      NotificationManager.getNotifications(user.role).then(data => {
+        setNotifications(data);
+        setIsLoadingNotifications(false);
+      });
     }
   }, [user, refreshKey]);
 
   useEffect(() => {
-    LogManager.getLogs().then(setLogs);
+    setIsLoadingLogs(true);
+    LogManager.getLogs().then(data => {
+      setLogs(data);
+      setIsLoadingLogs(false);
+    });
   }, [refreshKey]);
 
   const logColumns = useMemo<ColumnDef<SystemLog>[]>(() => [
@@ -80,13 +92,13 @@ const ActivityPage: React.FC = () => {
           <p className="theme-text-muted font-medium">Immutable tracking of all system-wide events and state transitions.</p>
         </div>
         <div className="flex theme-bg border theme-border rounded-lg p-1 shadow-sm">
-          <button 
+          <button
             onClick={() => setActiveTab('notifications')}
             className={`px-8 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'notifications' ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : 'theme-text-muted hover:bg-slate-500/5'}`}
           >
             <Bell size={14} /> Alerts
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('logs')}
             className={`px-8 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'logs' ? 'bg-slate-900 text-white dark:bg-blue-600 shadow-xl' : 'theme-text-muted hover:bg-slate-500/5'}`}
           >
@@ -99,32 +111,36 @@ const ActivityPage: React.FC = () => {
         <div className="p-6 theme-bg bg-opacity-30 border-b theme-border flex items-center justify-between">
           <div className="relative max-w-sm w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 theme-text-muted" size={16} />
-            <input 
-              type="text" 
-              placeholder="Filter events..." 
+            <input
+              type="text"
+              placeholder="Filter events..."
               value={globalFilter}
               onChange={(e) => setGlobalFilter(e.target.value)}
               className="w-full pl-11 pr-4 py-3 theme-bg border theme-border rounded-lg text-sm font-medium outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text"
             />
           </div>
           <div className="flex gap-4">
-             {activeTab === 'notifications' && notifications.length > 0 && (
-               <>
-                 <button onClick={handleMarkRead} className="flex items-center gap-2 px-4 py-2 theme-text-muted font-black text-[9px] uppercase tracking-widest hover:bg-emerald-500/10 hover:text-emerald-500 rounded-lg transition-all">
-                    <CheckSquare size={14} /> Mark Read
-                 </button>
-                 <button onClick={handleClearAll} className="flex items-center gap-2 px-4 py-2 theme-text-muted font-black text-[9px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 rounded-lg transition-all">
-                    <Trash2 size={14} /> Purge All
-                 </button>
-               </>
-             )}
+            {activeTab === 'notifications' && notifications.length > 0 && (
+              <>
+                <button onClick={handleMarkRead} className="flex items-center gap-2 px-4 py-2 theme-text-muted font-black text-[9px] uppercase tracking-widest hover:bg-emerald-500/10 hover:text-emerald-500 rounded-lg transition-all">
+                  <CheckSquare size={14} /> Mark Read
+                </button>
+                <button onClick={handleClearAll} className="flex items-center gap-2 px-4 py-2 theme-text-muted font-black text-[9px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 rounded-lg transition-all">
+                  <Trash2 size={14} /> Purge All
+                </button>
+              </>
+            )}
           </div>
         </div>
 
         <div className="flex-1 divide-y theme-border overflow-hidden flex flex-col">
           {activeTab === 'notifications' ? (
             <div className="flex-1 overflow-y-auto divide-y theme-border">
-              {notifications.length > 0 ? (
+              {isLoadingNotifications ? (
+                <div className="p-8 space-y-8">
+                  {[1, 2, 3, 4].map(i => <SkeletonCard key={i} height="h-24" className="opacity-40" />)}
+                </div>
+              ) : notifications.length > 0 ? (
                 notifications.map((n) => (
                   <div key={n.id} className={`p-8 flex items-start gap-6 transition-colors ${n.read ? 'opacity-50' : 'hover:theme-bg hover:bg-opacity-50'}`}>
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${n.read ? 'theme-bg theme-text-muted' : 'bg-blue-500/10 text-blue-500'}`}>
@@ -159,12 +175,16 @@ const ActivityPage: React.FC = () => {
                 <p className="max-w-xs text-center theme-text-muted text-sm font-medium leading-relaxed">System logs contain sensitive institutional data and are reserved for authorized clearance.</p>
               </div>
             }>
-              <DataTable 
-                data={logs} 
-                columns={logColumns} 
-                globalFilter={globalFilter} 
-                setGlobalFilter={setGlobalFilter} 
-              />
+              {isLoadingLogs ? (
+                <LoadingSpinner message="Decrypting System Logs..." fullPage={false} />
+              ) : (
+                <DataTable
+                  data={logs}
+                  columns={logColumns}
+                  globalFilter={globalFilter}
+                  setGlobalFilter={setGlobalFilter}
+                />
+              )}
             </Can>
           )}
         </div>

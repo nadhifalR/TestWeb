@@ -7,13 +7,15 @@ import { DataTable } from '../components/common/DataTable';
 import { RequestForm } from '../types';
 import { ColumnDef } from '@tanstack/react-table';
 import { useTranslation } from '../hooks/useTranslation';
+import { SkeletonCard } from '../components/common/SkeletonCard';
+import { LoadingSpinner } from '../components/common/LoadingSpinner';
 
 const ReportPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const { t } = useTranslation();
-  
+
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [isSnapshotting, setIsSnapshotting] = useState(false);
@@ -21,7 +23,8 @@ const ReportPage: React.FC = () => {
   const [showSnapshots, setShowSnapshots] = useState(false);
   const [snapshots, setSnapshots] = useState<any[]>([]);
   const [data, setData] = useState<RequestForm[]>([]);
-  
+  const [isLoading, setIsLoading] = useState(true);
+
   const [filters, setFilters] = useState<ReportFilter>({
     dateRange: null,
     department: 'All Departments',
@@ -30,8 +33,13 @@ const ReportPage: React.FC = () => {
 
   useEffect(() => {
     const fetchFilteredData = async () => {
-      const result = await ReportManager.getFilteredData(filters);
-      setData(result);
+      setIsLoading(true);
+      try {
+        const result = await ReportManager.getFilteredData(filters);
+        setData(result);
+      } finally {
+        setIsLoading(false);
+      }
     };
     fetchFilteredData();
   }, [filters]);
@@ -130,76 +138,84 @@ const ReportPage: React.FC = () => {
 
       {showSnapshots ? (
         <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-           <div className="theme-card rounded-lg border theme-border shadow-2xl overflow-hidden mb-10">
-              <div className="p-8 theme-bg bg-opacity-50 border-b theme-border flex justify-between items-center">
-                 <h3 className="label-caps">Institutional Archive Log</h3>
-                 <button onClick={() => setShowSnapshots(false)} className="text-[9px] font-black uppercase tracking-widest text-blue-500">Close Browser</button>
-              </div>
-              <div className="divide-y theme-border">
-                {snapshots.length > 0 ? snapshots.map(snap => (
-                  <div key={snap.id} className="p-8 flex items-center justify-between hover:theme-bg transition-colors">
-                    <div className="flex items-center gap-6">
-                      <div className="w-12 h-12 bg-blue-600/10 text-blue-600 rounded-lg flex items-center justify-center">
-                        <Archive size={20} />
-                      </div>
-                      <div>
-                        <p className="font-mono text-xs font-black theme-text">SNP-{snap.id}</p>
-                        <p className="text-[10px] theme-text-muted font-bold uppercase tracking-widest">Checksum: {snap.checksum.slice(0, 12)}...</p>
-                      </div>
+          <div className="theme-card rounded-lg border theme-border shadow-2xl overflow-hidden mb-10">
+            <div className="p-8 theme-bg bg-opacity-50 border-b theme-border flex justify-between items-center">
+              <h3 className="label-caps">Institutional Archive Log</h3>
+              <button onClick={() => setShowSnapshots(false)} className="text-[9px] font-black uppercase tracking-widest text-blue-500">Close Browser</button>
+            </div>
+            <div className="divide-y theme-border">
+              {snapshots.length > 0 ? snapshots.map(snap => (
+                <div key={snap.id} className="p-8 flex items-center justify-between hover:theme-bg transition-colors">
+                  <div className="flex items-center gap-6">
+                    <div className="w-12 h-12 bg-blue-600/10 text-blue-600 rounded-lg flex items-center justify-center">
+                      <Archive size={20} />
                     </div>
-                    <div className="text-right">
-                       <p className="font-black theme-text text-sm">IDR {snap.totalValuation.toLocaleString()}</p>
-                       <p className="text-[9px] theme-text-muted font-bold uppercase tracking-widest">{snap.recordCount} Entities • {new Date(snap.timestamp).toLocaleString()}</p>
+                    <div>
+                      <p className="font-mono text-xs font-black theme-text">SNP-{snap.id}</p>
+                      <p className="text-[10px] theme-text-muted font-bold uppercase tracking-widest">Checksum: {snap.checksum.slice(0, 12)}...</p>
                     </div>
                   </div>
-                )) : (
-                  <div className="py-20 text-center text-[10px] font-black theme-text-muted uppercase tracking-widest italic opacity-50">Zero snapshots persisted.</div>
-                )}
-              </div>
-           </div>
+                  <div className="text-right">
+                    <p className="font-black theme-text text-sm">IDR {snap.totalValuation.toLocaleString()}</p>
+                    <p className="text-[9px] theme-text-muted font-bold uppercase tracking-widest">{snap.recordCount} Entities • {new Date(snap.timestamp).toLocaleString()}</p>
+                  </div>
+                </div>
+              )) : (
+                <div className="py-20 text-center text-[10px] font-black theme-text-muted uppercase tracking-widest italic opacity-50">Zero snapshots persisted.</div>
+              )}
+            </div>
+          </div>
         </div>
       ) : (
         <>
-          <div className="theme-card p-10 rounded-lg border theme-border shadow-sm flex flex-wrap gap-10 items-end bg-opacity-30">
-            <div className="space-y-3">
-              <label className="label-caps">Institutional Node</label>
-              <select value={filters.department} onChange={(e) => setFilters({...filters, department: e.target.value})} className="block w-64 px-6 py-4 theme-bg border theme-border rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text">
-                <option>All Departments</option>
-                <option>Marketing</option>
-                <option>Finance</option>
-                <option>Operations</option>
-              </select>
-            </div>
+          {isLoading ? (
+            <SkeletonCard height="h-24" className="bg-opacity-30 p-10" />
+          ) : (
+            <div className="theme-card p-10 rounded-lg border theme-border shadow-sm flex flex-wrap gap-10 items-end bg-opacity-30">
+              <div className="space-y-3">
+                <label className="label-caps">Institutional Node</label>
+                <select value={filters.department} onChange={(e) => setFilters({ ...filters, department: e.target.value })} className="block w-64 px-6 py-4 theme-bg border theme-border rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text">
+                  <option>All Departments</option>
+                  <option>Marketing</option>
+                  <option>Finance</option>
+                  <option>Operations</option>
+                </select>
+              </div>
 
-            <div className="space-y-3">
-              <label className="label-caps">Strategic Category</label>
-              <select value={filters.category} onChange={(e) => setFilters({...filters, category: e.target.value})} className="block w-64 px-6 py-4 theme-bg border theme-border rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text">
-                <option>All Categories</option>
-                <option>Brand</option>
-                <option>Production</option>
-                <option>Activation</option>
-                <option>Entertainment</option>
-                <option>Logistics</option>
-              </select>
-            </div>
-            
-            <div className="space-y-3">
-              <label className="label-caps">Temporal Start</label>
-              <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="block w-48 px-6 py-4 theme-bg border theme-border rounded-lg text-xs font-bold outline-none theme-text" />
-            </div>
+              <div className="space-y-3">
+                <label className="label-caps">Strategic Category</label>
+                <select value={filters.category} onChange={(e) => setFilters({ ...filters, category: e.target.value })} className="block w-64 px-6 py-4 theme-bg border theme-border rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text">
+                  <option>All Categories</option>
+                  <option>Brand</option>
+                  <option>Production</option>
+                  <option>Activation</option>
+                  <option>Entertainment</option>
+                  <option>Logistics</option>
+                </select>
+              </div>
 
-            <div className="space-y-3">
-              <label className="label-caps">Temporal End</label>
-              <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="block w-48 px-6 py-4 theme-bg border theme-border rounded-lg text-xs font-bold outline-none theme-text" />
-            </div>
+              <div className="space-y-3">
+                <label className="label-caps">Temporal Start</label>
+                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="block w-48 px-6 py-4 theme-bg border theme-border rounded-lg text-xs font-bold outline-none theme-text" />
+              </div>
 
-            <button onClick={handleApplyFilters} className="px-10 py-4 bg-slate-900 dark:bg-zinc-800 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-3 shadow-2xl">
-               <Filter size={16} /> Synthesize Reports
-            </button>
-          </div>
+              <div className="space-y-3">
+                <label className="label-caps">Temporal End</label>
+                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="block w-48 px-6 py-4 theme-bg border theme-border rounded-lg text-xs font-bold outline-none theme-text" />
+              </div>
+
+              <button onClick={handleApplyFilters} className="px-10 py-4 bg-slate-900 dark:bg-zinc-800 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-3 shadow-2xl">
+                <Filter size={16} /> Synthesize Reports
+              </button>
+            </div>
+          )}
 
           <div className="theme-card rounded-lg border theme-border shadow-2xl overflow-hidden mb-20">
-            <DataTable data={data} columns={columns} showFooter={true} />
+            {isLoading ? (
+              <LoadingSpinner message="Synthesizing Data Stream..." fullPage={false} />
+            ) : (
+              <DataTable data={data} columns={columns} showFooter={true} />
+            )}
           </div>
         </>
       )}

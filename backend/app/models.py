@@ -16,7 +16,7 @@ class RequestStatus(str, Enum):
 
 class RequestItemBase(BaseModel):
     name: str
-    quantity: float
+    quantity: int
     unit: str
     price: float
 
