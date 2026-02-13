@@ -1,0 +1,173 @@
+import React, { useMemo } from 'react';
+import { Wallet, AlertCircle, Save, Send, Loader2, Check, Hash } from 'lucide-react';
+import { RequestForm, RequestStatus, RequestItem } from '../../types';
+import { RequestItemEditor } from './RequestItemEditor';
+import { FileUploader } from './FileUploader';
+import { DiscussionThread } from './DiscussionThread';
+import { RequestItemManager } from '../../services/RequestItemManager';
+import { AccountManager } from '../../services/AccountManager';
+import { AuthManager } from '../../services/AuthManager';
+
+interface RequestFormEditorProps {
+    viewingRequest: RequestForm | null;
+    selectedCategory: string | null;
+    formState: any;
+    setFormState: (state: any) => void;
+    items: RequestItem[];
+    onItemsChange: (updater: (prev: RequestItem[]) => RequestItem[]) => void;
+    onLoadPresets: () => void;
+    isEditable: boolean;
+    validationErrors: Record<string, string>;
+    isSubmitting: boolean;
+    onAction: (status: 'draft' | 'submit') => void;
+    onReview: (decision: 'approve' | 'deny' | 'revision') => void;
+    onCancel: () => void;
+    tempId: string;
+}
+
+export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
+    viewingRequest,
+    selectedCategory,
+    formState,
+    setFormState,
+    items,
+    onItemsChange,
+    onLoadPresets,
+    isEditable,
+    validationErrors,
+    isSubmitting,
+    onAction,
+    onReview,
+    onCancel,
+    tempId
+}) => {
+    const user = AuthManager.getCurrentUser();
+    const totalCost = useMemo(() => RequestItemManager.calculateTotal(items), [items]);
+
+    return (
+        <div className="space-y-8 pb-10 max-w-6xl mx-auto">
+            <div className="theme-card rounded-lg border theme-border shadow-sm overflow-hidden">
+                <div className="p-8 theme-bg bg-opacity-30 border-b theme-border flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                        <div className="p-4 bg-slate-900 text-white rounded-lg">
+                            <Hash size={20} />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-black theme-text uppercase tracking-widest">
+                                {viewingRequest ? `Request Details: ${viewingRequest.id}` : `New Request: ${selectedCategory}`}
+                            </h3>
+                            {viewingRequest && <p className="text-[10px] theme-text-muted font-bold uppercase tracking-widest mt-1">Status: {viewingRequest.status} • Created {new Date(viewingRequest.createdAt).toLocaleDateString()}</p>}
+                        </div>
+                    </div>
+                </div>
+
+                <div className="p-10 space-y-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                        <div className="space-y-6">
+                            <div className="space-y-3">
+                                <label className="label-caps">Request Name</label>
+                                <input
+                                    disabled={!isEditable}
+                                    value={formState.name}
+                                    onChange={(e) => setFormState({ ...formState, name: e.target.value })}
+                                    className={`w-full px-6 py-4 theme-bg border ${validationErrors.name ? 'border-red-500 bg-red-50/10' : 'theme-border'} rounded-lg font-bold text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text`}
+                                    placeholder="e.g. Q4 Brand Expansion"
+                                />
+                                {validationErrors.name && <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest flex items-center gap-1"><AlertCircle size={10} /> {validationErrors.name}</p>}
+                            </div>
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-3">
+                                    <label className="label-caps">Date</label>
+                                    <input
+                                        type="date"
+                                        disabled={!isEditable}
+                                        value={formState.eventDate}
+                                        onChange={(e) => setFormState({ ...formState, eventDate: e.target.value })}
+                                        className="w-full px-6 py-4 theme-bg border theme-border rounded-lg font-bold text-xs outline-none theme-text"
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="label-caps">Source</label>
+                                    <select
+                                        disabled={!isEditable}
+                                        value={formState.budgetSource}
+                                        onChange={(e) => setFormState({ ...formState, budgetSource: e.target.value })}
+                                        className="w-full px-6 py-4 theme-bg border theme-border rounded-lg font-bold text-xs outline-none theme-text"
+                                    >
+                                        <option>Strategic Fund</option>
+                                        <option>Operational Reserve</option>
+                                        <option>Asset Management</option>
+                                        <option>Corporate Brand Fund</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="theme-bg bg-opacity-30 p-8 rounded-lg border theme-border flex flex-col justify-center text-center">
+                            <p className="label-caps mb-4">Total Request Cost</p>
+                            <p className="text-5xl font-black theme-text tracking-tighter">IDR {totalCost.toLocaleString()}</p>
+
+                            <div className="mt-8 pt-6 border-t theme-border border-opacity-20 flex flex-col items-center">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Wallet size={14} className="text-slate-400" />
+                                    <label className="label-caps">Advance Request</label>
+                                </div>
+                                <div className="relative w-full max-w-[240px]">
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-400">IDR</span>
+                                    <input
+                                        type="number"
+                                        disabled={!isEditable}
+                                        value={formState.cashAdvance || ''}
+                                        onChange={(e) => setFormState({ ...formState, cashAdvance: Number(e.target.value) })}
+                                        placeholder="0"
+                                        className="w-full pl-12 pr-4 py-3 bg-white border theme-border rounded-lg font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 text-center transition-all theme-text"
+                                    />
+                                </div>
+                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-2 italic">Standard Provision: 80% Max</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <RequestItemEditor items={items} onItemsChange={onItemsChange} onLoadPresets={onLoadPresets} disabled={!isEditable} />
+
+                    <div className="flex flex-col gap-12 pt-6">
+                        <FileUploader requestId={viewingRequest?.id || tempId} />
+                        <DiscussionThread requestId={viewingRequest?.id || tempId} />
+                    </div>
+                </div>
+
+                <div className="p-10 border-t theme-border theme-bg bg-opacity-50 flex justify-between items-center">
+                    <button onClick={onCancel} className="px-8 py-4 text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-text transition-all">Cancel</button>
+
+                    <div className="flex gap-4">
+                        {isEditable ? (
+                            <>
+                                <button
+                                    disabled={isSubmitting}
+                                    onClick={() => onAction('draft')}
+                                    className="flex items-center gap-2 px-6 py-3 theme-card border theme-border rounded-lg text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-bg"
+                                >
+                                    <Save size={16} /> Save to Draft
+                                </button>
+                                <button
+                                    disabled={validationErrors.name !== undefined || isSubmitting || items.length === 0}
+                                    onClick={() => onAction('submit')}
+                                    className="flex items-center gap-3 px-8 py-3 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/20 transition-all disabled:opacity-50"
+                                >
+                                    {isSubmitting ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />} Submit Request
+                                </button>
+                            </>
+                        ) : (
+                            AccountManager.hasPermission(user!, 'APPROVE') && viewingRequest?.status === RequestStatus.PENDING && (
+                                <div className="flex gap-3">
+                                    <button onClick={() => onReview('revision')} className="px-8 py-4 bg-amber-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Revision</button>
+                                    <button onClick={() => onReview('deny')} className="px-8 py-4 bg-red-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Deny</button>
+                                    <button onClick={() => onReview('approve')} className="px-10 py-4 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-2"><Check size={18} /> Approve</button>
+                                </div>
+                            )
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};

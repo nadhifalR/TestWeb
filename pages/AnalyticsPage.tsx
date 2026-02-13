@@ -51,18 +51,16 @@ const AnalyticsPage: React.FC = () => {
           <p className="theme-text-muted font-medium text-sm">Monitor and analyze spending data across departments.</p>
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-full">
+          <div className="flex theme-bg border theme-border rounded-lg p-1.5 shadow-sm">
             <button
               onClick={() => setViewMode('nivo')}
-              className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'nivo' ? 'bg-white dark:bg-slate-700 shadow-sm theme-text' : 'theme-text-muted hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
+              className={`btn btn-sm ${viewMode === 'nivo' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'btn-ghost'}`}
             >
               Nivo
             </button>
             <button
               onClick={() => setViewMode('tremor')}
-              className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'tremor' ? 'bg-white dark:bg-slate-700 shadow-sm theme-text' : 'theme-text-muted hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
+              className={`btn btn-sm ${viewMode === 'tremor' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'btn-ghost'}`}
             >
               Tremor
             </button>

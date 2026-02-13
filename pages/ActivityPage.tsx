@@ -22,21 +22,29 @@ const ActivityPage: React.FC = () => {
   const user = AuthManager.getCurrentUser();
 
   useEffect(() => {
-    if (user?.role) {
+    if (user?.role && notifications.length === 0) {
       setIsLoadingNotifications(true);
       NotificationManager.getNotifications(user.role).then(data => {
         setNotifications(data);
         setIsLoadingNotifications(false);
       });
+    } else if (user?.role) {
+      // Background refresh without loading state
+      NotificationManager.getNotifications(user.role).then(setNotifications);
     }
   }, [user, refreshKey]);
 
   useEffect(() => {
-    setIsLoadingLogs(true);
-    LogManager.getLogs().then(data => {
-      setLogs(data);
-      setIsLoadingLogs(false);
-    });
+    if (logs.length === 0) {
+      setIsLoadingLogs(true);
+      LogManager.getLogs().then(data => {
+        setLogs(data);
+        setIsLoadingLogs(false);
+      });
+    } else {
+      // Background refresh
+      LogManager.getLogs().then(setLogs);
+    }
   }, [refreshKey]);
 
   const logColumns = useMemo<ColumnDef<SystemLog>[]>(() => [
@@ -91,16 +99,16 @@ const ActivityPage: React.FC = () => {
           <h1 className="text-3xl font-black theme-text tracking-tight uppercase">Activity</h1>
           <p className="theme-text-muted font-medium">Track system activity and user notifications.</p>
         </div>
-        <div className="flex theme-bg border theme-border rounded-lg p-1 shadow-sm">
+        <div className="flex theme-bg border theme-border rounded-lg p-1.5 shadow-sm">
           <button
             onClick={() => setActiveTab('notifications')}
-            className={`px-8 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'notifications' ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : 'theme-text-muted hover:bg-slate-500/5'}`}
+            className={`btn btn-sm ${activeTab === 'notifications' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'btn-ghost'}`}
           >
             <Bell size={14} /> Notifications
           </button>
           <button
             onClick={() => setActiveTab('logs')}
-            className={`px-8 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'logs' ? 'bg-slate-900 text-white dark:bg-blue-600 shadow-xl' : 'theme-text-muted hover:bg-slate-500/5'}`}
+            className={`btn btn-sm ${activeTab === 'logs' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'btn-ghost'}`}
           >
             <Terminal size={14} /> System Logs
           </button>
