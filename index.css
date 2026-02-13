@@ -43,6 +43,52 @@ body {
   color: var(--text-primary);
 }
 
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Satoshi', 'Inter', sans-serif;
+}
+
+/* Global Button Styles */
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg transition-all duration-200 font-bold tracking-wide active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+}
+
+.btn-primary {
+  @apply bg-slate-900 text-white hover:bg-slate-800 shadow-lg shadow-slate-900/20 dark:bg-blue-600 dark:hover:bg-blue-700 dark:shadow-blue-600/20;
+}
+
+.btn-secondary {
+  @apply bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:text-slate-900 shadow-sm dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700 dark:hover:bg-slate-700;
+}
+
+.btn-danger {
+  @apply bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30;
+}
+
+.btn-ghost {
+  @apply text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200;
+}
+
+.btn-lg {
+  @apply px-6 py-3 text-sm;
+}
+
+.btn-md {
+  @apply px-4 py-2.5 text-xs uppercase tracking-widest;
+}
+
+.btn-sm {
+  @apply px-3 py-1.5 text-[10px] uppercase tracking-widest;
+}
+
+.btn-icon {
+  @apply p-2;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;

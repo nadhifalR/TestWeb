@@ -49,10 +49,10 @@ const AccountsPage: React.FC = () => {
   const togglePermission = (role: UserRole, permission: string) => {
     setIsSyncing(true);
     const current = [...permissionMatrix[role]];
-    const next = current.includes(permission as Permission) 
-      ? current.filter(p => p !== permission) 
+    const next = current.includes(permission as Permission)
+      ? current.filter(p => p !== permission)
       : [...current, permission as Permission];
-    
+
     const nextMatrix = { ...permissionMatrix, [role]: next } as Record<UserRole, Permission[]>;
     setPermissionMatrix(nextMatrix);
     AccountManager.updatePermissionMatrix(nextMatrix);
@@ -62,8 +62,8 @@ const AccountsPage: React.FC = () => {
   const allPermissions = ['VIEW', 'CREATE', 'EDIT', 'DELETE', 'APPROVE', 'SYSTEM_CONFIG', 'FINANCIAL_RECON', 'USER_PROVISION'];
 
   const columns = useMemo<ColumnDef<User>[]>(() => [
-    { 
-      header: 'System Identity', 
+    {
+      header: 'User Profile',
       accessorKey: 'username',
       size: 300,
       cell: (info) => {
@@ -79,8 +79,8 @@ const AccountsPage: React.FC = () => {
         );
       }
     },
-    { 
-      header: 'Org Node', 
+    {
+      header: 'Department',
       accessorKey: 'department',
       size: 200,
       cell: (info) => {
@@ -93,18 +93,17 @@ const AccountsPage: React.FC = () => {
         );
       }
     },
-    { 
-      header: 'Authority', 
+    {
+      header: 'Role',
       accessorKey: 'role',
       size: 150,
       cell: (info) => {
         const role = info.getValue() as UserRole;
         return (
-          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border ${
-            role === UserRole.ADMIN ? 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' :
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border ${role === UserRole.ADMIN ? 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20' :
             role === UserRole.REVIEWER ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-            'theme-bg theme-text-muted theme-border'
-          }`}>
+              'theme-bg theme-text-muted theme-border'
+            }`}>
             <ShieldCheck size={10} /> {role}
           </span>
         );
@@ -122,7 +121,7 @@ const AccountsPage: React.FC = () => {
               <button onClick={(e) => { e.stopPropagation(); setEditingUser(u); setFormData(u); setIsModalOpen(true); }} className="p-2.5 theme-text-muted hover:theme-text hover:bg-slate-500/5 rounded-lg transition-all"><Edit2 size={16} /></button>
             </Can>
             <Can perform="DELETE">
-              <button onClick={async (e) => { e.stopPropagation(); if(confirm('Purge identity?')) { await AccountManager.deleteUser(u.id); loadUsers(); } }} className="p-2.5 theme-text-muted hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-all"><Trash2 size={16} /></button>
+              <button onClick={async (e) => { e.stopPropagation(); if (confirm('Delete user?')) { await AccountManager.deleteUser(u.id); loadUsers(); } }} className="p-2.5 theme-text-muted hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-all"><Trash2 size={16} /></button>
             </Can>
           </div>
         );
@@ -134,13 +133,13 @@ const AccountsPage: React.FC = () => {
     <div className="space-y-10 page-transition">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b theme-border pb-10">
         <div>
-          <h1 className="text-4xl font-black theme-text tracking-tighter uppercase">Accounts</h1>
-          <p className="theme-text-muted font-medium text-lg italic opacity-80 font-mono">Institutional identity and permission orchestration.</p>
+          <h1 className="text-3xl font-black theme-text tracking-tight uppercase">Accounts</h1>
+          <p className="theme-text-muted font-medium text-sm italic opacity-80 font-mono">Manage users and access permissions.</p>
         </div>
         <div className="flex theme-bg border theme-border rounded-lg p-1.5 shadow-sm">
-          <button onClick={() => setActiveTab('users')} className={`px-8 py-3 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'users' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'theme-text-muted hover:theme-bg'}`}>Registry</button>
+          <button onClick={() => setActiveTab('users')} className={`btn btn-sm ${activeTab === 'users' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'btn-ghost'}`}>User List</button>
           <Can perform="SYSTEM_CONFIG">
-            <button onClick={() => setActiveTab('access')} className={`px-8 py-3 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'access' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'theme-text-muted hover:theme-bg'}`}>Authority Matrix</button>
+            <button onClick={() => setActiveTab('access')} className={`btn btn-sm ${activeTab === 'access' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'btn-ghost'}`}>Permissions</button>
           </Can>
         </div>
       </div>
@@ -149,7 +148,7 @@ const AccountsPage: React.FC = () => {
         <div className="space-y-6">
           <div className="flex justify-end">
             <Can perform="USER_PROVISION">
-              <button onClick={() => { setEditingUser(null); setIsModalOpen(true); }} className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-700 shadow-xl transition-all">
+              <button onClick={() => { setEditingUser(null); setIsModalOpen(true); }} className="btn btn-primary btn-md">
                 <UserPlus size={18} /> Create new user
               </button>
             </Can>
@@ -164,23 +163,23 @@ const AccountsPage: React.FC = () => {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4">
           <div className="theme-card rounded-lg border theme-border p-10">
             <div className="flex items-center justify-between mb-10">
-               <div>
-                  <h3 className="font-black theme-text text-xl mb-2 tracking-tight">Granular Permission Routing</h3>
-                  <p className="text-sm theme-text-muted font-medium">Map institutional capabilities to system roles. Changes propagate instantly across all active nodes.</p>
-               </div>
-               {isSyncing && (
-                 <div className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest">
-                   <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                   Syncing...
-                 </div>
-               )}
+              <div>
+                <h3 className="font-black theme-text text-xl mb-2 tracking-tight">Role Permissions</h3>
+                <p className="text-sm theme-text-muted font-medium">Define role-based access for the system.</p>
+              </div>
+              {isSyncing && (
+                <div className="flex items-center gap-2 px-4 py-2 bg-blue-500/10 text-blue-500 border border-blue-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  Syncing...
+                </div>
+              )}
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b theme-border">
-                    <th className="px-6 py-4 label-caps">Security Role</th>
+                    <th className="px-6 py-4 label-caps">Role</th>
                     {allPermissions.map(p => (
                       <th key={p} className="px-3 py-4 text-[9px] font-black theme-text-muted uppercase tracking-wider text-center">{p.replace('_', ' ')}</th>
                     ))}
@@ -194,13 +193,12 @@ const AccountsPage: React.FC = () => {
                         const hasPerm = permissionMatrix[role]?.includes(p as Permission);
                         return (
                           <td key={p} className="px-3 py-6 text-center">
-                            <button 
+                            <button
                               onClick={() => togglePermission(role, p)}
-                              className={`w-6 h-6 rounded-md border-2 transition-all flex items-center justify-center mx-auto ${
-                                hasPerm 
-                                ? 'bg-blue-600 border-blue-600 text-white' 
+                              className={`w-6 h-6 rounded-md border-2 transition-all flex items-center justify-center mx-auto ${hasPerm
+                                ? 'bg-blue-600 border-blue-600 text-white'
                                 : 'theme-border hover:border-blue-400'
-                              }`}
+                                }`}
                             >
                               {hasPerm && <Check size={14} />}
                             </button>
@@ -221,95 +219,94 @@ const AccountsPage: React.FC = () => {
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xl animate-in fade-in duration-300" onClick={() => setIsModalOpen(false)}></div>
           <form onSubmit={handleSubmit} className="relative w-full max-w-2xl theme-card border theme-border rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-10 border-b theme-border flex items-center justify-between theme-bg bg-opacity-50">
-              <h3 className="text-sm font-black theme-text uppercase tracking-[0.3em]">{editingUser ? 'Update Identity' : 'Provision New Identity'}</h3>
-              <button type="button" onClick={() => setIsModalOpen(false)} className="p-3 theme-bg rounded-lg transition-all shadow-sm"><X size={20}/></button>
+              <h3 className="text-sm font-black theme-text uppercase tracking-[0.3em]">{editingUser ? 'Update User' : 'Create New User'}</h3>
+              <button type="button" onClick={() => setIsModalOpen(false)} className="p-3 theme-bg rounded-lg transition-all shadow-sm"><X size={20} /></button>
             </div>
-            
+
             <div className="p-10 space-y-8 overflow-y-auto max-h-[70vh]">
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <label className="label-caps">Institutional Username</label>
-                    <input 
-                      required 
-                      value={formData.username} 
-                      onChange={e => setFormData({...formData, username: e.target.value})} 
-                      type="text" 
-                      placeholder="e.g. john_doe"
-                      className="w-full px-6 py-4 theme-bg border theme-border rounded-lg font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text" 
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="label-caps">Work Email Address</label>
-                    <input 
-                      required 
-                      value={formData.email} 
-                      onChange={e => setFormData({...formData, email: e.target.value})} 
-                      type="email" 
-                      placeholder="e.g. john@nexus.com"
-                      className="w-full px-6 py-4 theme-bg border theme-border rounded-lg font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text" 
-                    />
-                  </div>
-               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="label-caps">Username</label>
+                  <input
+                    required
+                    value={formData.username}
+                    onChange={e => setFormData({ ...formData, username: e.target.value })}
+                    type="text"
+                    placeholder="e.g. john_doe"
+                    className="w-full px-6 py-4 theme-bg border theme-border rounded-lg font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <label className="label-caps">Work Email Address</label>
+                  <input
+                    required
+                    value={formData.email}
+                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                    type="email"
+                    placeholder="e.g. john@nexus.com"
+                    className="w-full px-6 py-4 theme-bg border theme-border rounded-lg font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text"
+                  />
+                </div>
+              </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-3">
-                    <label className="label-caps flex items-center gap-2"><Building2 size={12}/> Primary Department</label>
-                    <input 
-                      required 
-                      value={formData.department} 
-                      onChange={e => setFormData({...formData, department: e.target.value})} 
-                      type="text" 
-                      placeholder="e.g. Operations"
-                      className="w-full px-6 py-4 theme-bg border theme-border rounded-lg font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text" 
-                    />
-                  </div>
-                  <div className="space-y-3">
-                    <label className="label-caps flex items-center gap-2"><Briefcase size={12}/> Job Designation</label>
-                    <input 
-                      required 
-                      value={formData.title} 
-                      onChange={e => setFormData({...formData, title: e.target.value})} 
-                      type="text" 
-                      placeholder="e.g. Regional Manager"
-                      className="w-full px-6 py-4 theme-bg border theme-border rounded-lg font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text" 
-                    />
-                  </div>
-               </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="label-caps flex items-center gap-2"><Building2 size={12} /> Primary Department</label>
+                  <input
+                    required
+                    value={formData.department}
+                    onChange={e => setFormData({ ...formData, department: e.target.value })}
+                    type="text"
+                    placeholder="e.g. Operations"
+                    className="w-full px-6 py-4 theme-bg border theme-border rounded-lg font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text"
+                  />
+                </div>
+                <div className="space-y-3">
+                  <label className="label-caps flex items-center gap-2"><Briefcase size={12} /> Job Title</label>
+                  <input
+                    required
+                    value={formData.title}
+                    onChange={e => setFormData({ ...formData, title: e.target.value })}
+                    type="text"
+                    placeholder="e.g. Regional Manager"
+                    className="w-full px-6 py-4 theme-bg border theme-border rounded-lg font-black text-sm outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text"
+                  />
+                </div>
+              </div>
 
-               <div className="space-y-3">
-                  <label className="label-caps flex items-center gap-2"><ShieldCheck size={12}/> Authority Access Level</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {Object.values(UserRole).map(role => (
-                      <button
-                        key={role}
-                        type="button"
-                        onClick={() => setFormData({...formData, role})}
-                        className={`px-4 py-3 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all ${
-                          formData.role === role 
-                          ? 'bg-slate-900 text-white border-slate-900 dark:bg-blue-600 dark:border-blue-600' 
-                          : 'theme-card theme-border theme-text-muted hover:border-slate-400'
+              <div className="space-y-3">
+                <label className="label-caps flex items-center gap-2"><ShieldCheck size={12} /> User Role</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {Object.values(UserRole).map(role => (
+                    <button
+                      key={role}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, role })}
+                      className={`px-4 py-3 rounded-lg border text-[10px] font-black uppercase tracking-widest transition-all ${formData.role === role
+                        ? 'bg-slate-900 text-white border-slate-900 dark:bg-blue-600 dark:border-blue-600'
+                        : 'theme-card theme-border theme-text-muted hover:border-slate-400'
                         }`}
-                      >
-                        {role}
-                      </button>
-                    ))}
-                  </div>
-               </div>
+                    >
+                      {role}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             <div className="p-10 bg-opacity-50 theme-bg border-t theme-border flex justify-end gap-6">
-              <button 
-                type="button" 
-                onClick={() => setIsModalOpen(false)} 
+              <button
+                type="button"
+                onClick={() => setIsModalOpen(false)}
                 className="px-8 py-3 text-[10px] font-black uppercase tracking-widest theme-text-muted"
               >
-                Abort Action
+                Cancel
               </button>
-              <button 
-                type="submit" 
-                className="px-12 py-4 bg-slate-900 dark:bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center gap-3"
+              <button
+                type="submit"
+                className="btn btn-primary btn-md"
               >
-                <Check size={18}/> Commit Node Changes
+                <Check size={18} /> Save Changes
               </button>
             </div>
           </form>

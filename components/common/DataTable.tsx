@@ -218,7 +218,7 @@ export function DataTable<T extends { id: string | number }>({
                 tabIndex={onRowClick ? 0 : undefined}
                 onClick={() => onRowClick?.(row.original)}
                 onKeyDown={(e) => handleKeyDown(e, row.original)}
-                className={`${onRowClick ? 'cursor-pointer hover:theme-bg hover:bg-opacity-80 outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset' : ''} transition-all duration-150 group animate-in fade-in duration-300`}
+                className={`${onRowClick ? 'cursor-pointer hover:theme-bg hover:bg-opacity-80 outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset' : ''} transition-all group animate-in fade-in duration-300`}
               >
                 {row.getVisibleCells().map(cell => (
                   <td

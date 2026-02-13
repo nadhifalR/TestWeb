@@ -111,7 +111,7 @@ const Header: React.FC = () => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="System search (REQ#, Identity)..."
+          placeholder="Search (Request ID, User)..."
           className="w-full pl-12 pr-4 py-2 bg-opacity-50 theme-bg border theme-border rounded-lg text-xs font-bold focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500/30 transition-all outline-none theme-text placeholder:theme-text-muted placeholder:opacity-50"
         />
 

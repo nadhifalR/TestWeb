@@ -61,16 +61,16 @@ const ReportPage: React.FC = () => {
       accessorKey: 'createdAt',
       size: 150,
       cell: (info) => <span className="theme-text-muted font-mono text-[11px] block">{new Date(info.getValue() as string).toLocaleDateString()}</span>,
-      footer: () => <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Valuation</span>
+      footer: () => <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Cost</span>
     },
     {
-      header: 'Node ID',
+      header: 'Request ID',
       accessorKey: 'id',
       size: 120,
       cell: (info) => <span className="font-mono font-black text-blue-500 text-xs block">#{info.getValue() as string}</span>
     },
     {
-      header: 'Tactical Initiative',
+      header: 'Request Name',
       accessorKey: 'name',
       size: 400,
       cell: (info) => <span className="font-black theme-text uppercase tracking-tight text-xs block min-w-[200px]">{info.getValue() as string}</span>
@@ -111,23 +111,22 @@ const ReportPage: React.FC = () => {
     <div className="space-y-8 page-transition">
       <div className="flex items-center justify-between border-b theme-border pb-8">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/analytics')} className="p-2 hover:theme-bg rounded-full transition-colors theme-text-muted"><ChevronLeft size={24} /></button>
           <div>
-            <h1 className="text-3xl font-black theme-text tracking-tighter uppercase">{t('reports.title')}</h1>
-            <p className="theme-text-muted font-medium text-sm italic">Immutable reconciliation engine for organizational capital.</p>
+            <h1 className="text-3xl font-black theme-text tracking-tight uppercase">{t('reports.title')}</h1>
+            <p className="theme-text-muted font-medium text-sm italic">Generate and export financial reports.</p>
           </div>
         </div>
         <div className="flex gap-3">
-          <button onClick={() => setShowSnapshots(!showSnapshots)} className="flex items-center gap-2 px-5 py-3 theme-card border theme-border rounded-lg text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-bg">
-            <History size={16} /> History
+          <button onClick={() => setShowSnapshots(!showSnapshots)} className="btn btn-secondary btn-md theme-bg theme-text-muted">
+            <History size={16} /> Archive
           </button>
           {archiveSuccess ? (
             <div className="flex items-center gap-3 px-6 py-3 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest animate-in zoom-in-95">
               <Check size={16} /> Archive: {archiveSuccess.slice(0, 8)}...
             </div>
           ) : (
-            <button onClick={executeSnapshot} disabled={isSnapshotting || data.length === 0} className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 shadow-xl transition-all disabled:opacity-50">
-              {isSnapshotting ? 'Generating...' : <><ShieldCheck size={16} /> Finalize Archive</>}
+            <button onClick={executeSnapshot} disabled={isSnapshotting || data.length === 0} className="btn btn-primary btn-md">
+              {isSnapshotting ? 'Generating...' : <><ShieldCheck size={16} /> Create Snapshot</>}
             </button>
           )}
           <button onClick={handleExportCSV} disabled={data.length === 0} className="flex items-center gap-2 px-5 py-3 theme-card border theme-border rounded-lg text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-bg">
@@ -140,8 +139,8 @@ const ReportPage: React.FC = () => {
         <div className="animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="theme-card rounded-lg border theme-border shadow-2xl overflow-hidden mb-10">
             <div className="p-8 theme-bg bg-opacity-50 border-b theme-border flex justify-between items-center">
-              <h3 className="label-caps">Institutional Archive Log</h3>
-              <button onClick={() => setShowSnapshots(false)} className="text-[9px] font-black uppercase tracking-widest text-blue-500">Close Browser</button>
+              <h3 className="label-caps">Archive History</h3>
+              <button onClick={() => setShowSnapshots(false)} className="btn btn-ghost btn-sm text-blue-500">Close</button>
             </div>
             <div className="divide-y theme-border">
               {snapshots.length > 0 ? snapshots.map(snap => (
@@ -161,7 +160,7 @@ const ReportPage: React.FC = () => {
                   </div>
                 </div>
               )) : (
-                <div className="py-20 text-center text-[10px] font-black theme-text-muted uppercase tracking-widest italic opacity-50">Zero snapshots persisted.</div>
+                <div className="py-20 text-center text-[10px] font-black theme-text-muted uppercase tracking-widest italic opacity-50">No snapshots found.</div>
               )}
             </div>
           </div>
@@ -173,7 +172,7 @@ const ReportPage: React.FC = () => {
           ) : (
             <div className="theme-card p-10 rounded-lg border theme-border shadow-sm flex flex-wrap gap-10 items-end bg-opacity-30">
               <div className="space-y-3">
-                <label className="label-caps">Institutional Node</label>
+                <label className="label-caps">Department</label>
                 <select value={filters.department} onChange={(e) => setFilters({ ...filters, department: e.target.value })} className="block w-64 px-6 py-4 theme-bg border theme-border rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text">
                   <option>All Departments</option>
                   <option>Marketing</option>
@@ -183,7 +182,7 @@ const ReportPage: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                <label className="label-caps">Strategic Category</label>
+                <label className="label-caps">Category</label>
                 <select value={filters.category} onChange={(e) => setFilters({ ...filters, category: e.target.value })} className="block w-64 px-6 py-4 theme-bg border theme-border rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text">
                   <option>All Categories</option>
                   <option>Brand</option>
@@ -195,24 +194,24 @@ const ReportPage: React.FC = () => {
               </div>
 
               <div className="space-y-3">
-                <label className="label-caps">Temporal Start</label>
+                <label className="label-caps">Start Date</label>
                 <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="block w-48 px-6 py-4 theme-bg border theme-border rounded-lg text-xs font-bold outline-none theme-text" />
               </div>
 
               <div className="space-y-3">
-                <label className="label-caps">Temporal End</label>
+                <label className="label-caps">End Date</label>
                 <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="block w-48 px-6 py-4 theme-bg border theme-border rounded-lg text-xs font-bold outline-none theme-text" />
               </div>
 
-              <button onClick={handleApplyFilters} className="px-10 py-4 bg-slate-900 dark:bg-zinc-800 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all flex items-center gap-3 shadow-2xl">
-                <Filter size={16} /> Synthesize Reports
+              <button onClick={handleApplyFilters} className="btn btn-primary btn-md shadow-2xl">
+                <Filter size={16} /> Generate Report
               </button>
             </div>
           )}
 
           <div className="theme-card rounded-lg border theme-border shadow-2xl overflow-hidden mb-20">
             {isLoading ? (
-              <LoadingSpinner message="Synthesizing Data Stream..." fullPage={false} />
+              <LoadingSpinner message="Loading Report Data..." fullPage={false} />
             ) : (
               <DataTable data={data} columns={columns} showFooter={true} />
             )}

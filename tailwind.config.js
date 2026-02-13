@@ -96,6 +96,11 @@ export default {
                 "tremor-title": ["1.125rem", { lineHeight: "1.75rem" }],
                 "tremor-metric": ["1.875rem", { lineHeight: "2.25rem" }],
             },
+            fontFamily: {
+                sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+                heading: ['Satoshi', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
+            },
         },
     },
     safelist: [

@@ -67,7 +67,7 @@ const ActivityPage: React.FC = () => {
       cell: (info) => <span className="text-sm font-bold tracking-tight theme-text block whitespace-normal">{info.getValue() as string}</span>
     },
     {
-      header: 'Principal',
+      header: 'User',
       accessorKey: 'userId',
       size: 120,
       cell: (info) => <span className="text-[10px] font-black theme-text-muted uppercase">ID: {info.getValue() as string}</span>
@@ -89,14 +89,14 @@ const ActivityPage: React.FC = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black theme-text tracking-tight uppercase">Activity</h1>
-          <p className="theme-text-muted font-medium">Immutable tracking of all system-wide events and state transitions.</p>
+          <p className="theme-text-muted font-medium">Track system activity and user notifications.</p>
         </div>
         <div className="flex theme-bg border theme-border rounded-lg p-1 shadow-sm">
           <button
             onClick={() => setActiveTab('notifications')}
             className={`px-8 py-3 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'notifications' ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : 'theme-text-muted hover:bg-slate-500/5'}`}
           >
-            <Bell size={14} /> Alerts
+            <Bell size={14} /> Notifications
           </button>
           <button
             onClick={() => setActiveTab('logs')}
@@ -125,8 +125,8 @@ const ActivityPage: React.FC = () => {
                 <button onClick={handleMarkRead} className="flex items-center gap-2 px-4 py-2 theme-text-muted font-black text-[9px] uppercase tracking-widest hover:bg-emerald-500/10 hover:text-emerald-500 rounded-lg transition-all">
                   <CheckSquare size={14} /> Mark Read
                 </button>
-                <button onClick={handleClearAll} className="flex items-center gap-2 px-4 py-2 theme-text-muted font-black text-[9px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-500 rounded-lg transition-all">
-                  <Trash2 size={14} /> Purge All
+                <button onClick={handleClearAll} className="btn btn-danger btn-sm">
+                  <Trash2 size={14} /> Clear All
                 </button>
               </>
             )}
@@ -172,11 +172,11 @@ const ActivityPage: React.FC = () => {
                   <Terminal size={32} className="theme-text-muted" />
                 </div>
                 <h3 className="text-lg font-black theme-text mb-2 uppercase tracking-tight">Access Restricted</h3>
-                <p className="max-w-xs text-center theme-text-muted text-sm font-medium leading-relaxed">System logs contain sensitive institutional data and are reserved for authorized clearance.</p>
+                <p className="max-w-xs text-center theme-text-muted text-sm font-medium leading-relaxed">System logs are restricted to authorized users.</p>
               </div>
             }>
               {isLoadingLogs ? (
-                <LoadingSpinner message="Decrypting System Logs..." fullPage={false} />
+                <LoadingSpinner message="Loading System Logs..." fullPage={false} />
               ) : (
                 <DataTable
                   data={logs}

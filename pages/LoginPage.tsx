@@ -28,41 +28,41 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
               <Hexagon size={32} className="text-white fill-white/20" />
             </div>
           </div>
-          <h2 className="text-3xl font-black theme-text tracking-tighter uppercase">Nexus Enterprise</h2>
-          <p className="mt-2 theme-text-muted font-medium text-sm">Sign in to your architectural workspace</p>
+          <h2 className="text-3xl font-black theme-text tracking-tight uppercase">Nexus Enterprise</h2>
+          <p className="mt-2 theme-text-muted font-medium text-sm">Sign in to your account</p>
         </div>
-        
+
         <form className="mt-10 space-y-6" onSubmit={(e) => e.preventDefault()}>
           <div className="space-y-4">
             <div className="space-y-2">
-              <label className="label-caps">Institutional Email</label>
-              <input 
-                type="email" 
-                defaultValue="admin@nexus.com" 
+              <label className="label-caps">Email Address</label>
+              <input
+                type="email"
+                defaultValue="admin@nexus.com"
                 className="w-full px-5 py-4 theme-bg border theme-border rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all theme-text font-bold text-sm"
               />
             </div>
             <div className="space-y-2">
-              <label className="label-caps">Security Key</label>
-              <input 
-                type="password" 
-                defaultValue="password123" 
+              <label className="label-caps">Password</label>
+              <input
+                type="password"
+                defaultValue="password123"
                 className="w-full px-5 py-4 theme-bg border theme-border rounded-lg focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all theme-text font-bold text-sm"
               />
             </div>
           </div>
 
-          <button 
+          <button
             onClick={() => handleQuickLogin(dummyAccounts[0])}
             className="w-full py-4 px-4 bg-slate-900 dark:bg-blue-600 text-white font-black text-[11px] uppercase tracking-[0.2em] rounded-lg transition-all shadow-xl hover:scale-[1.02] active:scale-95"
           >
-            Authenticate Node
+            Sign In
           </button>
         </form>
 
         <div className="relative flex items-center py-6">
           <div className="flex-grow border-t theme-border"></div>
-          <span className="flex-shrink mx-4 theme-text-muted text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Identity Presets</span>
+          <span className="flex-shrink mx-4 theme-text-muted text-[10px] font-black uppercase tracking-[0.3em] opacity-40">Demo Accounts</span>
           <div className="flex-grow border-t theme-border"></div>
         </div>
 

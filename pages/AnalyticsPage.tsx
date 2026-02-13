@@ -47,8 +47,8 @@ const AnalyticsPage: React.FC = () => {
     <div className="space-y-8 pb-20 page-transition">
       <div className="flex items-center justify-between border-b theme-border pb-6">
         <div>
-          <h1 className="text-3xl font-black theme-text tracking-tighter uppercase">Analytics</h1>
-          <p className="theme-text-muted font-medium text-sm">Real-time visibility into budget allocation metrics.</p>
+          <h1 className="text-3xl font-black theme-text tracking-tight uppercase">Analytics</h1>
+          <p className="theme-text-muted font-medium text-sm">Monitor and analyze spending data across departments.</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-full">
@@ -79,8 +79,8 @@ const AnalyticsPage: React.FC = () => {
         {[
           { icon: <DollarSign size={24} />, label: 'Total Volume', value: `IDR ${((stats?.totalSpend || 0) / 1000000).toFixed(1)}M` },
           { icon: <TrendingUp size={24} />, label: 'Growth', value: '+14.2%' },
-          { icon: <Users size={24} />, label: 'Auditors', value: '4' },
-          { icon: <Calendar size={24} />, label: 'Contexts', value: stats?.totalRequests || 0 },
+          { icon: <Users size={24} />, label: 'Reviewers', value: '4' },
+          { icon: <Calendar size={24} />, label: 'Requests', value: stats?.totalRequests || 0 },
         ].map((stat, i) => (
           <div key={i} className="theme-card p-8 rounded-lg border theme-border flex items-center gap-6">
             {isLoading && !stats ? (

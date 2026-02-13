@@ -37,8 +37,8 @@ const SettingsPage: React.FC = () => {
   return (
     <div className="max-w-5xl space-y-10 animate-in fade-in duration-500 pb-20">
       <div className="border-b theme-border pb-8">
-        <h1 className="text-4xl font-black theme-text tracking-tighter uppercase">{TranslationManager.t('settings.title')}</h1>
-        <p className="theme-text-muted font-medium text-lg italic">System configuration parameters.</p>
+        <h1 className="text-3xl font-black theme-text tracking-tight uppercase">{TranslationManager.t('settings.title')}</h1>
+        <p className="theme-text-muted font-medium text-sm italic">Application and system preferences.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -56,8 +56,8 @@ const SettingsPage: React.FC = () => {
             <div className="space-y-4">
               <label className="label-caps">Language</label>
               <div className="flex gap-4">
-                 <button onClick={() => handleUpdate({ language: 'en' })} className={`flex-1 py-4 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all ${settings.language === 'en' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'theme-card'}`}>English</button>
-                 <button onClick={() => handleUpdate({ language: 'id' })} className={`flex-1 py-4 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all ${settings.language === 'id' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'theme-card'}`}>Indonesia</button>
+                <button onClick={() => handleUpdate({ language: 'en' })} className={`flex-1 py-4 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all ${settings.language === 'en' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'theme-card'}`}>English</button>
+                <button onClick={() => handleUpdate({ language: 'id' })} className={`flex-1 py-4 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-all ${settings.language === 'id' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'theme-card'}`}>Indonesia</button>
               </div>
             </div>
           </div>
@@ -65,7 +65,7 @@ const SettingsPage: React.FC = () => {
 
         <section className="theme-card rounded-lg border theme-border overflow-hidden">
           <div className="p-6 border-b theme-border bg-opacity-30 theme-bg">
-            <span className="font-black text-[10px] uppercase tracking-widest theme-text">Interface Engine</span>
+            <span className="font-black text-[10px] uppercase tracking-widest theme-text">Theme Settings</span>
           </div>
           <div className="p-10">
             <div className="grid grid-cols-2 gap-6">

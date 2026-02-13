@@ -59,16 +59,16 @@ const App: React.FC = () => {
   }, []);
 
   if (initStatus === 'loading') {
-    return <LoadingSpinner message="Initialising System Node..." />;
+    return <LoadingSpinner message="Loading System..." />;
   }
 
   if (initStatus === 'error') {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-10 text-center">
         <AlertCircle size={48} className="text-red-500 mb-4" />
-        <h1 className="text-white text-2xl font-black uppercase mb-2">Protocol Failure</h1>
-        <p className="text-slate-400 text-sm max-w-sm mb-8">Critical system nodes failed to initialize. Please check network connectivity or configuration.</p>
-        <button onClick={() => window.location.reload()} className="px-10 py-4 bg-white text-slate-900 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-3"><RefreshCw size={16} /> Retry Boot</button>
+        <h1 className="text-white text-2xl font-black uppercase mb-2">System Error</h1>
+        <p className="text-slate-400 text-sm max-w-sm mb-8">The system failed to initialize. Please check your connection.</p>
+        <button onClick={() => window.location.reload()} className="px-10 py-4 bg-white text-slate-900 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-3"><RefreshCw size={16} /> Retry</button>
       </div>
     );
   }

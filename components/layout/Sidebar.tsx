@@ -1,14 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  FileText, 
-  BarChart3, 
-  Activity, 
-  Settings, 
-  ChevronLeft, 
+import {
+  LayoutDashboard,
+  Users,
+  FileText,
+  BarChart3,
+  Activity,
+  Settings,
+  ChevronLeft,
   ChevronRight,
   LogOut,
   ShieldAlert,
@@ -85,10 +85,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
               <NavLink
                 key={item.path}
                 to={item.path}
-                className={({ isActive }) => 
-                  `flex items-center gap-3 px-3 py-2.5 rounded transition-all duration-150 group ${
-                    isActive 
-                    ? 'bg-blue-600 text-white font-semibold shadow-lg shadow-blue-500/20' 
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded transition-all duration-150 group ${isActive
+                    ? 'bg-blue-600 text-white font-semibold shadow-lg shadow-blue-500/20'
                     : 'text-slate-400 hover:bg-white/5 hover:text-white'
                   }`
                 }
@@ -101,7 +100,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
         </nav>
 
         <div className="p-3 border-t border-slate-800 bg-slate-900/50 shrink-0">
-          <button 
+          <button
             onClick={() => setShowSwitcherModal(true)}
             className={`w-full flex items-center gap-3 p-2 rounded transition-all border border-transparent hover:bg-white/5 hover:border-slate-800`}
           >
@@ -123,17 +122,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
           <div className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-lg shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="p-8 border-b border-slate-800 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-black text-white uppercase tracking-[0.3em]">Identity Hub</h3>
-                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Select Security Context</p>
+                <h3 className="text-sm font-black text-white uppercase tracking-[0.3em]">Switch User</h3>
+                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Select an account</p>
               </div>
-              <button onClick={() => setShowSwitcherModal(false)} className="p-2 hover:bg-white/5 rounded-lg transition-all text-slate-500"><X size={20}/></button>
+              <button onClick={() => setShowSwitcherModal(false)} className="p-2 hover:bg-white/5 rounded-lg transition-all text-slate-500"><X size={20} /></button>
             </div>
-            
+
             <div className="p-8 space-y-3 max-h-[60vh] overflow-y-auto custom-scrollbar">
               {availableAccounts.map((acc) => (
-                <button 
-                  key={acc.id} 
-                  onClick={() => switchAccount(acc)} 
+                <button
+                  key={acc.id}
+                  onClick={() => switchAccount(acc)}
                   className={`w-full flex items-center gap-4 p-4 rounded-lg transition-all border ${user?.id === acc.id ? 'bg-blue-600/10 border-blue-500/30' : 'bg-slate-950/50 border-slate-800 hover:border-slate-600 hover:bg-slate-800'}`}
                 >
                   <img src={acc.avatar} className="w-12 h-12 rounded-lg object-cover border border-slate-700 shadow-md" alt="" />
@@ -148,13 +147,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isCollapsed, onToggle }) => {
             <div className="p-8 bg-slate-950 border-t border-slate-800 flex justify-between items-center">
               <div className="flex items-center gap-2 text-amber-500">
                 <ShieldAlert size={14} />
-                <span className="text-[9px] font-bold uppercase tracking-widest">Architectural Audit Active</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest">System Session Active</span>
               </div>
-              <button 
-                onClick={handleLogout} 
+              <button
+                onClick={handleLogout}
                 className="px-6 py-2.5 bg-red-900/20 text-red-400 border border-red-900/40 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-red-900/40 transition-all flex items-center gap-2"
               >
-                <LogOut size={14} /> Terminate Session
+                <LogOut size={14} /> Logout
               </button>
             </div>
           </div>
