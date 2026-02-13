@@ -40,35 +40,32 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
       {/* Floating Action Button (FAB) - Hidden on Requests Page or when Drawer Open */}
       {!isRequestPage && !isGlobalDrawerOpen && (
-        <div
-          className="fixed bottom-8 right-8 z-40 flex flex-col items-end gap-3"
-          onMouseEnter={() => setIsFabHovered(true)}
-          onMouseLeave={() => setIsFabHovered(false)}
-        >
+        <div className="fixed bottom-8 right-8 z-40 flex flex-col items-end gap-3">
           {isFabHovered && (
             <div className="flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-4 duration-200 mb-2">
               <button
-                onClick={() => { setGlobalDrawerTab('registry'); setIsGlobalDrawerOpen(true); }}
-                className="flex items-center gap-3 px-4 py-2 bg-white dark:bg-slate-800 border theme-border rounded-lg shadow-xl hover:bg-slate-50 transition-all group"
+                onClick={() => { setGlobalDrawerTab('registry'); setIsGlobalDrawerOpen(true); setIsFabHovered(false); }}
+                className="btn btn-secondary shadow-xl group"
               >
-                <span className="text-xs font-bold uppercase tracking-wider theme-text">Request List</span>
-                <div className="p-2 bg-blue-100 text-blue-600 rounded-full group-hover:scale-110 transition-transform">
-                  <List size={16} />
+                <span className="xs-label theme-text">Request List</span>
+                <div className="p-1 bg-blue-100 text-blue-600 rounded-full group-hover:scale-110 transition-transform">
+                  <List size={14} />
                 </div>
               </button>
               <button
-                onClick={() => { setGlobalDrawerTab('initiate'); setIsGlobalDrawerOpen(true); }}
-                className="flex items-center gap-3 px-4 py-2 bg-white dark:bg-slate-800 border theme-border rounded-lg shadow-xl hover:bg-slate-50 transition-all group"
+                onClick={() => { setGlobalDrawerTab('initiate'); setIsGlobalDrawerOpen(true); setIsFabHovered(false); }}
+                className="btn btn-secondary shadow-xl group"
               >
-                <span className="text-xs font-bold uppercase tracking-wider theme-text">New Request</span>
-                <div className="p-2 bg-emerald-100 text-emerald-600 rounded-full group-hover:scale-110 transition-transform">
-                  <FileText size={16} />
+                <span className="xs-label theme-text">New Request</span>
+                <div className="p-1 bg-emerald-100 text-emerald-600 rounded-full group-hover:scale-110 transition-transform">
+                  <FileText size={14} />
                 </div>
               </button>
             </div>
           )}
           <button
-            className={`p-4 bg-slate-900 text-white rounded-full shadow-2xl hover:bg-slate-800 transition-all ${isFabHovered ? 'rotate-45' : ''}`}
+            onClick={() => setIsFabHovered(!isFabHovered)}
+            className={`p-4 btn-primary rounded-full shadow-2xl transition-all ${isFabHovered ? 'rotate-45' : ''}`}
           >
             <Plus size={24} />
           </button>
