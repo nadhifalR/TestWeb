@@ -37,16 +37,15 @@ export const Drawer: React.FC<DrawerProps> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex justify-end">
+        <div className="fixed inset-0 z-30 flex justify-end !mt-0" style={{ marginTop: 0 }}>
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-300"
+                className="absolute inset-0 bg-slate-900/20 animate-in fade-in duration-300"
                 onClick={onClose}
             />
 
-            {/* Drawer Content */}
             <div
-                className={`relative h-full theme-bg border-l theme-border shadow-2xl transform transition-all duration-300 ease-in-out flex flex-col ${isFullscreen ? 'w-screen' : width} animate-in slide-in-from-right duration-300`}
+                className={`relative h-full theme-bg border-l theme-border shadow-2xl transform transition-all duration-300 ease-in-out flex flex-col ${isFullscreen ? 'w-full max-w-7xl' : width} animate-in slide-in-from-right duration-300`}
             >
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b theme-border bg-opacity-50">

@@ -22,27 +22,31 @@ const ActivityPage: React.FC = () => {
   const user = AuthManager.getCurrentUser();
 
   useEffect(() => {
-    if (user?.role && notifications.length === 0) {
-      setIsLoadingNotifications(true);
-      NotificationManager.getNotifications(user.role).then(data => {
-        setNotifications(data);
-        setIsLoadingNotifications(false);
-      });
-    } else if (user?.role) {
-      // Background refresh without loading state
-      NotificationManager.getNotifications(user.role).then(setNotifications);
+    if (user?.role) {
+      if (notifications.length === 0 && isLoadingNotifications) {
+        // Initial load
+        NotificationManager.getNotifications(user.role).then(data => {
+          setNotifications(data);
+          setIsLoadingNotifications(false);
+        });
+      } else {
+        // Refresh without loading
+        NotificationManager.getNotifications(user.role).then(setNotifications);
+      }
     }
   }, [user, refreshKey]);
 
   useEffect(() => {
-    if (logs.length === 0) {
-      setIsLoadingLogs(true);
-      LogManager.getLogs().then(data => {
-        setLogs(data);
-        setIsLoadingLogs(false);
-      });
-    } else {
-      // Background refresh
+    // Initial Load Only
+    LogManager.getLogs().then(data => {
+      setLogs(data);
+      setIsLoadingLogs(false);
+    });
+  }, []);
+
+  // Separate effect for refresh
+  useEffect(() => {
+    if (refreshKey > 0) {
       LogManager.getLogs().then(setLogs);
     }
   }, [refreshKey]);
