@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+import React, { Fragment } from 'react';
+import { Dialog, Transition } from '@headlessui/react';
 import { X, Maximize2, Minimize2 } from 'lucide-react';
 
 interface DrawerProps {
@@ -20,60 +21,71 @@ export const Drawer: React.FC<DrawerProps> = ({
     isFullscreen = false,
     onToggleFullscreen
 }) => {
-    useEffect(() => {
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
-        };
-        if (isOpen) {
-            document.addEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'hidden';
-        }
-        return () => {
-            document.removeEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'unset';
-        };
-    }, [isOpen, onClose]);
-
-    if (!isOpen) return null;
-
     return (
-        <div className="fixed inset-0 z-30 flex justify-end !mt-0" style={{ marginTop: 0 }}>
-            {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-slate-900/20 animate-in fade-in duration-300"
-                onClick={onClose}
-            />
+        <Transition.Root show={isOpen} as={Fragment}>
+            <Dialog as="div" className="relative z-30" onClose={onClose}>
+                {/* Backdrop */}
+                <Transition.Child
+                    as={Fragment}
+                    enter="ease-in-out duration-300"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="ease-in-out duration-300"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                >
+                    <div className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm transition-opacity" />
+                </Transition.Child>
 
-            <div
-                className={`relative h-full theme-bg border-l theme-border shadow-2xl transform transition-all duration-300 ease-in-out flex flex-col ${isFullscreen ? 'w-full max-w-7xl' : width} animate-in slide-in-from-right duration-300`}
-            >
-                {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b theme-border bg-opacity-50">
-                    <h2 className="text-xl font-black theme-text uppercase tracking-tight">{title}</h2>
-                    <div className="flex items-center gap-2">
-                        {onToggleFullscreen && (
-                            <button
-                                onClick={onToggleFullscreen}
-                                className="p-2 theme-text-muted hover:theme-text hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                                title={isFullscreen ? "Minimize" : "Maximize"}
+                <div className="fixed inset-0 overflow-hidden">
+                    <div className="absolute inset-0 overflow-hidden">
+                        <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-0">
+                            <Transition.Child
+                                as={Fragment}
+                                enter="transform transition ease-in-out duration-300 sm:duration-300"
+                                enterFrom="translate-x-full"
+                                enterTo="translate-x-0"
+                                leave="transform transition ease-in-out duration-300 sm:duration-300"
+                                leaveFrom="translate-x-0"
+                                leaveTo="translate-x-full"
                             >
-                                {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-                            </button>
-                        )}
-                        <button
-                            onClick={onClose}
-                            className="p-2 theme-text-muted hover:theme-text hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                        >
-                            <X size={18} />
-                        </button>
+                                <Dialog.Panel className={`pointer-events-auto w-screen ${isFullscreen ? 'max-w-7xl' : width}`}>
+                                    <div className="flex h-full flex-col theme-bg shadow-xl border-l theme-border">
+                                        {/* Header */}
+                                        <div className="flex items-center justify-between p-6 border-b theme-border bg-opacity-50">
+                                            <Dialog.Title className="text-xl font-black theme-text uppercase tracking-tight">
+                                                {title}
+                                            </Dialog.Title>
+                                            <div className="flex items-center gap-2">
+                                                {onToggleFullscreen && (
+                                                    <button
+                                                        onClick={onToggleFullscreen}
+                                                        className="p-2 theme-text-muted hover:theme-text hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                                        title={isFullscreen ? "Minimize" : "Maximize"}
+                                                    >
+                                                        {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={onClose}
+                                                    className="p-2 theme-text-muted hover:theme-text hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+                                                >
+                                                    <X size={18} />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Body */}
+                                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+                                            {children}
+                                        </div>
+                                    </div>
+                                </Dialog.Panel>
+                            </Transition.Child>
+                        </div>
                     </div>
                 </div>
-
-                {/* Body */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
-                    {children}
-                </div>
-            </div>
-        </div>
+            </Dialog>
+        </Transition.Root>
     );
 };
