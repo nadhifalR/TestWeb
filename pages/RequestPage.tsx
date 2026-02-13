@@ -13,6 +13,7 @@ import { FileUploader } from '../components/requests/FileUploader';
 import { DataTable } from '../components/common/DataTable';
 import { RequestItemEditor } from '../components/requests/RequestItemEditor';
 import { ColumnDef } from '@tanstack/react-table';
+import { LoadingSpinner } from '../components/common/LoadingSpinner';
 
 const RequestPage: React.FC = () => {
   const navigate = useNavigate();
@@ -265,9 +266,7 @@ const RequestPage: React.FC = () => {
           </div>
           <div className="theme-card rounded-lg border theme-border shadow-xl overflow-hidden">
             {isLoading ? (
-              <div className="flex items-center justify-center py-20">
-                <Loader2 className="animate-spin text-slate-300" />
-              </div>
+              <LoadingSpinner message="Loading Request Registry..." fullPage={false} />
             ) : (
               <DataTable
                 data={requests}

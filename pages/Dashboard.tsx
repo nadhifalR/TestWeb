@@ -6,6 +6,8 @@ import { RequestManager } from '../services/RequestManager';
 import { TrendingUp, CheckCircle, Clock, Zap, AlertCircle, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart } from '@tremor/react';
+import { SkeletonCard } from '../components/common/SkeletonCard';
+import { LoadingSpinner } from '../components/common/LoadingSpinner';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -66,19 +68,6 @@ const Dashboard: React.FC = () => {
     }
   }), [themeTick]);
 
-  if (isLoading && !stats) {
-    return (
-      <div className="h-[80vh] flex flex-col items-center justify-center gap-4 theme-text-muted">
-        <div className="relative">
-          <Loader2 className="animate-spin text-blue-500" size={48} />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-2 h-2 bg-blue-500 rounded-full animate-ping"></div>
-          </div>
-        </div>
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">Synchronizing Nexus Ledger...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6 page-transition">
@@ -103,17 +92,23 @@ const Dashboard: React.FC = () => {
           { label: 'Success Protocols', value: stats?.approvedCount || 0, desc: 'Finalized Clearances', icon: CheckCircle, color: 'text-emerald-500' },
         ].map((s, idx) => (
           <div key={idx} className="theme-card p-6 rounded-lg flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-              <s.icon size={64} />
-            </div>
-            <div className="flex items-center justify-between mb-4 relative z-10">
-              <span className="label-caps font-black">{s.label}</span>
-              <s.icon size={16} className={`${s.color} transition-colors`} />
-            </div>
-            <div className="relative z-10">
-              <p className="text-3xl font-black theme-text tracking-tighter">{s.value}</p>
-              <p className="text-[10px] font-bold theme-text-muted mt-1 uppercase tracking-widest opacity-60">{s.desc}</p>
-            </div>
+            {isLoading && !stats ? (
+              <SkeletonCard height="h-24" />
+            ) : (
+              <>
+                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <s.icon size={64} />
+                </div>
+                <div className="flex items-center justify-between mb-4 relative z-10">
+                  <span className="label-caps font-black">{s.label}</span>
+                  <s.icon size={16} className={`${s.color} transition-colors`} />
+                </div>
+                <div className="relative z-10">
+                  <p className="text-3xl font-black theme-text tracking-tighter">{s.value}</p>
+                  <p className="text-[10px] font-bold theme-text-muted mt-1 uppercase tracking-widest opacity-60">{s.desc}</p>
+                </div>
+              </>
+            )}
           </div>
         ))}
       </div>
@@ -134,9 +129,7 @@ const Dashboard: React.FC = () => {
           </div>
           <div className="flex-1 min-h-0">
             {isLoading ? (
-              <div className="flex items-center justify-center h-full opacity-20">
-                <Loader2 size={32} className="animate-spin" />
-              </div>
+              <LoadingSpinner message="Loading Velocity Data..." fullPage={false} />
             ) : velocityData.length > 0 ? (
               <BarChart
                 className="h-full"
@@ -164,7 +157,11 @@ const Dashboard: React.FC = () => {
             <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded text-[8px] font-black uppercase tracking-widest border border-blue-500/20">Real-time</span>
           </div>
           <div className="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-            {(recentRequests || []).slice(0, 10).map((req, i) => (
+            {isLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3, 4, 5].map(i => <SkeletonCard key={i} height="h-10" className="opacity-20" />)}
+              </div>
+            ) : (recentRequests || []).slice(0, 10).map((req, i) => (
               <button
                 key={req.id}
                 onClick={() => navigate(`/requests?id=${req.id}`)}

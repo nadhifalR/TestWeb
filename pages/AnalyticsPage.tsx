@@ -5,6 +5,8 @@ import { AnalyticsManager, DashboardStats } from '../services/AnalyticsManager';
 import { RequestManager } from '../services/RequestManager';
 import { AnalyticsNivo } from '../components/analytics/AnalyticsNivo';
 import { AnalyticsTremor } from '../components/analytics/AnalyticsTremor';
+import { SkeletonCard } from '../components/common/SkeletonCard';
+import { LoadingSpinner } from '../components/common/LoadingSpinner';
 
 const AnalyticsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -40,14 +42,6 @@ const AnalyticsPage: React.FC = () => {
     fetchData();
   }, []);
 
-  if (isLoading && !stats) {
-    return (
-      <div className="h-[80vh] flex flex-col items-center justify-center gap-6 theme-text-muted">
-        <Loader2 className="animate-spin" size={48} />
-        <p className="text-xs font-black uppercase tracking-[0.3em] italic">Synthesizing Institutional Data...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-8 pb-20 page-transition">
@@ -89,16 +83,27 @@ const AnalyticsPage: React.FC = () => {
           { icon: <Calendar size={24} />, label: 'Contexts', value: stats?.totalRequests || 0 },
         ].map((stat, i) => (
           <div key={i} className="theme-card p-8 rounded-lg border theme-border flex items-center gap-6">
-            <div className="w-14 h-14 theme-bg rounded-lg flex items-center justify-center text-slate-400">{stat.icon}</div>
-            <div>
-              <p className="text-[10px] font-black theme-text-muted uppercase tracking-widest mb-1">{stat.label}</p>
-              <p className="text-2xl font-black theme-text tracking-tight">{stat.value}</p>
-            </div>
+            {isLoading && !stats ? (
+              <SkeletonCard height="h-20" className="w-full" />
+            ) : (
+              <>
+                <div className="w-14 h-14 theme-bg rounded-lg flex items-center justify-center text-slate-400">{stat.icon}</div>
+                <div>
+                  <p className="text-[10px] font-black theme-text-muted uppercase tracking-widest mb-1">{stat.label}</p>
+                  <p className="text-2xl font-black theme-text tracking-tight">{stat.value}</p>
+                </div>
+              </>
+            )}
           </div>
         ))}
       </div>
 
-      {viewMode === 'nivo' ? (
+      {isLoading ? (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <SkeletonCard height="h-[400px]" />
+          <SkeletonCard height="h-[400px]" />
+        </div>
+      ) : viewMode === 'nivo' ? (
         <AnalyticsNivo
           trendData={trendData}
           velocityData={velocityData}

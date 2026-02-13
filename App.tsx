@@ -15,6 +15,7 @@ import { ThemeManager } from './services/ThemeManager';
 import { AccountManager } from './services/AccountManager';
 import { Permission } from './types';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { LoadingSpinner } from './components/common/LoadingSpinner';
 
 // Guard component to handle Permission-based routing security
 const PermissionGuard: React.FC<{ children: React.ReactNode, permission: Permission }> = ({ children, permission }) => {
@@ -58,12 +59,7 @@ const App: React.FC = () => {
   }, []);
 
   if (initStatus === 'loading') {
-    return (
-      <div className="min-h-screen theme-bg flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] theme-text-muted animate-pulse">Initialising System Node...</p>
-      </div>
-    );
+    return <LoadingSpinner message="Initialising System Node..." />;
   }
 
   if (initStatus === 'error') {
