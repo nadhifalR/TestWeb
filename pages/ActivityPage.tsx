@@ -1,5 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LogManager } from '../services/LogManager';
 import { NotificationManager, Notification } from '../services/NotificationManager';
 import { AuthManager } from '../services/AuthManager';
@@ -19,6 +20,7 @@ const ActivityPage: React.FC = () => {
   const [logs, setLogs] = useState<SystemLog[]>([]);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(true);
   const [isLoadingLogs, setIsLoadingLogs] = useState(true);
+  const navigate = useNavigate();
   const user = AuthManager.getCurrentUser();
 
   useEffect(() => {
@@ -154,7 +156,18 @@ const ActivityPage: React.FC = () => {
                 </div>
               ) : notifications.length > 0 ? (
                 notifications.map((n) => (
-                  <div key={n.id} className={`p-8 flex items-start gap-6 transition-colors ${n.read ? 'opacity-50' : 'hover:theme-bg hover:bg-opacity-50'}`}>
+                  <div
+                    key={n.id}
+                    className={`p-8 flex items-start gap-6 transition-colors cursor-pointer ${n.read ? 'opacity-50' : 'hover:theme-bg hover:bg-opacity-50 bg-blue-500/5'}`}
+                    onClick={() => {
+                      if (n.requestId) {
+                        const url = n.commentId
+                          ? `/requests?id=${n.requestId}&commentId=${n.commentId}`
+                          : `/requests?id=${n.requestId}`;
+                        navigate(url);
+                      }
+                    }}
+                  >
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center shrink-0 ${n.read ? 'theme-bg theme-text-muted' : 'bg-blue-500/10 text-blue-500'}`}>
                       <Bell size={24} />
                     </div>

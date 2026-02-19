@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Reply, ChevronDown, ChevronUp, Send, FileText, Trash2, Paperclip, Loader2 } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 import { CommentManager, Comment } from '../../services/CommentManager';
 import { AttachmentManager, Attachment } from '../../services/AttachmentManager';
 import { AuthManager } from '../../services/AuthManager';
@@ -10,7 +11,8 @@ const CommentItem: React.FC<{
   onReply: (id: string, text: string, file?: File) => void;
   onDelete: (id: string) => void;
   allAttachments: Attachment[];
-}> = ({ comment, depth, onReply, onDelete, allAttachments }) => {
+  highlightId?: string | null;
+}> = ({ comment, depth, onReply, onDelete, allAttachments, highlightId }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showReply, setShowReply] = useState(false);
   const [replyText, setReplyText] = useState('');
@@ -19,6 +21,7 @@ const CommentItem: React.FC<{
 
   const currentUser = AuthManager.getCurrentUser();
   const linkedAttachment = allAttachments.find(a => a.id === comment.attachmentId);
+  const isHighlighted = highlightId === comment.id;
 
   const handleReplySubmit = () => {
     if (!replyText.trim()) return;
@@ -29,7 +32,10 @@ const CommentItem: React.FC<{
   };
 
   return (
-    <div className={`mt-4 ${depth > 0 ? 'ml-6 border-l theme-border pl-4' : ''}`}>
+    <div
+      id={`comment-${comment.id}`}
+      className={`mt-4 ${depth > 0 ? 'ml-6 border-l theme-border pl-4' : ''} ${isHighlighted ? 'ring-2 ring-blue-500 ring-offset-4 rounded-lg bg-blue-500/5 transition-all duration-1000' : ''}`}
+    >
       <div className="flex items-start gap-3 group">
         <div className="w-7 h-7 rounded bg-slate-100 border theme-border shrink-0 flex items-center justify-center text-[10px] font-bold theme-text uppercase">
           {comment.authorName[0]}
@@ -126,6 +132,7 @@ const CommentItem: React.FC<{
                     onReply={onReply}
                     onDelete={onDelete}
                     allAttachments={allAttachments}
+                    highlightId={highlightId}
                   />
                 ))}
               </div>
@@ -137,7 +144,11 @@ const CommentItem: React.FC<{
   );
 };
 
-export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId = 'temp_id' }) => {
+export const DiscussionThread: React.FC<{
+  requestId?: string;
+  requesterId?: string;
+  requestName?: string;
+}> = ({ requestId = 'temp_id', requesterId, requestName }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [allAttachments, setAllAttachments] = useState<Attachment[]>([]);
   const [newCommentText, setNewCommentText] = useState('');
@@ -146,6 +157,9 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const user = AuthManager.getCurrentUser();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const highlightId = queryParams.get('commentId');
 
   const loadData = async () => {
     if (!requestId) return;
@@ -158,6 +172,18 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
   useEffect(() => {
     loadData();
   }, [requestId]);
+
+  // Handle auto-scroll to highlighted comment
+  useEffect(() => {
+    if (highlightId && comments.length > 0) {
+      setTimeout(() => {
+        const element = document.getElementById(`comment-${highlightId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 500); // Small delay to allow drawer to open and comments to render
+    }
+  }, [highlightId, comments]);
 
   const handlePost = async () => {
     if (!newCommentText.trim() || !user || !requestId) return;
@@ -175,7 +201,16 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
       }
     }
 
-    await CommentManager.addComment(requestId, user.id, user.username, newCommentText, undefined, attachmentId);
+    await CommentManager.addComment(
+      requestId,
+      user.id,
+      user.username,
+      newCommentText,
+      undefined,
+      attachmentId,
+      requesterId,
+      requestName
+    );
     setNewCommentText('');
     setSelectedFile(null);
     setIsProcessing(false);
@@ -196,7 +231,16 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
       }
     }
 
-    await CommentManager.addComment(requestId, user.id, user.username, text, parentId, attachmentId);
+    await CommentManager.addComment(
+      requestId,
+      user.id,
+      user.username,
+      text,
+      parentId,
+      attachmentId,
+      requesterId,
+      requestName
+    );
     loadData();
   };
 
@@ -271,6 +315,7 @@ export const DiscussionThread: React.FC<{ requestId?: string }> = ({ requestId =
               onReply={handleReply}
               onDelete={handleDelete}
               allAttachments={allAttachments}
+              highlightId={highlightId}
             />
           ))}
           {comments.length === 0 && (

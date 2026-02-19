@@ -107,7 +107,7 @@ const RequestPage: React.FC = () => {
     setValidationErrors({});
 
     try {
-      await RequestManager.createOrUpdateFromFormAsync(formState, items, selectedCategory || viewingRequest.category, status, viewingRequest?.id, tempId);
+      const persistentId = await RequestManager.createOrUpdateFromFormAsync(formState, items, selectedCategory || viewingRequest.category, status, viewingRequest?.id, tempId);
 
       // Cleanup for Create New
       if (!viewingRequest) {
@@ -122,14 +122,36 @@ const RequestPage: React.FC = () => {
       setViewingRequest(null);
       await loadRequests();
 
+      // 1. Notify Admins
+      NotificationManager.addNotification({
+        userId: 'system',
+        role: 'ADMIN',
+        title: status === 'submit' ? 'New Request Activity' : 'Draft Saved',
+        message: status === 'submit' ? `Request #${persistentId} submitted by ${user?.username}.` : `Draft #${persistentId} updated.`,
+        requestId: persistentId
+      });
+
+      // 2. Notify Reviewers (only on submit)
+      if (status === 'submit') {
+        NotificationManager.addNotification({
+          userId: 'system',
+          role: 'REVIEWER',
+          title: 'New Request for Review',
+          message: `Request #${persistentId} requires your evaluation.`,
+          requestId: persistentId
+        });
+      }
+
+      // 3. Notify Creator (confirmation)
       NotificationManager.addNotification({
         userId: user?.id || 'system',
         title: 'Success',
         message: status === 'submit' ? 'Request submitted successfully.' : 'Draft saved successfully.',
+        requestId: persistentId
       });
 
       if (user) {
-        LogManager.addLog(user.id, status === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Request ${viewingRequest?.id || tempId} finalized via FastAPI.`);
+        LogManager.addLog(user.id, status === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Request ${persistentId} finalized via FastAPI.`);
       }
     } catch (e: any) {
       const errorMsg = e.message || 'System error occurred.';
@@ -147,15 +169,39 @@ const RequestPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       await RequestManager.processReviewAsync(id, decision);
+
+      // Get the request details to find the creator (could fetch if not in state, but assuming it's viewingRequest)
+      const creatorId = viewingRequest?.requesterId;
+
       setIsDrawerOpen(false);
       setViewingRequest(null);
       navigate('/requests');
       await loadRequests();
 
+      // 1. Notify Admins
+      NotificationManager.addNotification({
+        userId: 'system',
+        role: 'ADMIN',
+        title: 'Review Decision Applied',
+        message: `Request #${id} was ${decision.toUpperCase()} by ${user?.username}.`,
+        requestId: id
+      });
+
+      // 2. Notify Creator
+      if (creatorId) {
+        NotificationManager.addNotification({
+          userId: creatorId,
+          title: 'Request Update',
+          message: `Your request #${id} has been ${decision.toUpperCase()}.`,
+          requestId: id
+        });
+      }
+
       NotificationManager.addNotification({
         userId: user?.id || 'system',
         title: 'Audit Complete',
         message: `Request status updated to ${decision.toUpperCase()}.`,
+        requestId: id
       });
     } catch (e: any) {
       NotificationManager.addNotification({

@@ -73,7 +73,14 @@ const NotificationDropdown: React.FC = () => {
                                     className={`p-4 flex gap-4 hover:theme-bg/50 transition-colors cursor-pointer ${!n.read ? 'bg-blue-500/5' : 'opacity-60'}`}
                                     onClick={() => {
                                         setShowNotifications(false);
-                                        navigate('/activity');
+                                        if (n.requestId) {
+                                            const url = n.commentId
+                                                ? `/requests?id=${n.requestId}&commentId=${n.commentId}`
+                                                : `/requests?id=${n.requestId}`;
+                                            navigate(url);
+                                        } else {
+                                            navigate('/activity');
+                                        }
                                     }}
                                 >
                                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${!n.read ? 'bg-blue-500/10 text-blue-500' : 'theme-bg theme-text-muted border theme-border'}`}>

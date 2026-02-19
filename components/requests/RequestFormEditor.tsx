@@ -147,7 +147,11 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
 
                     <div className="flex flex-col gap-12 pt-6">
                         <FileUploader requestId={viewingRequest?.id || tempId} />
-                        <DiscussionThread requestId={viewingRequest?.id || tempId} />
+                        <DiscussionThread
+                            requestId={viewingRequest?.id || tempId}
+                            requesterId={viewingRequest?.requesterId}
+                            requestName={formState.name || viewingRequest?.name}
+                        />
                     </div>
                 </div>
             </div>

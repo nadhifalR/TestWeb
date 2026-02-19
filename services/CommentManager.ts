@@ -1,5 +1,6 @@
 import { supabase } from './SupabaseClient';
 import { AuthManager } from './AuthManager';
+import { NotificationManager } from './NotificationManager';
 
 export interface Comment {
   id: string;
@@ -66,10 +67,19 @@ export class CommentManager {
     }
   }
 
-  static async addComment(requestId: string, authorId: string, authorName: string, text: string, parentId?: string, attachmentId?: string): Promise<void> {
+  static async addComment(
+    requestId: string,
+    authorId: string,
+    authorName: string,
+    text: string,
+    parentId?: string,
+    attachmentId?: string,
+    requesterId?: string,
+    requestName?: string
+  ): Promise<void> {
     if (requestId.startsWith('TMP-')) {
       if (!this.stagedComments[requestId]) this.stagedComments[requestId] = [];
-      
+
       const newComment: Comment = {
         id: `staged_${Math.random().toString(36).substr(2, 9)}`,
         requestId,
@@ -86,6 +96,7 @@ export class CommentManager {
         const findAndAdd = (list: Comment[]): boolean => {
           for (let c of list) {
             if (c.id === parentId) {
+              if (!c.replies) c.replies = [];
               c.replies.push(newComment);
               return true;
             }
@@ -110,8 +121,55 @@ export class CommentManager {
       timestamp: new Date().toISOString()
     };
 
-    const { error } = await supabase.from('comments').insert([payload]);
+    const { data: insertedData, error } = await supabase.from('comments').insert([payload]).select().single();
     if (error) throw new Error(`COMMENT_ERROR: ${error.message}`);
+
+    const commentId = insertedData.id.toString();
+
+    // Notification Logic
+    try {
+      // 1. Notify Admins
+      await NotificationManager.addNotification({
+        userId: 'system',
+        role: 'ADMIN',
+        title: 'New Discussion Activity',
+        message: `${authorName} commented on Request #${requestId}: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`,
+        requestId,
+        commentId
+      });
+
+      // 2. Notify Request Creator (if provided and not the author)
+      if (requesterId && requesterId !== authorId) {
+        await NotificationManager.addNotification({
+          userId: requesterId,
+          title: 'New Comment on Your Request',
+          message: `${authorName} commented on "${requestName || 'your request'}": "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`,
+          requestId,
+          commentId
+        });
+      }
+
+      // 3. Notify Parent Author (if it's a reply)
+      if (parentId) {
+        const { data: parentComment } = await supabase
+          .from('comments')
+          .select('author_id')
+          .eq('id', parseInt(parentId, 10))
+          .single();
+
+        if (parentComment && parentComment.author_id && parentComment.author_id !== authorId && parentComment.author_id !== requesterId) {
+          await NotificationManager.addNotification({
+            userId: parentComment.author_id,
+            title: 'Someone replied to your comment',
+            message: `${authorName} replied to you on Request #${requestId}.`,
+            requestId,
+            commentId
+          });
+        }
+      }
+    } catch (notifErr) {
+      console.warn('CommentManager: Notification dispatch failed', notifErr);
+    }
   }
 
   static async commitStaged(tempId: string, realId: number): Promise<void> {
@@ -133,8 +191,8 @@ export class CommentManager {
           attachment_id: c.attachmentId ? parseInt(c.attachmentId, 10) : null
         });
         if (c.replies && c.replies.length > 0) {
-           // Recursive flattening would need IDs from DB. 
-           // For simplicity in this mock-sync, we just push top-level.
+          // Recursive flattening would need IDs from DB. 
+          // For simplicity in this mock-sync, we just push top-level.
         }
       });
       return results;

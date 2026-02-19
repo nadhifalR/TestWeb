@@ -90,7 +90,7 @@ export class RequestManager {
     statusType: 'draft' | 'submit',
     viewingId?: string,
     tempId?: string
-  ): Promise<void> {
+  ): Promise<string> {
     const user = AuthManager.getCurrentUser();
     if (!user) throw new Error("AUTH_SESSION_EXPIRED");
 
@@ -145,6 +145,7 @@ export class RequestManager {
     }
 
     LogManager.addLog(user.id, statusType === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Relational node ${persistentId} finalized via FastAPI.`);
+    return persistentId;
   }
 
   static async processReviewAsync(requestId: string, decision: 'approve' | 'deny' | 'revision'): Promise<void> {

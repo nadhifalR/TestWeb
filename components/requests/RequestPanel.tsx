@@ -163,20 +163,42 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
         setValidationErrors({});
 
         try {
-            await RequestManager.createOrUpdateFromFormAsync(formState, items, selectedCategory || viewingRequest.category, status, viewingRequest?.id, tempId);
+            const persistentId = await RequestManager.createOrUpdateFromFormAsync(formState, items, selectedCategory || viewingRequest.category, status, viewingRequest?.id, tempId);
 
             clearSelection();
             setActiveSubPage('registry');
             await loadRequests();
 
+            // 1. Notify Admins
+            NotificationManager.addNotification({
+                userId: 'system',
+                role: 'ADMIN',
+                title: status === 'submit' ? 'New Request Activity' : 'Draft Saved',
+                message: status === 'submit' ? `Request #${persistentId} submitted by ${user?.username}.` : `Draft #${persistentId} updated.`,
+                requestId: persistentId
+            });
+
+            // 2. Notify Reviewers (only on submit)
+            if (status === 'submit') {
+                NotificationManager.addNotification({
+                    userId: 'system',
+                    role: 'REVIEWER',
+                    title: 'New Request for Review',
+                    message: `Request #${persistentId} requires your evaluation.`,
+                    requestId: persistentId
+                });
+            }
+
+            // 3. Notify Creator (confirmation)
             NotificationManager.addNotification({
                 userId: user?.id || 'system',
                 title: 'Success',
                 message: status === 'submit' ? 'Request submitted successfully.' : 'Draft saved successfully.',
+                requestId: persistentId
             });
 
             if (user) {
-                LogManager.addLog(user.id, status === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Request ${viewingRequest?.id || tempId} finalized via FastAPI.`);
+                LogManager.addLog(user.id, status === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Request ${persistentId} finalized via FastAPI.`);
             }
             if (onClose) onClose();
 
@@ -196,13 +218,37 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
         setIsSubmitting(true);
         try {
             await RequestManager.processReviewAsync(id, decision);
+
+            // Get the creator ID from the current viewing request
+            const creatorId = viewingRequest?.requesterId;
+
             clearSelection();
             await loadRequests();
+
+            // 1. Notify Admins
+            NotificationManager.addNotification({
+                userId: 'system',
+                role: 'ADMIN',
+                title: 'Review Decision Applied',
+                message: `Request #${id} was ${decision.toUpperCase()} by ${user?.username}.`,
+                requestId: id
+            });
+
+            // 2. Notify Creator
+            if (creatorId) {
+                NotificationManager.addNotification({
+                    userId: creatorId,
+                    title: 'Request Update',
+                    message: `Your request #${id} has been ${decision.toUpperCase()}.`,
+                    requestId: id
+                });
+            }
 
             NotificationManager.addNotification({
                 userId: user?.id || 'system',
                 title: 'Audit Complete',
                 message: `Request status updated to ${decision.toUpperCase()}.`,
+                requestId: id
             });
             if (onClose) onClose();
         } catch (e: any) {
