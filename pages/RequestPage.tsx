@@ -365,6 +365,7 @@ const RequestPage: React.FC = () => {
             onReview={(decision) => viewingRequest && handleReview(viewingRequest.id, decision)}
             onCancel={() => { navigate('/requests'); setIsDrawerOpen(false); setViewingRequest(null); }}
             tempId={tempId[0]}
+            isDrawerMode={true}
           />
         )}
       </Drawer>

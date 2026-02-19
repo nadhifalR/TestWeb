@@ -141,7 +141,7 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
             {/* Sticky / Fixed Footer */}
             <div className={`
                 ${isDrawerMode
-                    ? 'sticky bottom-0 -mx-6 -mb-6 px-6 py-6 border-t mt-auto'
+                    ? 'sticky bottom-0 -mx-6 px-6 py-6 border-t mt-auto'
                     : 'fixed bottom-0 right-0 left-[var(--sidebar-width,256px)] z-30 p-6'
                 }
                 theme-bg bg-opacity-80 backdrop-blur-md theme-border transition-all duration-300
