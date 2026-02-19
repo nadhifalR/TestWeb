@@ -79,8 +79,8 @@ const ReportPage: React.FC = () => {
       header: 'Valuation',
       accessorKey: 'totalCost',
       size: 200,
-      cell: (info) => <span className="font-black theme-text text-right font-mono text-sm block">IDR {(info.getValue() as number).toLocaleString()}</span>,
-      footer: () => <span className="font-black theme-text text-right font-mono text-lg block">IDR {grandTotal.toLocaleString()}</span>
+      cell: (info) => <span className="font-black theme-text text-right tabular-nums text-sm block">IDR {(info.getValue() as number).toLocaleString()}</span>,
+      footer: () => <span className="font-black theme-text text-right tabular-nums text-lg block">IDR {grandTotal.toLocaleString()}</span>
     }
   ], [grandTotal]);
 
