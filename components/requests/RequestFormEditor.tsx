@@ -146,23 +146,27 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
                 }
                 theme-bg bg-opacity-80 backdrop-blur-md theme-border transition-all duration-300
             `}>
-                <div className={`flex justify-between items-center ${isDrawerMode ? '' : 'max-w-[95%] mx-auto'}`}>
-                    <button onClick={onCancel} className="px-8 py-4 text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-text transition-all">Cancel</button>
+                <div className={`grid grid-cols-3 items-center ${isDrawerMode ? '' : 'max-w-[95%] mx-auto'}`}>
+                    {/* Left: Close/Cancel */}
+                    <div className="flex justify-start">
+                        <button onClick={onCancel} className="px-8 py-4 text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-text transition-all">Cancel</button>
+                    </div>
 
-                    <div className="flex gap-4">
+                    {/* Center: Actions */}
+                    <div className="flex justify-center gap-4">
                         {isEditable ? (
                             <>
                                 <button
                                     disabled={isSubmitting}
                                     onClick={() => onAction('draft')}
-                                    className="flex items-center gap-2 px-6 py-3 theme-card border theme-border rounded-lg text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-bg"
+                                    className="flex items-center gap-2 px-6 py-3 theme-card border theme-border rounded-lg text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-bg whitespace-nowrap"
                                 >
                                     <Save size={16} /> Save to Draft
                                 </button>
                                 <button
                                     disabled={validationErrors.name !== undefined || isSubmitting || items.length === 0}
                                     onClick={() => onAction('submit')}
-                                    className="flex items-center gap-3 px-8 py-3 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/20 transition-all disabled:opacity-50"
+                                    className="flex items-center gap-3 px-8 py-3 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 shadow-xl shadow-blue-500/20 transition-all disabled:opacity-50 whitespace-nowrap"
                                 >
                                     {isSubmitting ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />} Submit Request
                                 </button>
@@ -170,12 +174,20 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
                         ) : (
                             AccountManager.hasPermission(user!, 'APPROVE') && viewingRequest?.status === RequestStatus.PENDING && (
                                 <div className="flex gap-3">
-                                    <button onClick={() => onReview('revision')} className="px-8 py-4 bg-amber-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Revision</button>
-                                    <button onClick={() => onReview('deny')} className="px-8 py-4 bg-red-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest">Deny</button>
-                                    <button onClick={() => onReview('approve')} className="px-10 py-4 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-2"><Check size={18} /> Approve</button>
+                                    <button onClick={() => onReview('revision')} className="px-6 py-3 bg-amber-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Revision</button>
+                                    <button onClick={() => onReview('deny')} className="px-6 py-3 bg-red-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap">Deny</button>
+                                    <button onClick={() => onReview('approve')} className="px-8 py-3 bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-2 whitespace-nowrap"><Check size={18} /> Approve</button>
                                 </div>
                             )
                         )}
+                    </div>
+
+                    {/* Right: Total Cost Summary */}
+                    <div className="flex justify-end items-center gap-4 pr-6">
+                        <div className="text-right">
+                            <p className="text-[10px] font-black theme-text-muted uppercase tracking-widest">Total Cost</p>
+                            <p className="text-xl font-black theme-text tracking-tighter">IDR {totalCost.toLocaleString()}</p>
+                        </div>
                     </div>
                 </div>
             </div>
