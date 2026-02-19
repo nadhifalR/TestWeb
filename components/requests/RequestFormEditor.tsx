@@ -47,7 +47,7 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
     const totalCost = useMemo(() => RequestItemManager.calculateTotal(items), [items]);
 
     return (
-        <div className="pb-32 mx-auto relative">
+        <div className="mx-auto relative">
             <div className="theme-card rounded-lg border theme-border shadow-sm overflow-hidden mb-12">
                 <div className="p-8 theme-bg bg-opacity-30 border-b theme-border flex justify-between items-center">
                     <div className="flex items-center gap-4">
