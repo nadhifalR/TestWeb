@@ -50,7 +50,7 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
         <div className="mx-auto relative">
             {/* Floating Sticky Header (Page Mode Only) */}
             {!isDrawerMode && (
-                <div className="sticky -top-6 z-20 -mx-6 px-6 py-4 mb-8 theme-bg bg-opacity-80 backdrop-blur-md border-b theme-border transition-all duration-300">
+                <div className="sticky top-0 z-20 -mx-6 -mt-6 px-6 py-4 mb-8 theme-bg bg-opacity-80 backdrop-blur-md border-b theme-border transition-all duration-300">
                     <div className="flex items-center gap-4 max-w-[95%] mx-auto">
                         <button
                             onClick={() => onCancel()}
