@@ -5,12 +5,12 @@ export class ThemeManager {
   static applyTheme(theme: Theme) {
     const root = document.documentElement;
     root.setAttribute('data-theme', theme);
-    
+
     const themes: Record<Theme, Record<string, string>> = {
       'light': {
         '--bg-primary': '#f8fafc',
         '--bg-secondary': '#ffffff',
-        '--text-primary': '#0f172a',
+        '--text-primary': '#2b2b2b',
         '--text-secondary': '#475569',
         '--border-color': '#e2e8f0',
         '--accent-color': '#2563eb',
@@ -49,7 +49,7 @@ export class ThemeManager {
     Object.entries(palette).forEach(([key, value]) => {
       root.style.setProperty(key, value);
     });
-    
+
     document.body.className = `theme-${theme}`;
     window.dispatchEvent(new CustomEvent('nexus-theme-change', { detail: { theme } }));
   }
