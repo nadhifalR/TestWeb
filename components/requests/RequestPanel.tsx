@@ -216,6 +216,7 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
                         onReview={(decision) => viewingRequest && handleReview(viewingRequest.id, decision)}
                         onCancel={isDrawerMode && onClose ? onClose : clearSelection}
                         tempId={tempId[0]}
+                        isDrawerMode={isDrawerMode}
                     />
                 </div>
             ) : (

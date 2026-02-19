@@ -23,6 +23,7 @@ interface RequestFormEditorProps {
     onReview: (decision: 'approve' | 'deny' | 'revision') => void;
     onCancel: () => void;
     tempId: string;
+    isDrawerMode?: boolean;
 }
 
 export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
@@ -39,14 +40,15 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
     onAction,
     onReview,
     onCancel,
-    tempId
+    tempId,
+    isDrawerMode = false
 }) => {
     const user = AuthManager.getCurrentUser();
     const totalCost = useMemo(() => RequestItemManager.calculateTotal(items), [items]);
 
     return (
-        <div className="space-y-8 pb-10 max-w-6xl mx-auto">
-            <div className="theme-card rounded-lg border theme-border shadow-sm overflow-hidden">
+        <div className="space-y-8 pb-32 mx-auto relative">
+            <div className="theme-card rounded-lg border theme-border shadow-sm overflow-hidden mb-8">
                 <div className="p-8 theme-bg bg-opacity-30 border-b theme-border flex justify-between items-center">
                     <div className="flex items-center gap-4">
                         <div className="p-4 bg-slate-900 text-white rounded-lg">
@@ -134,8 +136,17 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
                         <DiscussionThread requestId={viewingRequest?.id || tempId} />
                     </div>
                 </div>
+            </div>
 
-                <div className="p-10 border-t theme-border theme-bg bg-opacity-50 flex justify-between items-center">
+            {/* Sticky / Fixed Footer */}
+            <div className={`
+                ${isDrawerMode
+                    ? 'sticky bottom-0 -mx-6 px-6 py-6 border-t mt-auto'
+                    : 'fixed bottom-0 right-0 left-[var(--sidebar-width,256px)] z-30 p-6'
+                }
+                theme-bg bg-opacity-80 backdrop-blur-md theme-border transition-all duration-300
+            `}>
+                <div className={`flex justify-between items-center ${isDrawerMode ? '' : 'max-w-[95%] mx-auto'}`}>
                     <button onClick={onCancel} className="px-8 py-4 text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-text transition-all">Cancel</button>
 
                     <div className="flex gap-4">
