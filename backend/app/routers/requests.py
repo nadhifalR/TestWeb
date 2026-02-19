@@ -215,3 +215,25 @@ async def process_review(request_id: int, decision: str, reviewer_id: str):
     except Exception as e:
         print(f"Error processing review: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+@router.delete("/{request_id}")
+async def delete_request(request_id: int):
+    try:
+        # 1. Soft delete comments
+        supabase.table("comments").update({"deleted_at": supabase.fn.now() if hasattr(supabase, 'fn') else "now()"}).eq("request_id", request_id).execute()
+        
+        # 2. Hard delete items (no deleted_at in schema)
+        supabase.table("request_items").delete().eq("request_id", request_id).execute()
+        
+        # 3. Hard delete attachments (no deleted_at in schema)
+        supabase.table("attachments").delete().eq("request_id", request_id).execute()
+        
+        # 4. Soft delete request
+        res = supabase.table("requests").update({"deleted_at": "now()"}).eq("id", request_id).execute()
+        
+        if not res.data:
+            raise HTTPException(status_code=404, detail="Request not found")
+            
+        return {"status": "success", "message": f"Request {request_id} and related data deleted."}
+    except Exception as e:
+        print(f"Error deleting request: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

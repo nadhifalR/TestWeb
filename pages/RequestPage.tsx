@@ -217,6 +217,43 @@ const RequestPage: React.FC = () => {
     }
   };
 
+  const handleDelete = async (id: string, name: string, requesterId: string) => {
+    setIsSubmitting(true);
+    try {
+      await RequestManager.deleteRequestAsync(id);
+
+      // 1. Notify Admins
+      NotificationManager.addNotification({
+        userId: 'system',
+        role: 'ADMIN',
+        title: 'Request Deleted',
+        message: `The request "${name}" was permanently deleted by ${user?.username}.`
+      });
+
+      // 2. Notify Creator (if not the one who deleted it)
+      if (requesterId && requesterId !== user?.id) {
+        NotificationManager.addNotification({
+          userId: requesterId,
+          title: 'Request Deleted',
+          message: `Your request "${name}" has been deleted by an administrator.`
+        });
+      }
+
+      setIsDrawerOpen(false);
+      setViewingRequest(null);
+      navigate('/requests');
+      await loadRequests();
+    } catch (e: any) {
+      NotificationManager.addNotification({
+        userId: user?.id || 'system',
+        title: 'Deletion Failed',
+        message: e.message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const isEditable = !viewingRequest || viewingRequest.status === RequestStatus.DRAFT || viewingRequest.status === RequestStatus.REVISION;
 
   const handleItemsChange = useCallback((updater: (prev: RequestItem[]) => RequestItem[]) => {
@@ -382,8 +419,9 @@ const RequestPage: React.FC = () => {
             isSubmitting={isSubmitting}
             onAction={handleAction}
             onReview={(decision) => viewingRequest && handleReview(viewingRequest.id, decision)}
+            onDelete={() => { }} // Deletion not applicable during initial creation
             onCancel={() => setSelectedCategory(null)}
-            tempId={tempId[0]}
+            tempId={tempId}
           />
         </div>
       )}
@@ -427,8 +465,9 @@ const RequestPage: React.FC = () => {
             isSubmitting={isSubmitting}
             onAction={handleAction}
             onReview={(decision) => viewingRequest && handleReview(viewingRequest.id, decision)}
+            onDelete={() => viewingRequest && handleDelete(viewingRequest.id, viewingRequest.name, viewingRequest.requesterId)}
             onCancel={() => { navigate('/requests'); setIsDrawerOpen(false); setViewingRequest(null); }}
-            tempId={tempId[0]}
+            tempId={tempId}
             isDrawerMode={true}
           />
         )}

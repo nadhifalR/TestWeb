@@ -196,6 +196,19 @@ export class RequestManager {
     LogManager.addLog(user.id, 'REVIEW_DECISION', `${decision.toUpperCase()} applied to Node ${requestId} via FastAPI`);
   }
 
+  static async deleteRequestAsync(requestId: string): Promise<void> {
+    const user = AuthManager.getCurrentUser();
+    if (!user) throw new Error("AUTH_REQUIRED");
+
+    const response = await fetch(`${API_URL}/api/requests/${requestId}`, {
+      method: 'DELETE'
+    });
+
+    if (!response.ok) throw new Error(`API_DELETE_ERROR: ${response.statusText}`);
+
+    LogManager.addLog(user.id, 'DELETE_REQUEST', `Request ${requestId} deleted via FastAPI`);
+  }
+
   static getPresetsForCategory(category: string): RequestItem[] {
     const schema = RequestFormManager.getSchemaByCategory(category);
     return (schema.presets || []).map(p => ({

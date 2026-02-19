@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Wallet, AlertCircle, Save, Send, Loader2, Check, Hash, ChevronLeft } from 'lucide-react';
+import { Wallet, AlertCircle, Save, Send, Loader2, Check, Hash, ChevronLeft, Trash2 } from 'lucide-react';
 import { RequestForm, RequestStatus, RequestItem } from '../../types';
 import { RequestItemEditor } from './RequestItemEditor';
 import { FileUploader } from './FileUploader';
@@ -21,6 +21,7 @@ interface RequestFormEditorProps {
     isSubmitting: boolean;
     onAction: (status: 'draft' | 'submit') => void;
     onReview: (decision: 'approve' | 'deny' | 'revision') => void;
+    onDelete: () => void;
     onCancel: () => void;
     tempId: string;
     isDrawerMode?: boolean;
@@ -40,6 +41,7 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
     isSubmitting,
     onAction,
     onReview,
+    onDelete,
     onCancel,
     tempId,
     isDrawerMode = false,
@@ -47,6 +49,11 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
 }) => {
     const user = AuthManager.getCurrentUser();
     const totalCost = useMemo(() => RequestItemManager.calculateTotal(items), [items]);
+
+    const canDelete = viewingRequest && (
+        user?.role === 'ADMIN' ||
+        (viewingRequest.requesterId === user?.id && viewingRequest.status !== RequestStatus.APPROVED)
+    );
 
     return (
         <div className="mx-auto relative">
@@ -169,8 +176,20 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
             `}>
                 <div className={`grid grid-cols-3 items-center ${isDrawerMode ? '' : 'max-w-[95%] mx-auto'}`}>
                     {/* Left: Close/Cancel */}
-                    <div className="flex justify-start">
+                    <div className="flex justify-start gap-4">
                         <button onClick={onCancel} className="px-8 py-4 text-[10px] font-black uppercase tracking-widest theme-text-muted hover:theme-text transition-all">Cancel</button>
+                        {canDelete && (
+                            <button
+                                onClick={() => {
+                                    if (window.confirm('Are you sure you want to delete this request and all its history? This action cannot be undone.')) {
+                                        onDelete();
+                                    }
+                                }}
+                                className="flex items-center gap-2 px-6 py-4 text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-600 hover:bg-red-500/5 rounded-lg transition-all"
+                            >
+                                <Trash2 size={16} /> Delete Request
+                            </button>
+                        )}
                     </div>
 
                     {/* Center: Actions */}
