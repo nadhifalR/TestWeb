@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Wallet, AlertCircle, Save, Send, Loader2, Check, Hash } from 'lucide-react';
+import { Wallet, AlertCircle, Save, Send, Loader2, Check, Hash, ChevronLeft } from 'lucide-react';
 import { RequestForm, RequestStatus, RequestItem } from '../../types';
 import { RequestItemEditor } from './RequestItemEditor';
 import { FileUploader } from './FileUploader';
@@ -50,8 +50,14 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
         <div className="mx-auto relative">
             {/* Floating Sticky Header (Page Mode Only) */}
             {!isDrawerMode && (
-                <div className="sticky top-0 z-20 -mx-4 px-4 py-4 mb-6 theme-bg bg-opacity-80 backdrop-blur-md border-b theme-border transition-all duration-300">
+                <div className="sticky -top-6 z-20 -mx-6 px-6 py-4 mb-8 theme-bg bg-opacity-80 backdrop-blur-md border-b theme-border transition-all duration-300">
                     <div className="flex items-center gap-4 max-w-[95%] mx-auto">
+                        <button
+                            onClick={() => onCancel()}
+                            className="p-1.5 hover:theme-bg border theme-border rounded transition-all text-slate-500 mr-2"
+                        >
+                            <ChevronLeft size={18} />
+                        </button>
                         <div className="p-3 bg-slate-900 text-white rounded-lg">
                             <Hash size={18} />
                         </div>

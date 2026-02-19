@@ -221,7 +221,7 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
     return (
         <div className="space-y-6">
             {/* Header for Page Mode Only - Drawer wraps this component so doesn't need it */}
-            {!isDrawerMode && (
+            {!isDrawerMode && !selectedCategory && !viewingRequest && (
                 <div className="flex items-center justify-between border-b theme-border pb-6">
                     <div className="flex items-center gap-4">
                         {(selectedCategory || viewingRequest) && <button onClick={clearSelection} className="p-1.5 hover:theme-bg border theme-border rounded transition-all text-slate-500"><ChevronLeft size={18} /></button>}

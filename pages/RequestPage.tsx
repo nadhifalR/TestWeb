@@ -252,21 +252,20 @@ const RequestPage: React.FC = () => {
 
   return (
     <div className="space-y-6 page-transition">
-      <div className="flex items-center justify-between border-b theme-border pb-6">
-        <div className="flex items-center gap-4">
-          {(selectedCategory) && <button onClick={() => { setSelectedCategory(null); }} className="p-1.5 hover:theme-bg border theme-border rounded transition-all text-slate-500"><ChevronLeft size={18} /></button>}
-          <div>
-            <h1 className="text-3xl font-black theme-text uppercase tracking-tight">Requests</h1>
-            <p className="theme-text-muted text-sm font-medium tracking-tight">Manage and track all service requests.</p>
+      {!selectedCategory && (
+        <div className="flex items-center justify-between border-b theme-border pb-6">
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-black theme-text uppercase tracking-tight">Requests</h1>
+              <p className="theme-text-muted text-sm font-medium tracking-tight">Manage and track all service requests.</p>
+            </div>
           </div>
-        </div>
-        {!selectedCategory && (
           <div className="flex theme-bg border theme-border rounded-lg p-1.5 shadow-sm">
             <button onClick={() => setActiveSubPage('initiate')} className={`btn btn-sm ${activeSubPage === 'initiate' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'btn-ghost'}`}>Create new</button>
             <button onClick={() => setActiveSubPage('registry')} className={`btn btn-sm ${activeSubPage === 'registry' ? 'bg-slate-900 text-white dark:bg-blue-600' : 'btn-ghost'}`}>Submitted</button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* CREATE NEW: Category Selection */}
       {!selectedCategory && activeSubPage === 'initiate' && (
