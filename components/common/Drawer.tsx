@@ -5,7 +5,7 @@ import { X, Maximize2, Minimize2 } from 'lucide-react';
 interface DrawerProps {
     isOpen: boolean;
     onClose: () => void;
-    title: string;
+    title: React.ReactNode;
     children: React.ReactNode;
     width?: string;
     isFullscreen?: boolean;

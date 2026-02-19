@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Search, Hash } from 'lucide-react';
 import { RequestCategoryGrid } from './RequestCategoryGrid';
 import { RequestRegistry } from './RequestRegistry';
 import { RequestFormEditor } from './RequestFormEditor';
@@ -18,6 +18,7 @@ interface RequestPanelProps {
     isFullscreen?: boolean;
     onClose?: () => void;
     overrideRequestId?: string | null;
+    onTitleChange?: (title: React.ReactNode) => void;
 }
 
 export const RequestPanel: React.FC<RequestPanelProps> = ({
@@ -25,7 +26,8 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
     isDrawerMode = false,
     isFullscreen = false,
     onClose,
-    overrideRequestId
+    overrideRequestId,
+    onTitleChange
 }) => {
     const navigate = useNavigate();
     const user = AuthManager.getCurrentUser();
@@ -48,6 +50,33 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
     useEffect(() => {
         setActiveSubPage(initialTab);
     }, [initialTab]);
+
+    // Handle Title Updates for Drawer Mode
+    useEffect(() => {
+        if (onTitleChange) {
+            if (viewingRequest) {
+                onTitleChange(
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-slate-900 text-white rounded-lg">
+                            <Hash size={18} />
+                        </div>
+                        <div className="text-left">
+                            <h3 className="text-sm font-black theme-text uppercase tracking-widest leading-none">
+                                Request Details: {viewingRequest.name}
+                            </h3>
+                            <p className="text-[10px] theme-text-muted font-bold uppercase tracking-widest mt-1.5 leading-none">
+                                Status: {viewingRequest.status} • Created {new Date(viewingRequest.createdAt).toLocaleDateString()}
+                            </p>
+                        </div>
+                    </div>
+                );
+            } else if (selectedCategory) {
+                onTitleChange(`New Request: ${selectedCategory}`);
+            } else {
+                onTitleChange(activeSubPage === 'initiate' ? 'New Quick Request' : 'Request Registry');
+            }
+        }
+    }, [viewingRequest, selectedCategory, activeSubPage, onTitleChange]);
 
     const loadRequests = useCallback(async () => {
         setIsLoading(true);
@@ -120,7 +149,7 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
         setValidationErrors({});
 
         try {
-            await RequestManager.createOrUpdateFromFormAsync(formState, items, selectedCategory || viewingRequest.category, status, viewingRequest?.id, tempId[0]);
+            await RequestManager.createOrUpdateFromFormAsync(formState, items, selectedCategory || viewingRequest.category, status, viewingRequest?.id, tempId);
 
             clearSelection();
             setActiveSubPage('registry');
@@ -133,7 +162,7 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
             });
 
             if (user) {
-                LogManager.addLog(user.id, status === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Request ${viewingRequest?.id || tempId[0]} finalized via FastAPI.`);
+                LogManager.addLog(user.id, status === 'submit' ? 'SUBMIT_REQUEST' : 'SAVE_DRAFT', `Request ${viewingRequest?.id || tempId} finalized via FastAPI.`);
             }
             if (onClose) onClose();
 
@@ -215,7 +244,7 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
                         onAction={handleAction}
                         onReview={(decision) => viewingRequest && handleReview(viewingRequest.id, decision)}
                         onCancel={isDrawerMode && onClose ? onClose : clearSelection}
-                        tempId={tempId[0]}
+                        tempId={tempId}
                         isDrawerMode={isDrawerMode}
                     />
                 </div>

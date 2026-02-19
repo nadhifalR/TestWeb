@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Search } from 'lucide-react';
+import { ChevronLeft, Search, Hash } from 'lucide-react';
 import { RequestManager } from '../services/RequestManager';
 import { RequestFormManager } from '../services/RequestFormManager';
 import { RequestItemManager } from '../services/RequestItemManager';
@@ -344,7 +344,23 @@ const RequestPage: React.FC = () => {
       <Drawer
         isOpen={isDrawerOpen}
         onClose={() => { navigate('/requests'); setIsDrawerOpen(false); setViewingRequest(null); }}
-        title="Request Details"
+        title={
+          viewingRequest ? (
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-slate-900 text-white rounded-lg">
+                <Hash size={18} />
+              </div>
+              <div className="text-left">
+                <h3 className="text-sm font-black theme-text uppercase tracking-widest leading-none">
+                  Request Details: {viewingRequest.name}
+                </h3>
+                <p className="text-[10px] theme-text-muted font-bold uppercase tracking-widest mt-1.5 leading-none">
+                  Status: {viewingRequest.status} • Created {new Date(viewingRequest.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+          ) : "Request Details"
+        }
         width="max-w-4xl"
         isFullscreen={isFullscreenDrawer}
         onToggleFullscreen={() => setIsFullscreenDrawer(!isFullscreenDrawer)}

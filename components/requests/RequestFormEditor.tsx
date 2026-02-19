@@ -49,20 +49,6 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
     return (
         <div className="mx-auto relative">
             <div className="theme-card rounded-lg border theme-border shadow-sm overflow-hidden mb-12">
-                <div className="p-8 theme-bg bg-opacity-30 border-b theme-border flex justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <div className="p-4 bg-slate-900 text-white rounded-lg">
-                            <Hash size={20} />
-                        </div>
-                        <div>
-                            <h3 className="text-sm font-black theme-text uppercase tracking-widest">
-                                {viewingRequest ? `Request Details: ${viewingRequest.id}` : `New Request: ${selectedCategory}`}
-                            </h3>
-                            {viewingRequest && <p className="text-[10px] theme-text-muted font-bold uppercase tracking-widest mt-1">Status: {viewingRequest.status} • Created {new Date(viewingRequest.createdAt).toLocaleDateString()}</p>}
-                        </div>
-                    </div>
-                </div>
-
                 <div className="p-10 space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                         <div className="space-y-6">

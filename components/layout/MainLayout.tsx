@@ -18,6 +18,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [globalDrawerTab, setGlobalDrawerTab] = useState<'initiate' | 'registry'>('initiate');
   const [isFabHovered, setIsFabHovered] = useState(false);
   const [isFullscreenDrawer, setIsFullscreenDrawer] = useState(false);
+  const [drawerTitle, setDrawerTitle] = useState<React.ReactNode>('');
 
   const location = useLocation();
   const isRequestPage = location.pathname === '/requests';
@@ -78,7 +79,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <Drawer
         isOpen={isGlobalDrawerOpen}
         onClose={() => setIsGlobalDrawerOpen(false)}
-        title={globalDrawerTab === 'initiate' ? 'New Quick Request' : 'Request Registry'}
+        title={drawerTitle}
         width="max-w-4xl"
         isFullscreen={isFullscreenDrawer}
         onToggleFullscreen={() => setIsFullscreenDrawer(!isFullscreenDrawer)}
@@ -88,6 +89,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           isDrawerMode={true}
           isFullscreen={isFullscreenDrawer}
           onClose={() => setIsGlobalDrawerOpen(false)}
+          onTitleChange={setDrawerTitle}
         />
       </Drawer>
     </div>
