@@ -76,7 +76,7 @@ export const Drawer: React.FC<DrawerProps> = ({
                                         </div>
 
                                         {/* Body */}
-                                        <div className="flex-1 overflow-y-auto custom-scrollbar py-6 pt-6">
+                                        <div className="flex-1 overflow-y-auto custom-scrollbar px-6 pt-6">
                                             {children}
                                         </div>
                                     </div>
