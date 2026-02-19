@@ -48,6 +48,28 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
 
     return (
         <div className="mx-auto relative">
+            {/* Floating Sticky Header (Page Mode Only) */}
+            {!isDrawerMode && (
+                <div className="sticky top-0 z-20 -mx-4 px-4 py-4 mb-6 theme-bg bg-opacity-80 backdrop-blur-md border-b theme-border transition-all duration-300">
+                    <div className="flex items-center gap-4 max-w-[95%] mx-auto">
+                        <div className="p-3 bg-slate-900 text-white rounded-lg">
+                            <Hash size={18} />
+                        </div>
+                        <div className="text-left">
+                            <h3 className="text-sm font-black theme-text uppercase tracking-widest leading-none">
+                                {viewingRequest ? `Request Details: ${formState.name || viewingRequest.name}` : `New Request`}
+                            </h3>
+                            <p className="text-[10px] theme-text-muted font-bold uppercase tracking-widest mt-1.5 leading-none">
+                                {viewingRequest
+                                    ? `Status: ${viewingRequest.status} • ${viewingRequest.category} • Created ${new Date(viewingRequest.createdAt).toLocaleDateString()}`
+                                    : `${selectedCategory} • ${formState.name || 'Untitled'}`
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div className="theme-card rounded-lg border theme-border shadow-sm overflow-hidden mb-12">
                 <div className="p-10 space-y-10">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-10">

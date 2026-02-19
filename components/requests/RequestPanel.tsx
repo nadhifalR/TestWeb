@@ -62,21 +62,35 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
                         </div>
                         <div className="text-left">
                             <h3 className="text-sm font-black theme-text uppercase tracking-widest leading-none">
-                                Request Details: {viewingRequest.name}
+                                Request Details: {formState.name || viewingRequest.name}
                             </h3>
                             <p className="text-[10px] theme-text-muted font-bold uppercase tracking-widest mt-1.5 leading-none">
-                                Status: {viewingRequest.status} • Created {new Date(viewingRequest.createdAt).toLocaleDateString()}
+                                Status: {viewingRequest.status} • {viewingRequest.category} • Created {new Date(viewingRequest.createdAt).toLocaleDateString()}
                             </p>
                         </div>
                     </div>
                 );
             } else if (selectedCategory) {
-                onTitleChange(`New Request: ${selectedCategory}`);
+                onTitleChange(
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-slate-900 text-white rounded-lg">
+                            <Hash size={18} />
+                        </div>
+                        <div className="text-left">
+                            <h3 className="text-sm font-black theme-text uppercase tracking-widest leading-none">
+                                New Request
+                            </h3>
+                            <p className="text-[10px] theme-text-muted font-bold uppercase tracking-widest mt-1.5 leading-none">
+                                {selectedCategory} • {formState.name || 'Untitled'}
+                            </p>
+                        </div>
+                    </div>
+                );
             } else {
                 onTitleChange(activeSubPage === 'initiate' ? 'New Quick Request' : 'Request Registry');
             }
         }
-    }, [viewingRequest, selectedCategory, activeSubPage, onTitleChange]);
+    }, [viewingRequest, selectedCategory, activeSubPage, onTitleChange, formState.name]);
 
     const loadRequests = useCallback(async () => {
         setIsLoading(true);

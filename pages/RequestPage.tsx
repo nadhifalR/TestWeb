@@ -352,10 +352,10 @@ const RequestPage: React.FC = () => {
               </div>
               <div className="text-left">
                 <h3 className="text-sm font-black theme-text uppercase tracking-widest leading-none">
-                  Request Details: {viewingRequest.name}
+                  Request Details: {formState.name || viewingRequest.name}
                 </h3>
                 <p className="text-[10px] theme-text-muted font-bold uppercase tracking-widest mt-1.5 leading-none">
-                  Status: {viewingRequest.status} • Created {new Date(viewingRequest.createdAt).toLocaleDateString()}
+                  Status: {viewingRequest.status} • {viewingRequest.category} • Created {new Date(viewingRequest.createdAt).toLocaleDateString()}
                 </p>
               </div>
             </div>
