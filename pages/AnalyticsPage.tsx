@@ -96,17 +96,21 @@ const AnalyticsPage: React.FC = () => {
         ))}
       </div>
 
-      <div className="relative min-h-[400px]">
-        {isLoading && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center animate-in fade-in duration-500">
-            <LoadingSpinner message="Calculating Data Clusters..." fullPage={false} />
-          </div>
-        )}
-
+      <div className="min-h-[400px]">
         {isLoading ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 opacity-40">
-            <SkeletonCard height="h-[400px]" />
-            <SkeletonCard height="h-[400px]" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="relative">
+              <div className="absolute inset-0 z-10 flex items-center justify-center animate-in fade-in duration-500">
+                <LoadingSpinner message="Calculating Trends..." fullPage={false} />
+              </div>
+              <SkeletonCard height="h-[400px]" className="opacity-40" />
+            </div>
+            <div className="relative">
+              <div className="absolute inset-0 z-10 flex items-center justify-center animate-in fade-in duration-500">
+                <LoadingSpinner message="Analyzing Volume..." fullPage={false} />
+              </div>
+              <SkeletonCard height="h-[400px]" className="opacity-40" />
+            </div>
           </div>
         ) : viewMode === 'nivo' ? (
           <AnalyticsNivo

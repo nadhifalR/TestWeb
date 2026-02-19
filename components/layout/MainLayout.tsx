@@ -37,7 +37,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <div className="flex-1 flex flex-col min-w-0">
         <Header />
         <main className="p-6 overflow-auto">
-          <div className="max-w-7xl mx-auto">
+          <div className="max-w-[95%] mx-auto">
             {children}
           </div>
         </main>
