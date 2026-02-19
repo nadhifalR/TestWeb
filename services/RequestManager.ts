@@ -83,6 +83,41 @@ export class RequestManager {
     }
   }
 
+  static async getRequestById(id: string): Promise<RequestForm | null> {
+    try {
+      const response = await fetch(`${API_URL}/api/requests?id=${id}`);
+      if (!response.ok) return null;
+
+      const { data } = await response.json();
+      if (!data || data.length === 0) return null;
+
+      const r = data[0];
+      return {
+        ...r,
+        requesterId: r.requester_id,
+        eventDate: r.event_date,
+        budgetSource: r.budget_source,
+        cashAdvance: Number(r.cash_advance || 0),
+        totalCost: Number(r.total_cost || 0),
+        createdAt: r.created_at,
+        items: (r.items || []).map((i: any) => {
+          const qty = Number(i.quantity || 0);
+          const prc = Number(i.price || 0);
+          return {
+            ...i,
+            quantity: qty,
+            price: prc,
+            total: qty * prc,
+            requestId: i.request_id
+          };
+        })
+      } as RequestForm;
+    } catch (err) {
+      console.error(`RequestManager: Failed to fetch request ${id}`, err);
+      return null;
+    }
+  }
+
   static async createOrUpdateFromFormAsync(
     formData: any,
     items: RequestItem[],

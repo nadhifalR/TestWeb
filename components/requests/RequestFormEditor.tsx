@@ -24,6 +24,7 @@ interface RequestFormEditorProps {
     onCancel: () => void;
     tempId: string;
     isDrawerMode?: boolean;
+    highlightCommentId?: string | null;
 }
 
 export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
@@ -41,7 +42,8 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
     onReview,
     onCancel,
     tempId,
-    isDrawerMode = false
+    isDrawerMode = false,
+    highlightCommentId
 }) => {
     const user = AuthManager.getCurrentUser();
     const totalCost = useMemo(() => RequestItemManager.calculateTotal(items), [items]);
@@ -151,6 +153,7 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
                             requestId={viewingRequest?.id || tempId}
                             requesterId={viewingRequest?.requesterId}
                             requestName={formState.name || viewingRequest?.name}
+                            highlightId={highlightCommentId}
                         />
                     </div>
                 </div>

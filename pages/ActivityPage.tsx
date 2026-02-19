@@ -161,10 +161,12 @@ const ActivityPage: React.FC = () => {
                     className={`p-8 flex items-start gap-6 transition-colors cursor-pointer ${n.read ? 'opacity-50' : 'hover:theme-bg hover:bg-opacity-50 bg-blue-500/5'}`}
                     onClick={() => {
                       if (n.requestId) {
-                        const url = n.commentId
-                          ? `/requests?id=${n.requestId}&commentId=${n.commentId}`
-                          : `/requests?id=${n.requestId}`;
-                        navigate(url);
+                        window.dispatchEvent(new CustomEvent('nexus-open-drawer', {
+                          detail: {
+                            requestId: n.requestId,
+                            commentId: n.commentId
+                          }
+                        }));
                       }
                     }}
                   >

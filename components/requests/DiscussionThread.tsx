@@ -148,7 +148,8 @@ export const DiscussionThread: React.FC<{
   requestId?: string;
   requesterId?: string;
   requestName?: string;
-}> = ({ requestId = 'temp_id', requesterId, requestName }) => {
+  highlightId?: string | null;
+}> = ({ requestId = 'temp_id', requesterId, requestName, highlightId: propHighlightId }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [allAttachments, setAllAttachments] = useState<Attachment[]>([]);
   const [newCommentText, setNewCommentText] = useState('');
@@ -158,8 +159,9 @@ export const DiscussionThread: React.FC<{
 
   const user = AuthManager.getCurrentUser();
   const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const highlightId = queryParams.get('commentId');
+  const searchParams = new URLSearchParams(location.search);
+  const urlHighlightId = searchParams.get('commentId');
+  const highlightId = propHighlightId || urlHighlightId;
 
   const loadData = async () => {
     if (!requestId) return;

@@ -74,10 +74,12 @@ const NotificationDropdown: React.FC = () => {
                                     onClick={() => {
                                         setShowNotifications(false);
                                         if (n.requestId) {
-                                            const url = n.commentId
-                                                ? `/requests?id=${n.requestId}&commentId=${n.commentId}`
-                                                : `/requests?id=${n.requestId}`;
-                                            navigate(url);
+                                            window.dispatchEvent(new CustomEvent('nexus-open-drawer', {
+                                                detail: {
+                                                    requestId: n.requestId,
+                                                    commentId: n.commentId
+                                                }
+                                            }));
                                         } else {
                                             navigate('/activity');
                                         }

@@ -11,13 +11,13 @@ import { AuthManager } from '../../services/AuthManager';
 import { NotificationManager } from '../../services/NotificationManager';
 import { LogManager } from '../../services/LogManager';
 import { RequestForm, RequestItem, RequestStatus } from '../../types';
-
 interface RequestPanelProps {
     initialTab?: 'initiate' | 'registry';
     isDrawerMode?: boolean;
     isFullscreen?: boolean;
     onClose?: () => void;
     overrideRequestId?: string | null;
+    highlightCommentId?: string | null;
     onTitleChange?: (title: React.ReactNode) => void;
 }
 
@@ -27,6 +27,7 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
     isFullscreen = false,
     onClose,
     overrideRequestId,
+    highlightCommentId,
     onTitleChange
 }) => {
     const navigate = useNavigate();
@@ -109,12 +110,23 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
 
     // Handle Override ID (e.g. from URL or direct prop)
     useEffect(() => {
-        if (overrideRequestId && requests.length > 0) {
-            const found = requests.find(r => r.id === overrideRequestId);
-            if (found) {
-                handleSelectRequest(found);
+        const checkAndFetch = async () => {
+            if (overrideRequestId) {
+                const found = requests.find(r => r.id === overrideRequestId);
+                if (found) {
+                    handleSelectRequest(found);
+                } else {
+                    // Fetch directly if not in currently loaded paginated list
+                    setIsLoading(true);
+                    const direct = await RequestManager.getRequestById(overrideRequestId);
+                    if (direct) {
+                        handleSelectRequest(direct);
+                    }
+                    setIsLoading(false);
+                }
             }
-        }
+        };
+        checkAndFetch();
     }, [overrideRequestId, requests]);
 
     const currentSchema = useMemo(() => selectedCategory ? RequestFormManager.getSchemaByCategory(selectedCategory) : null, [selectedCategory]);
@@ -309,6 +321,7 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
                         onCancel={isDrawerMode && onClose ? onClose : clearSelection}
                         tempId={tempId}
                         isDrawerMode={isDrawerMode}
+                        highlightCommentId={highlightCommentId}
                     />
                 </div>
             ) : (

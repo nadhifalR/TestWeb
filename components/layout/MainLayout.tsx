@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
@@ -19,6 +19,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [isFabHovered, setIsFabHovered] = useState(false);
   const [isFullscreenDrawer, setIsFullscreenDrawer] = useState(false);
   const [drawerTitle, setDrawerTitle] = useState<React.ReactNode>('');
+  const [overrideRequestId, setOverrideRequestId] = useState<string | null>(null);
+  const [highlightCommentId, setHighlightCommentId] = useState<string | null>(null);
 
   const location = useLocation();
   const isRequestPage = location.pathname === '/requests';
@@ -28,6 +30,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     const sidebarWidth = isSidebarCollapsed ? 64 : 256;
     document.documentElement.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
   }, [isSidebarCollapsed]);
+
+  // Handle Global Drawer Triggers (e.g. from Notifications)
+  useEffect(() => {
+    const handleOpenDrawer = (e: any) => {
+      const { requestId, commentId, tab } = e.detail || {};
+      if (requestId) {
+        setOverrideRequestId(requestId);
+        setHighlightCommentId(commentId || null);
+        setGlobalDrawerTab('registry'); // Ensure we go to details view
+      } else if (tab) {
+        setGlobalDrawerTab(tab);
+      }
+      setIsGlobalDrawerOpen(true);
+    };
+
+    window.addEventListener('nexus-open-drawer', handleOpenDrawer);
+    return () => window.removeEventListener('nexus-open-drawer', handleOpenDrawer);
+  }, []);
 
   return (
     <div className="flex min-h-screen theme-bg theme-text transition-all duration-300">
@@ -78,7 +98,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       {/* Global Drawer */}
       <Drawer
         isOpen={isGlobalDrawerOpen}
-        onClose={() => setIsGlobalDrawerOpen(false)}
+        onClose={() => { setIsGlobalDrawerOpen(false); setOverrideRequestId(null); setHighlightCommentId(null); }}
         title={drawerTitle}
         width="max-w-4xl"
         isFullscreen={isFullscreenDrawer}
@@ -88,8 +108,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           initialTab={globalDrawerTab}
           isDrawerMode={true}
           isFullscreen={isFullscreenDrawer}
-          onClose={() => setIsGlobalDrawerOpen(false)}
+          onClose={() => { setIsGlobalDrawerOpen(false); setOverrideRequestId(null); setHighlightCommentId(null); }}
           onTitleChange={setDrawerTitle}
+          overrideRequestId={overrideRequestId}
+          highlightCommentId={highlightCommentId}
         />
       </Drawer>
     </div>
