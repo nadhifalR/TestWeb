@@ -133,7 +133,7 @@ async def create_request(request_data: RequestFormCreate, requester_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.put("/{request_id}", response_model=RequestForm)
-async def update_request(request_id: int, request_data: RequestFormCreate):
+async def update_request(request_id: str, request_data: RequestFormCreate):
     try:
         # 1. Update request
         request_payload = {
@@ -196,7 +196,7 @@ async def update_request(request_id: int, request_data: RequestFormCreate):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/{request_id}/review")
-async def process_review(request_id: int, decision: str, reviewer_id: str):
+async def process_review(request_id: str, decision: str, reviewer_id: str):
     try:
         status_map = {
             "approve": "APPROVED",
@@ -216,7 +216,8 @@ async def process_review(request_id: int, decision: str, reviewer_id: str):
         print(f"Error processing review: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 @router.delete("/{request_id}")
-async def delete_request(request_id: int):
+async def delete_request(request_id: str):
+    print(f"DEBUG: DELETE request received for ID: {request_id}")
     try:
         # 1. Soft delete comments
         supabase.table("comments").update({"deleted_at": supabase.fn.now() if hasattr(supabase, 'fn') else "now()"}).eq("request_id", request_id).execute()

@@ -100,7 +100,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         isOpen={isGlobalDrawerOpen}
         onClose={() => { setIsGlobalDrawerOpen(false); setOverrideRequestId(null); setHighlightCommentId(null); }}
         title={drawerTitle}
-        width="max-w-4xl"
+        width="max-w-5xl"
         isFullscreen={isFullscreenDrawer}
         onToggleFullscreen={() => setIsFullscreenDrawer(!isFullscreenDrawer)}
       >

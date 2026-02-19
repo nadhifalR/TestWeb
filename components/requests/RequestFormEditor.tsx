@@ -193,7 +193,7 @@ export const RequestFormEditor: React.FC<RequestFormEditorProps> = ({
                     </div>
 
                     {/* Center: Actions */}
-                    <div className="flex justify-center gap-4">
+                    <div className="flex justify-center gap-3">
                         {isEditable ? (
                             <>
                                 <button
