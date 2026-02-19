@@ -133,7 +133,7 @@ export class CommentManager {
         userId: 'system',
         role: 'ADMIN',
         title: 'New Discussion Activity',
-        message: `${authorName} commented on Request #${requestId}: "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`,
+        message: `${authorName} commented on "${requestName || 'Request #' + requestId}": "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}"`,
         requestId,
         commentId
       });
@@ -161,7 +161,7 @@ export class CommentManager {
           await NotificationManager.addNotification({
             userId: parentComment.author_id,
             title: 'Someone replied to your comment',
-            message: `${authorName} replied to you on Request #${requestId}.`,
+            message: `${authorName} replied to you on "${requestName || 'Request #' + requestId}".`,
             requestId,
             commentId
           });

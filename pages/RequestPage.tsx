@@ -122,12 +122,14 @@ const RequestPage: React.FC = () => {
       setViewingRequest(null);
       await loadRequests();
 
+      const reqName = formState.name || 'New Request';
+
       // 1. Notify Admins
       NotificationManager.addNotification({
         userId: 'system',
         role: 'ADMIN',
         title: status === 'submit' ? 'New Request Activity' : 'Draft Saved',
-        message: status === 'submit' ? `Request #${persistentId} submitted by ${user?.username}.` : `Draft #${persistentId} updated.`,
+        message: status === 'submit' ? `Request "${reqName}" submitted by ${user?.username}.` : `Draft "${reqName}" updated.`,
         requestId: persistentId
       });
 
@@ -137,7 +139,7 @@ const RequestPage: React.FC = () => {
           userId: 'system',
           role: 'REVIEWER',
           title: 'New Request for Review',
-          message: `Request #${persistentId} requires your evaluation.`,
+          message: `Request "${reqName}" requires your evaluation.`,
           requestId: persistentId
         });
       }
@@ -172,6 +174,7 @@ const RequestPage: React.FC = () => {
 
       // Get the request details to find the creator (could fetch if not in state, but assuming it's viewingRequest)
       const creatorId = viewingRequest?.requesterId;
+      const reqName = viewingRequest?.name || 'Request';
 
       setIsDrawerOpen(false);
       setViewingRequest(null);
@@ -183,7 +186,7 @@ const RequestPage: React.FC = () => {
         userId: 'system',
         role: 'ADMIN',
         title: 'Review Decision Applied',
-        message: `Request #${id} was ${decision.toUpperCase()} by ${user?.username}.`,
+        message: `Request "${reqName}" was ${decision.toUpperCase()} by ${user?.username}.`,
         requestId: id
       });
 
@@ -192,7 +195,7 @@ const RequestPage: React.FC = () => {
         NotificationManager.addNotification({
           userId: creatorId,
           title: 'Request Update',
-          message: `Your request #${id} has been ${decision.toUpperCase()}.`,
+          message: `Your request "${reqName}" has been ${decision.toUpperCase()}.`,
           requestId: id
         });
       }
