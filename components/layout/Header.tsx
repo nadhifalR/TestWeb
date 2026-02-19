@@ -9,6 +9,7 @@ import {
   flexRender,
   ColumnDef
 } from '@tanstack/react-table';
+import NotificationDropdown from './NotificationDropdown';
 
 const Header: React.FC = () => {
   const [query, setQuery] = useState('');
@@ -104,7 +105,7 @@ const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-30 h-16 theme-bg bg-opacity-80 backdrop-blur-md border-b theme-border px-6 flex items-center justify-between">
-      <div className="max-w-md w-full relative" ref={searchRef}>
+      <div className="max-w-m w-full relative" ref={searchRef}>
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 theme-text-muted" size={18} />
         <input
           type="text"
@@ -139,10 +140,7 @@ const Header: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-4">
-        <button className="p-2.5 theme-text-muted hover:bg-slate-500/10 rounded-lg transition-all relative">
-          <Bell size={18} />
-          <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-blue-500 rounded-full border-2 theme-bg"></span>
-        </button>
+        <NotificationDropdown />
         <button className="p-2.5 theme-text-muted hover:bg-slate-500/10 rounded-lg transition-all">
           <HelpCircle size={18} />
         </button>
