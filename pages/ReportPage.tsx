@@ -175,19 +175,17 @@ const ReportPage: React.FC = () => {
         </div>
       ) : (
         <>
-          {isLoading ? (
-            <SkeletonCard height="h-24" className="bg-opacity-30 p-10" />
-          ) : (
-            <div className="flex flex-col gap-6">
-              <div className="theme-card p-6 rounded-lg border theme-border shadow-sm bg-opacity-30">
-                <FilterPanel filters={filters} onFiltersChange={(f) => setFilters({ ...filters, ...f })} />
-              </div>
+          <div className="flex flex-col gap-6">
+            <div className="theme-card p-6 rounded-lg border theme-border shadow-sm bg-opacity-30">
+              <FilterPanel filters={filters} onFiltersChange={(f) => setFilters({ ...filters, ...f })} />
             </div>
-          )}
+          </div>
 
           <div className="theme-card rounded-lg border theme-border shadow-2xl overflow-hidden mb-20">
-            {isLoading ? (
-              <LoadingSpinner message="Loading Report Data..." fullPage={false} />
+            {isLoading && data.length === 0 ? (
+              <div className="p-20">
+                <LoadingSpinner message="Loading Report Data..." fullPage={false} />
+              </div>
             ) : (
               <DataTable data={data} columns={columns} showFooter={true} />
             )}
