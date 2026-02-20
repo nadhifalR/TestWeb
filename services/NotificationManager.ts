@@ -108,4 +108,13 @@ export class NotificationManager {
         .or(`user_id.eq.${user.id},role.eq.${user.role}`);
     } catch (e) { }
   }
+
+  static async markAsRead(id: string) {
+    try {
+      await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('id', id);
+    } catch (e) { }
+  }
 }

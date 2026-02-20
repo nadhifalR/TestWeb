@@ -160,6 +160,10 @@ const ActivityPage: React.FC = () => {
                     key={n.id}
                     className={`p-8 flex items-start gap-6 transition-colors cursor-pointer ${n.read ? 'opacity-50' : 'hover:theme-bg hover:bg-opacity-50 bg-blue-500/5'}`}
                     onClick={() => {
+                      if (!n.read) {
+                        NotificationManager.markAsRead(n.id);
+                        setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, read: true } : notif));
+                      }
                       if (n.requestId) {
                         window.dispatchEvent(new CustomEvent('nexus-open-drawer', {
                           detail: {

@@ -73,6 +73,10 @@ const NotificationDropdown: React.FC = () => {
                                     className={`p-4 flex gap-4 hover:theme-bg/50 transition-colors cursor-pointer ${!n.read ? 'bg-blue-500/5' : 'opacity-60'}`}
                                     onClick={() => {
                                         setShowNotifications(false);
+                                        if (!n.read) {
+                                            NotificationManager.markAsRead(n.id);
+                                            setNotifications(prev => prev.map(notif => notif.id === n.id ? { ...notif, read: true } : notif));
+                                        }
                                         if (n.requestId) {
                                             window.dispatchEvent(new CustomEvent('nexus-open-drawer', {
                                                 detail: {
