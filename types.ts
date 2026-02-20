@@ -75,6 +75,7 @@ export interface SystemLog {
 }
 
 export interface RequestFilters {
+  search?: string;
   dateExact?: string;
   dateFrom?: string;
   dateTo?: string;

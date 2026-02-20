@@ -26,11 +26,21 @@ const ReportPage: React.FC = () => {
   const [snapshots, setSnapshots] = useState<any[]>([]);
   const [data, setData] = useState<RequestForm[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debounceTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [filters, setFilters] = useState<ReportFilter>({
-    department: 'All Departments',
+  const [filters, setFilters] = useState<RequestFilters>({
     categories: queryParams.get('category') ? [queryParams.get('category')!] : []
   });
+
+  // Debounce search
+  useEffect(() => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearch(filters.search || '');
+    }, 400);
+    return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
+  }, [filters.search]);
 
   useEffect(() => {
     const fetchFilteredData = async () => {
@@ -43,7 +53,7 @@ const ReportPage: React.FC = () => {
       }
     };
     fetchFilteredData();
-  }, [filters]);
+  }, [filters.categories, filters.dateExact, filters.dateFrom, filters.dateTo, filters.costMode, filters.costExact, filters.costMin, filters.costMax, filters.statuses, debouncedSearch]);
 
   const grandTotal = useMemo(() => ReportManager.calculateGrandTotal(data), [data]);
 
@@ -170,24 +180,7 @@ const ReportPage: React.FC = () => {
           ) : (
             <div className="flex flex-col gap-6">
               <div className="theme-card p-6 rounded-lg border theme-border shadow-sm bg-opacity-30">
-                <div className="flex flex-wrap gap-8 items-end">
-                  <div className="space-y-3">
-                    <label className="label-caps">Department Scope</label>
-                    <select
-                      value={filters.department}
-                      onChange={(e) => setFilters({ ...filters, department: e.target.value })}
-                      className="block w-64 px-6 py-4 theme-bg border theme-border rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text"
-                    >
-                      <option>All Departments</option>
-                      <option>Marketing</option>
-                      <option>Finance</option>
-                      <option>Operations</option>
-                    </select>
-                  </div>
-                  <div className="flex-1">
-                    <FilterPanel filters={filters} onFiltersChange={(f) => setFilters({ ...filters, ...f })} />
-                  </div>
-                </div>
+                <FilterPanel filters={filters} onFiltersChange={(f) => setFilters({ ...filters, ...f })} />
               </div>
             </div>
           )}

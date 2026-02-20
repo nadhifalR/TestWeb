@@ -64,7 +64,7 @@ export class RequestManager {
         requester_id: user.role === 'REQUESTER' ? user.id : '',
         sort_by: sortBy,
         sort_order: sortOrder,
-        search: search,
+        search: filters.search || search,
       });
 
       if (filters.dateExact) params.append('date_exact', filters.dateExact);

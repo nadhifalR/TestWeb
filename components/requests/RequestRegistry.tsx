@@ -13,8 +13,6 @@ interface RequestRegistryProps {
     pagination: { pageIndex: number; pageSize: number };
     setPagination: (pagination: { pageIndex: number; pageSize: number }) => void;
     onSelect: (request: RequestForm) => void;
-    globalFilter: string;
-    setGlobalFilter: (filter: string) => void;
     sorting: SortingState;
     onSortingChange: (sorting: SortingState) => void;
     filters: RequestFilters;
@@ -28,8 +26,6 @@ export const RequestRegistry: React.FC<RequestRegistryProps> = ({
     pagination,
     setPagination,
     onSelect,
-    globalFilter,
-    setGlobalFilter,
     sorting,
     onSortingChange,
     filters,
@@ -107,16 +103,6 @@ export const RequestRegistry: React.FC<RequestRegistryProps> = ({
         <div className="space-y-4 animate-in fade-in duration-300">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <FilterPanel filters={filters} onFiltersChange={onFiltersChange} />
-                <div className="relative w-full max-sm:max-w-full max-w-sm">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 theme-text-muted" size={16} />
-                    <input
-                        type="text"
-                        value={globalFilter}
-                        onChange={(e) => setGlobalFilter(e.target.value)}
-                        placeholder="Submitted filter (ID, Name)..."
-                        className="w-full pl-11 pr-4 py-2 theme-bg border theme-border rounded-lg text-xs font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
-                    />
-                </div>
             </div>
             <div className="theme-card rounded-lg border theme-border shadow-xl overflow-hidden">
                 {isLoading && requests.length === 0 ? (
@@ -126,8 +112,8 @@ export const RequestRegistry: React.FC<RequestRegistryProps> = ({
                         data={requests}
                         columns={columns}
                         onRowClick={(r) => onSelect(r)}
-                        globalFilter={globalFilter}
-                        setGlobalFilter={setGlobalFilter}
+                        globalFilter={filters.search || ''}
+                        setGlobalFilter={(val) => onFiltersChange({ ...filters, search: val })}
                         pageCount={Math.ceil(totalRequests / pagination.pageSize)}
                         totalCount={totalRequests}
                         onPaginationChange={setPagination}

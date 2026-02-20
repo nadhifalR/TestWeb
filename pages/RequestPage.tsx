@@ -29,7 +29,6 @@ const RequestPage: React.FC = () => {
   const [totalRequests, setTotalRequests] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [globalFilter, setGlobalFilter] = useState('');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [tempId] = useState(`TMP-${Math.random().toString(36).substr(2, 6).toUpperCase()}`);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
@@ -42,14 +41,14 @@ const RequestPage: React.FC = () => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isFullscreenDrawer, setIsFullscreenDrawer] = useState(false);
 
-  // Debounce globalFilter -> debouncedSearch
+  // Debounce filters.search -> debouncedSearch
   useEffect(() => {
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     debounceTimerRef.current = setTimeout(() => {
-      setDebouncedSearch(globalFilter);
+      setDebouncedSearch(filters.search || '');
     }, 400);
     return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
-  }, [globalFilter]);
+  }, [filters.search]);
 
   // Reset page when sort, search or filters change
   useEffect(() => {
@@ -403,16 +402,6 @@ const RequestPage: React.FC = () => {
             <>
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <FilterPanel filters={filters} onFiltersChange={setFilters} />
-                <div className="relative w-full max-sm:max-w-full max-w-sm">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 theme-text-muted" size={16} />
-                  <input
-                    type="text"
-                    value={globalFilter}
-                    onChange={(e) => setGlobalFilter(e.target.value)}
-                    placeholder="Submitted filter (ID, Name)..."
-                    className="w-full pl-11 pr-4 py-2 theme-bg border theme-border rounded-lg text-xs font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all"
-                  />
-                </div>
               </div>
               <div className="theme-card rounded-lg border theme-border shadow-xl overflow-hidden">
                 {isLoading && requests.length === 0 ? (
@@ -422,8 +411,8 @@ const RequestPage: React.FC = () => {
                     data={requests}
                     columns={columns}
                     onRowClick={(r) => navigate(`/requests?id=${r.id}`)}
-                    globalFilter={globalFilter}
-                    setGlobalFilter={setGlobalFilter}
+                    globalFilter={debouncedSearch}
+                    setGlobalFilter={(val) => setFilters(prev => ({ ...prev, search: val }))}
                     pageCount={Math.ceil(totalRequests / pagination.pageSize)}
                     totalCount={totalRequests}
                     onPaginationChange={setPagination}

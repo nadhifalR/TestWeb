@@ -43,7 +43,6 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
     const [totalRequests, setTotalRequests] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [globalFilter, setGlobalFilter] = useState('');
     const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
     const [tempId] = useState(`TMP-${Math.random().toString(36).substr(2, 6).toUpperCase()}`);
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
@@ -98,14 +97,14 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
         }
     }, [viewingRequest, selectedCategory, activeSubPage, onTitleChange, formState.name]);
 
-    // Debounce globalFilter -> debouncedSearch
+    // Debounce filters.search -> debouncedSearch
     useEffect(() => {
         if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
         debounceTimerRef.current = setTimeout(() => {
-            setDebouncedSearch(globalFilter);
+            setDebouncedSearch(filters.search || '');
         }, 400);
         return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
-    }, [globalFilter]);
+    }, [filters.search]);
 
     // Reset page when sort, search or filters change
     useEffect(() => {
@@ -418,8 +417,6 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
                             pagination={pagination}
                             setPagination={setPagination}
                             onSelect={handleSelectRequest}
-                            globalFilter={globalFilter}
-                            setGlobalFilter={setGlobalFilter}
                             sorting={sorting}
                             onSortingChange={setSorting}
                             filters={filters}
