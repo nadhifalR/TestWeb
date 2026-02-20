@@ -3,7 +3,8 @@ import { Search } from 'lucide-react';
 import { DataTable } from '../common/DataTable';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import { ColumnDef, SortingState } from '@tanstack/react-table';
-import { RequestForm, RequestStatus } from '../../types';
+import { RequestForm, RequestStatus, RequestFilters } from '../../types';
+import { FilterPanel } from '../common/FilterPanel';
 
 interface RequestRegistryProps {
     requests: RequestForm[];
@@ -16,6 +17,8 @@ interface RequestRegistryProps {
     setGlobalFilter: (filter: string) => void;
     sorting: SortingState;
     onSortingChange: (sorting: SortingState) => void;
+    filters: RequestFilters;
+    onFiltersChange: (filters: RequestFilters) => void;
 }
 
 export const RequestRegistry: React.FC<RequestRegistryProps> = ({
@@ -28,7 +31,9 @@ export const RequestRegistry: React.FC<RequestRegistryProps> = ({
     globalFilter,
     setGlobalFilter,
     sorting,
-    onSortingChange
+    onSortingChange,
+    filters,
+    onFiltersChange
 }) => {
     const columns = useMemo<ColumnDef<RequestForm>[]>(() => [
         {
@@ -100,7 +105,8 @@ export const RequestRegistry: React.FC<RequestRegistryProps> = ({
 
     return (
         <div className="space-y-4 animate-in fade-in duration-300">
-            <div className="flex justify-end">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <FilterPanel filters={filters} onFiltersChange={onFiltersChange} />
                 <div className="relative w-full max-sm:max-w-full max-w-sm">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 theme-text-muted" size={16} />
                     <input

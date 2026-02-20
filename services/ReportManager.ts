@@ -1,38 +1,23 @@
 
-import { RequestForm } from '../types';
+import { RequestForm, RequestFilters } from '../types';
 import { RequestManager } from './RequestManager';
 import { AccountManager } from './AccountManager';
 import { LogManager } from './LogManager';
 import { supabase } from './SupabaseClient';
 
-export interface ReportFilter {
-  dateRange: { start: string; end: string } | null;
-  department: string;
-  category: string;
-}
+export type ReportFilter = RequestFilters & { department?: string };
 
 export class ReportManager {
   static async getFilteredData(filters: ReportFilter): Promise<RequestForm[]> {
-    let requests = await RequestManager.getRequests();
-    await AccountManager.getPermissionMatrix();
+    // Current backend doesn't support specific "budget_source" (department) filtering via query params yet, 
+    // but it supports category and dates. We'll use 1000 as page_size for reports to get the full filtered set.
+    const { data } = await RequestManager.getRequestsPaginated(0, 1000, 'created_at', 'desc', '', filters);
+    let requests = data;
 
-    if (filters.department && filters.department !== 'All' && filters.department !== 'All Departments') {
-      requests = requests.filter(r => r.budgetSource.includes(filters.department));
-    }
-
-    if (filters.category && filters.category !== 'All' && filters.category !== 'All Categories') {
-      requests = requests.filter(r => r.category === filters.category);
-    }
-
-    if (filters.dateRange && filters.dateRange.start && filters.dateRange.end) {
-      const startDate = new Date(filters.dateRange.start);
-      const endDate = new Date(filters.dateRange.end);
-      endDate.setHours(23, 59, 59, 999);
-
-      requests = requests.filter(r => {
-        const d = new Date(r.createdAt);
-        return d >= startDate && d <= endDate;
-      });
+    // Remaining client-side filter for department (mapped from budgetSource)
+    const dept = filters.department;
+    if (dept && dept !== 'All' && dept !== 'All Departments') {
+      requests = requests.filter(r => r.budgetSource.includes(dept));
     }
 
     return requests;

@@ -10,7 +10,7 @@ import { RequestItemManager } from '../../services/RequestItemManager';
 import { AuthManager } from '../../services/AuthManager';
 import { NotificationManager } from '../../services/NotificationManager';
 import { LogManager } from '../../services/LogManager';
-import { RequestForm, RequestItem, RequestStatus } from '../../types';
+import { RequestForm, RequestItem, RequestStatus, RequestFilters } from '../../types';
 import { SortingState } from '@tanstack/react-table';
 interface RequestPanelProps {
     initialTab?: 'initiate' | 'registry';
@@ -48,6 +48,7 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
     const [tempId] = useState(`TMP-${Math.random().toString(36).substr(2, 6).toUpperCase()}`);
     const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
     const [sorting, setSorting] = useState<SortingState>([]);
+    const [filters, setFilters] = useState<RequestFilters>({});
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -106,10 +107,10 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
         return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
     }, [globalFilter]);
 
-    // Reset page when sort or search changes
+    // Reset page when sort, search or filters change
     useEffect(() => {
         setPagination(prev => ({ ...prev, pageIndex: 0 }));
-    }, [sorting, debouncedSearch]);
+    }, [sorting, debouncedSearch, filters]);
 
     const loadRequests = useCallback(async () => {
         setIsLoading(true);
@@ -119,13 +120,20 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
             // Map frontend accessor keys to backend column names
             const columnMap: Record<string, string> = { createdAt: 'created_at', totalCost: 'total_cost' };
             const mappedSortBy = columnMap[sortBy] || sortBy;
-            const { data, total } = await RequestManager.getRequestsPaginated(pagination.pageIndex, pagination.pageSize, mappedSortBy, sortOrder, debouncedSearch);
+            const { data, total } = await RequestManager.getRequestsPaginated(
+                pagination.pageIndex,
+                pagination.pageSize,
+                mappedSortBy,
+                sortOrder,
+                debouncedSearch,
+                filters
+            );
             setRequests(data);
             setTotalRequests(total);
         } finally {
             setIsLoading(false);
         }
-    }, [pagination.pageIndex, pagination.pageSize, sorting, debouncedSearch]);
+    }, [pagination.pageIndex, pagination.pageSize, sorting, debouncedSearch, filters]);
 
     useEffect(() => {
         loadRequests();
@@ -414,6 +422,8 @@ export const RequestPanel: React.FC<RequestPanelProps> = ({
                             setGlobalFilter={setGlobalFilter}
                             sorting={sorting}
                             onSortingChange={setSorting}
+                            filters={filters}
+                            onFiltersChange={setFilters}
                         />
                     )}
                 </>

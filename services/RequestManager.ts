@@ -51,7 +51,8 @@ export class RequestManager {
     pageSize: number = 10,
     sortBy: string = 'created_at',
     sortOrder: string = 'desc',
-    search: string = ''
+    search: string = '',
+    filters: RequestFilters = {}
   ): Promise<{ data: RequestForm[], total: number }> {
     const user = AuthManager.getCurrentUser();
     if (!user) return { data: [], total: 0 };
@@ -65,6 +66,20 @@ export class RequestManager {
         sort_order: sortOrder,
         search: search,
       });
+
+      if (filters.dateExact) params.append('date_exact', filters.dateExact);
+      if (filters.dateFrom) params.append('date_from', filters.dateFrom);
+      if (filters.dateTo) params.append('date_to', filters.dateTo);
+      if (filters.categories?.length) params.append('category', filters.categories.join(','));
+      if (filters.statuses?.length) params.append('status', filters.statuses.join(','));
+
+      if (filters.costMode === 'exact' && filters.costExact !== undefined) {
+        params.append('cost_exact', String(filters.costExact));
+      } else {
+        if (filters.costMin !== undefined) params.append('cost_min', String(filters.costMin));
+        if (filters.costMax !== undefined) params.append('cost_max', String(filters.costMax));
+      }
+
       const response = await fetch(`${API_URL}/api/requests?${params.toString()}`);
       if (!response.ok) throw new Error('API_FETCH_ERROR');
 

@@ -9,6 +9,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import { useTranslation } from '../hooks/useTranslation';
 import { SkeletonCard } from '../components/common/SkeletonCard';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { FilterPanel } from '../components/common/FilterPanel';
+import { RequestFilters } from '../types';
 
 const ReportPage: React.FC = () => {
   const navigate = useNavigate();
@@ -26,9 +28,8 @@ const ReportPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const [filters, setFilters] = useState<ReportFilter>({
-    dateRange: null,
     department: 'All Departments',
-    category: queryParams.get('category') || 'All Categories'
+    categories: queryParams.get('category') ? [queryParams.get('category')!] : []
   });
 
   useEffect(() => {
@@ -85,10 +86,7 @@ const ReportPage: React.FC = () => {
   ], [grandTotal]);
 
   const handleApplyFilters = () => {
-    setFilters({
-      ...filters,
-      dateRange: startDate && endDate ? { start: startDate, end: endDate } : null
-    });
+    // Logic moved to setFilters and useEffect
   };
 
   const handleExportCSV = () => {
@@ -170,42 +168,27 @@ const ReportPage: React.FC = () => {
           {isLoading ? (
             <SkeletonCard height="h-24" className="bg-opacity-30 p-10" />
           ) : (
-            <div className="theme-card p-10 rounded-lg border theme-border shadow-sm flex flex-wrap gap-10 items-end bg-opacity-30">
-              <div className="space-y-3">
-                <label className="label-caps">Department</label>
-                <select value={filters.department} onChange={(e) => setFilters({ ...filters, department: e.target.value })} className="block w-64 px-6 py-4 theme-bg border theme-border rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text">
-                  <option>All Departments</option>
-                  <option>Marketing</option>
-                  <option>Finance</option>
-                  <option>Operations</option>
-                </select>
+            <div className="flex flex-col gap-6">
+              <div className="theme-card p-6 rounded-lg border theme-border shadow-sm bg-opacity-30">
+                <div className="flex flex-wrap gap-8 items-end">
+                  <div className="space-y-3">
+                    <label className="label-caps">Department Scope</label>
+                    <select
+                      value={filters.department}
+                      onChange={(e) => setFilters({ ...filters, department: e.target.value })}
+                      className="block w-64 px-6 py-4 theme-bg border theme-border rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text"
+                    >
+                      <option>All Departments</option>
+                      <option>Marketing</option>
+                      <option>Finance</option>
+                      <option>Operations</option>
+                    </select>
+                  </div>
+                  <div className="flex-1">
+                    <FilterPanel filters={filters} onFiltersChange={(f) => setFilters({ ...filters, ...f })} />
+                  </div>
+                </div>
               </div>
-
-              <div className="space-y-3">
-                <label className="label-caps">Category</label>
-                <select value={filters.category} onChange={(e) => setFilters({ ...filters, category: e.target.value })} className="block w-64 px-6 py-4 theme-bg border theme-border rounded-lg text-sm font-bold outline-none focus:ring-4 focus:ring-blue-500/10 transition-all theme-text">
-                  <option>All Categories</option>
-                  <option>Brand</option>
-                  <option>Production</option>
-                  <option>Activation</option>
-                  <option>Entertainment</option>
-                  <option>Logistics</option>
-                </select>
-              </div>
-
-              <div className="space-y-3">
-                <label className="label-caps">Start Date</label>
-                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="block w-48 px-6 py-4 theme-bg border theme-border rounded-lg text-xs font-bold outline-none theme-text" />
-              </div>
-
-              <div className="space-y-3">
-                <label className="label-caps">End Date</label>
-                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="block w-48 px-6 py-4 theme-bg border theme-border rounded-lg text-xs font-bold outline-none theme-text" />
-              </div>
-
-              <button onClick={handleApplyFilters} className="btn btn-primary btn-md shadow-2xl">
-                <Filter size={16} /> Generate Report
-              </button>
             </div>
           )}
 

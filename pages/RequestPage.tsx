@@ -4,7 +4,8 @@ import { ChevronLeft, Search, Hash } from 'lucide-react';
 import { RequestManager } from '../services/RequestManager';
 import { RequestFormManager } from '../services/RequestFormManager';
 import { RequestItemManager } from '../services/RequestItemManager';
-import { RequestStatus, RequestForm, RequestItem } from '../types';
+import { RequestStatus, RequestForm, RequestItem, RequestFilters } from '../types';
+import { FilterPanel } from '../components/common/FilterPanel';
 import { AuthManager } from '../services/AuthManager';
 import { NotificationManager } from '../services/NotificationManager';
 import { LogManager } from '../services/LogManager';
@@ -33,6 +34,7 @@ const RequestPage: React.FC = () => {
   const [tempId] = useState(`TMP-${Math.random().toString(36).substr(2, 6).toUpperCase()}`);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [filters, setFilters] = useState<RequestFilters>({});
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -49,10 +51,10 @@ const RequestPage: React.FC = () => {
     return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
   }, [globalFilter]);
 
-  // Reset page when sort or search changes
+  // Reset page when sort, search or filters change
   useEffect(() => {
     setPagination(prev => ({ ...prev, pageIndex: 0 }));
-  }, [sorting, debouncedSearch]);
+  }, [sorting, debouncedSearch, filters]);
 
   const loadRequests = useCallback(async () => {
     setIsLoading(true);
@@ -62,13 +64,20 @@ const RequestPage: React.FC = () => {
       // Map frontend accessor keys to backend column names
       const columnMap: Record<string, string> = { createdAt: 'created_at', totalCost: 'total_cost' };
       const mappedSortBy = columnMap[sortBy] || sortBy;
-      const { data, total } = await RequestManager.getRequestsPaginated(pagination.pageIndex, pagination.pageSize, mappedSortBy, sortOrder, debouncedSearch);
+      const { data, total } = await RequestManager.getRequestsPaginated(
+        pagination.pageIndex,
+        pagination.pageSize,
+        mappedSortBy,
+        sortOrder,
+        debouncedSearch,
+        filters
+      );
       setRequests(data);
       setTotalRequests(total);
     } finally {
       setIsLoading(false);
     }
-  }, [pagination.pageIndex, pagination.pageSize, sorting, debouncedSearch]);
+  }, [pagination.pageIndex, pagination.pageSize, sorting, debouncedSearch, filters]);
 
   useEffect(() => {
     loadRequests();
@@ -392,7 +401,8 @@ const RequestPage: React.FC = () => {
         <div className="space-y-4">
           {activeSubPage === 'registry' && (
             <>
-              <div className="flex justify-end">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <FilterPanel filters={filters} onFiltersChange={setFilters} />
                 <div className="relative w-full max-sm:max-w-full max-w-sm">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 theme-text-muted" size={16} />
                   <input
