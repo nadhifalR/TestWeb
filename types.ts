@@ -73,3 +73,15 @@ export interface SystemLog {
   timestamp: string;
   details: string;
 }
+
+export interface RequestFilters {
+  dateExact?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  categories?: string[];
+  costMode?: 'exact' | 'range' | 'lt' | 'gt';
+  costExact?: number;
+  costMin?: number;
+  costMax?: number;
+  statuses?: RequestStatus[];
+}

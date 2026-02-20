@@ -14,7 +14,16 @@ async def get_requests(
     requester_id: Optional[str] = None,
     sort_by: Optional[str] = Query("created_at"),
     sort_order: Optional[str] = Query("desc"),
-    search: Optional[str] = Query("")
+    search: Optional[str] = Query(""),
+    # Advanced filters
+    date_exact: Optional[str] = Query(None),
+    date_from: Optional[str] = Query(None),
+    date_to: Optional[str] = Query(None),
+    category: Optional[str] = Query(None),
+    cost_exact: Optional[float] = Query(None),
+    cost_min: Optional[float] = Query(None),
+    cost_max: Optional[float] = Query(None),
+    status: Optional[str] = Query(None),
 ):
     try:
         query = supabase.table("requests").select("*, items:request_items(*)", count="exact").is_("deleted_at", "null")
@@ -25,6 +34,36 @@ async def get_requests(
         # Server-side search (case-insensitive on name column)
         if search:
             query = query.ilike("name", f"%{search}%")
+
+        # Date filters (applied to created_at)
+        if date_exact:
+            query = query.gte("created_at", f"{date_exact}T00:00:00").lte("created_at", f"{date_exact}T23:59:59")
+        else:
+            if date_from:
+                query = query.gte("created_at", f"{date_from}T00:00:00")
+            if date_to:
+                query = query.lte("created_at", f"{date_to}T23:59:59")
+
+        # Category filter (comma-separated list)
+        if category:
+            cats = [c.strip() for c in category.split(",") if c.strip()]
+            if cats:
+                query = query.in_("category", cats)
+
+        # Cost / Valuation filters
+        if cost_exact is not None:
+            query = query.eq("total_cost", cost_exact)
+        else:
+            if cost_min is not None:
+                query = query.gte("total_cost", cost_min)
+            if cost_max is not None:
+                query = query.lte("total_cost", cost_max)
+
+        # Status filter (comma-separated list)
+        if status:
+            statuses = [s.strip() for s in status.split(",") if s.strip()]
+            if statuses:
+                query = query.in_("status", statuses)
 
         # Validate and apply sorting
         if sort_by not in ALLOWED_SORT_COLUMNS:

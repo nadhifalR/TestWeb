@@ -1,4 +1,4 @@
-import { RequestForm, RequestStatus, RequestItem } from '../types';
+import { RequestForm, RequestStatus, RequestItem, RequestFilters } from '../types';
 import { LogManager } from './LogManager';
 import { NotificationManager } from './NotificationManager';
 import { AuthManager } from './AuthManager';
