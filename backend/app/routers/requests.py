@@ -5,22 +5,36 @@ from app.supabase_client import supabase
 
 router = APIRouter(prefix="/api/requests", tags=["requests"])
 
+ALLOWED_SORT_COLUMNS = {"id", "name", "category", "status", "total_cost", "created_at"}
+
 @router.get("/", response_model=PaginatedRequestsResponse)
 async def get_requests(
     page: int = Query(0, ge=0),
     page_size: int = Query(10, ge=1, le=1000),
-    requester_id: Optional[str] = None
+    requester_id: Optional[str] = None,
+    sort_by: Optional[str] = Query("created_at"),
+    sort_order: Optional[str] = Query("desc"),
+    search: Optional[str] = Query("")
 ):
     try:
         query = supabase.table("requests").select("*, items:request_items(*)", count="exact").is_("deleted_at", "null")
         
         if requester_id:
             query = query.eq("requester_id", requester_id)
+
+        # Server-side search (case-insensitive on name column)
+        if search:
+            query = query.ilike("name", f"%{search}%")
+
+        # Validate and apply sorting
+        if sort_by not in ALLOWED_SORT_COLUMNS:
+            sort_by = "created_at"
+        desc = sort_order != "asc"
             
         start = page * page_size
         end = start + page_size - 1
         
-        response = query.range(start, end).order("created_at", desc=True).execute()
+        response = query.order(sort_by, desc=desc).range(start, end).execute()
         
         data = response.data
         count = response.count

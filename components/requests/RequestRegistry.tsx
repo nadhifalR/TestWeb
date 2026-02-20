@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { Search } from 'lucide-react';
 import { DataTable } from '../common/DataTable';
 import { LoadingSpinner } from '../common/LoadingSpinner';
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, SortingState } from '@tanstack/react-table';
 import { RequestForm, RequestStatus } from '../../types';
 
 interface RequestRegistryProps {
@@ -14,6 +14,8 @@ interface RequestRegistryProps {
     onSelect: (request: RequestForm) => void;
     globalFilter: string;
     setGlobalFilter: (filter: string) => void;
+    sorting: SortingState;
+    onSortingChange: (sorting: SortingState) => void;
 }
 
 export const RequestRegistry: React.FC<RequestRegistryProps> = ({
@@ -24,7 +26,9 @@ export const RequestRegistry: React.FC<RequestRegistryProps> = ({
     setPagination,
     onSelect,
     globalFilter,
-    setGlobalFilter
+    setGlobalFilter,
+    sorting,
+    onSortingChange
 }) => {
     const columns = useMemo<ColumnDef<RequestForm>[]>(() => [
         {
@@ -119,8 +123,11 @@ export const RequestRegistry: React.FC<RequestRegistryProps> = ({
                         globalFilter={globalFilter}
                         setGlobalFilter={setGlobalFilter}
                         pageCount={Math.ceil(totalRequests / pagination.pageSize)}
+                        totalCount={totalRequests}
                         onPaginationChange={setPagination}
                         pagination={pagination}
+                        sorting={sorting}
+                        onSortingChange={onSortingChange}
                     />
                 )}
             </div>

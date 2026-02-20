@@ -46,12 +46,26 @@ export class RequestManager {
     }
   }
 
-  static async getRequestsPaginated(page: number = 0, pageSize: number = 1000): Promise<{ data: RequestForm[], total: number }> {
+  static async getRequestsPaginated(
+    page: number = 0,
+    pageSize: number = 10,
+    sortBy: string = 'created_at',
+    sortOrder: string = 'desc',
+    search: string = ''
+  ): Promise<{ data: RequestForm[], total: number }> {
     const user = AuthManager.getCurrentUser();
     if (!user) return { data: [], total: 0 };
 
     try {
-      const response = await fetch(`${API_URL}/api/requests?page=${page}&page_size=${pageSize}&requester_id=${user.role === 'REQUESTER' ? user.id : ''}`);
+      const params = new URLSearchParams({
+        page: String(page),
+        page_size: String(pageSize),
+        requester_id: user.role === 'REQUESTER' ? user.id : '',
+        sort_by: sortBy,
+        sort_order: sortOrder,
+        search: search,
+      });
+      const response = await fetch(`${API_URL}/api/requests?${params.toString()}`);
       if (!response.ok) throw new Error('API_FETCH_ERROR');
 
       const { data, total } = await response.json();

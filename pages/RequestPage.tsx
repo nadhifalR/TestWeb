@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Search, Hash } from 'lucide-react';
 import { RequestManager } from '../services/RequestManager';
@@ -9,7 +9,7 @@ import { AuthManager } from '../services/AuthManager';
 import { NotificationManager } from '../services/NotificationManager';
 import { LogManager } from '../services/LogManager';
 import { DataTable } from '../components/common/DataTable';
-import { ColumnDef } from '@tanstack/react-table';
+import { ColumnDef, SortingState } from '@tanstack/react-table';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { Drawer } from '../components/common/Drawer';
 import { RequestFormEditor } from '../components/requests/RequestFormEditor';
@@ -32,21 +32,43 @@ const RequestPage: React.FC = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [tempId] = useState(`TMP-${Math.random().toString(36).substr(2, 6).toUpperCase()}`);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Drawer State
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isFullscreenDrawer, setIsFullscreenDrawer] = useState(false);
 
+  // Debounce globalFilter -> debouncedSearch
+  useEffect(() => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(() => {
+      setDebouncedSearch(globalFilter);
+    }, 400);
+    return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
+  }, [globalFilter]);
+
+  // Reset page when sort or search changes
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, pageIndex: 0 }));
+  }, [sorting, debouncedSearch]);
+
   const loadRequests = useCallback(async () => {
     setIsLoading(true);
     try {
-      const { data, total } = await RequestManager.getRequestsPaginated(pagination.pageIndex, pagination.pageSize);
+      const sortBy = sorting.length > 0 ? sorting[0].id : 'created_at';
+      const sortOrder = sorting.length > 0 ? (sorting[0].desc ? 'desc' : 'asc') : 'desc';
+      // Map frontend accessor keys to backend column names
+      const columnMap: Record<string, string> = { createdAt: 'created_at', totalCost: 'total_cost' };
+      const mappedSortBy = columnMap[sortBy] || sortBy;
+      const { data, total } = await RequestManager.getRequestsPaginated(pagination.pageIndex, pagination.pageSize, mappedSortBy, sortOrder, debouncedSearch);
       setRequests(data);
       setTotalRequests(total);
     } finally {
       setIsLoading(false);
     }
-  }, [pagination.pageIndex, pagination.pageSize]);
+  }, [pagination.pageIndex, pagination.pageSize, sorting, debouncedSearch]);
 
   useEffect(() => {
     loadRequests();
@@ -393,8 +415,11 @@ const RequestPage: React.FC = () => {
                     globalFilter={globalFilter}
                     setGlobalFilter={setGlobalFilter}
                     pageCount={Math.ceil(totalRequests / pagination.pageSize)}
+                    totalCount={totalRequests}
                     onPaginationChange={setPagination}
                     pagination={pagination}
+                    sorting={sorting}
+                    onSortingChange={setSorting}
                   />
                 )}
               </div>

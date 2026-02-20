@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -33,8 +33,11 @@ interface DataTableProps<T> {
   showFooter?: boolean;
   pageSize?: number;
   pageCount?: number;
+  totalCount?: number;
   pagination?: { pageIndex: number; pageSize: number };
   onPaginationChange?: (pagination: { pageIndex: number; pageSize: number }) => void;
+  sorting?: SortingState;
+  onSortingChange?: (sorting: SortingState) => void;
 }
 
 export function DataTable<T extends { id: string | number }>({
@@ -46,10 +49,13 @@ export function DataTable<T extends { id: string | number }>({
   showFooter = false,
   pageSize = 10,
   pageCount,
+  totalCount,
   onPaginationChange,
-  pagination: controlledPagination
+  pagination: controlledPagination,
+  sorting: controlledSorting,
+  onSortingChange,
 }: DataTableProps<T>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [internalSorting, setInternalSorting] = useState<SortingState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
   const [showVisibilityMenu, setShowVisibilityMenu] = useState(false);
@@ -58,20 +64,31 @@ export function DataTable<T extends { id: string | number }>({
     pageSize: pageSize,
   });
 
+  const isServerSide = !!pageCount;
   const finalPagination = controlledPagination ?? internalPagination;
+  const finalSorting = controlledSorting ?? internalSorting;
+
+  const handleSortingChange = useCallback((updater: any) => {
+    const nextState = typeof updater === 'function' ? updater(finalSorting) : updater;
+    if (onSortingChange) {
+      onSortingChange(nextState);
+    } else {
+      setInternalSorting(nextState);
+    }
+  }, [finalSorting, onSortingChange]);
 
   const table = useReactTable({
     data,
     columns,
     pageCount: pageCount ?? -1,
     state: {
-      sorting,
+      sorting: finalSorting,
       globalFilter,
       columnVisibility,
       columnSizing,
       pagination: finalPagination,
     },
-    onSortingChange: setSorting,
+    onSortingChange: handleSortingChange,
     onGlobalFilterChange: setGlobalFilter,
     onColumnVisibilityChange: setColumnVisibility,
     onColumnSizingChange: setColumnSizing,
@@ -85,11 +102,13 @@ export function DataTable<T extends { id: string | number }>({
         setInternalPagination(updater);
       }
     },
-    manualPagination: !!pageCount,
+    manualPagination: isServerSide,
+    manualSorting: isServerSide,
+    manualFiltering: isServerSide,
     columnResizeMode: 'onChange',
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
+    ...(isServerSide ? {} : { getSortedRowModel: getSortedRowModel() }),
+    ...(isServerSide ? {} : { getFilteredRowModel: getFilteredRowModel() }),
     getPaginationRowModel: getPaginationRowModel(),
     initialState: {
       pagination: {
@@ -285,7 +304,7 @@ export function DataTable<T extends { id: string | number }>({
           </div>
           <p className="text-[10px] font-black theme-text-muted uppercase tracking-widest">
             {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}-
-            {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, data.length)} of {data.length}
+            {Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, totalCount ?? data.length)} of {totalCount ?? data.length}
           </p>
         </div>
 
